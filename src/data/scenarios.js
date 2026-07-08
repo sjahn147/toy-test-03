@@ -78,5 +78,15 @@ export const SCENARIOS = [
       { id: 'chest-a', type: 'treasure', roomId: 'reliquary', label: 'Reliquary Box' },
       { id: 'trap-a', type: 'trap', roomId: 'nave', armed: true, label: 'Censer Wire' }
     ]
+  },
+  {
+    id: 'sprawling-warren',
+    name: 'The Sprawling Warren',
+    description: '넓게 퍼진 개미집형 실험 맵. 방이 많지만 수직 레이어 없이 수평으로 읽히도록 만든 확장 표본입니다.',
+    useGeneratedMap: true,
+    rooms: [],
+    links: [],
+    agents: [],
+    props: []
   }
 ];
