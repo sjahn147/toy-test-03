@@ -106,6 +106,9 @@ function active(agent) {
 
 function shouldLeave(agent, sim) {
   if (agent.roomId !== 'entry' && sim.turn < 10) return false;
+  const activeMonsters = sim.agents.filter(a => active(a) && a.faction === 'dungeon' && !a.hidden).length;
+  if (activeMonsters === 0 && sim.turn > 8) return true;
+  if (activeMonsters < 2 && sim.turn > 18 && Math.random() < 0.45) return true;
   if (agent.hp < agent.maxHp * 0.35) return true;
   if (agent.gold >= 5 && sim.turn > 14) return true;
   if (sim.props.every(p => p.type !== 'treasure' || p.opened) && sim.turn > 18) return true;
