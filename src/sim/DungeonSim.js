@@ -17,12 +17,12 @@ export class DungeonSim {
     this.time = 0;
     this.turn = 0;
     this.accumulator = 0;
-    this.turnInterval = 2.25;
+    this.turnInterval = 2.75;
     this.lastNoiseRoom = null;
     this.ended = false;
     this.agentSeq = this.agents.length;
     this.propSeq = this.props.length;
-    this.monsterFood = 0;
+    this.monsterFood = 1;
     this.reputation = 1;
     this.generation = 1;
     this.returnClock = null;
@@ -42,6 +42,7 @@ export class DungeonSim {
     const acting = this.agents.filter(a => this.isActive(a)).sort((a, b) => a.index - b.index);
     for (const agent of acting) {
       this.resolve(agent, decideAction(agent, this));
+      this.checkRoomEffect(agent);
       this.checkTraps(agent);
     }
 
@@ -124,18 +125,18 @@ export class DungeonSim {
     this.event(`${target.name} stopped participating in the experiment.`);
 
     if (target.faction === 'party' && killer.faction === 'dungeon') {
-      this.monsterFood += 1;
+      this.monsterFood += 2;
       killer.kills += 1;
-      killer.hp = Math.min(killer.maxHp + 2, killer.hp + 4);
+      killer.hp = Math.min(killer.maxHp + 3, killer.hp + 5);
       this.event(`${killer.name} fed. The dungeon remembered the taste.`);
-      if (this.monsterFood >= 2) this.scheduleMonsterBirth();
+      this.scheduleMonsterBirth(true);
     }
 
     if (target.faction === 'dungeon' && killer.faction === 'party') {
       killer.kills += 1;
       killer.gold += 1;
-      this.reputation += 0.28;
-      if (killer.kills % 2 === 0) {
+      this.reputation += 0.22;
+      if (killer.kills % 3 === 0) {
         killer.level += 1;
         killer.maxHp += 2;
         killer.attack += 1;
@@ -145,10 +146,34 @@ export class DungeonSim {
     }
   }
 
+  checkRoomEffect(agent) {
+    if (!this.isActive(agent)) return;
+    const room = this.rooms.find(r => r.id === agent.roomId);
+    if (!room) return;
+    agent.roomMemory ??= new Set();
+    const key = `${agent.id}:${room.id}`;
+
+    if (agent.faction === 'party' && room.kind === 'armory' && !agent.roomMemory.has(key)) {
+      agent.roomMemory.add(key);
+      agent.attack += 1;
+      this.event(`${agent.name} found a weapon that looked barely legal.`);
+    }
+
+    if (agent.faction === 'party' && room.kind === 'shrine' && !agent.roomMemory.has(key)) {
+      agent.roomMemory.add(key);
+      agent.hp = Math.min(agent.maxHp, agent.hp + 5);
+      this.event(`${agent.name} rested at ${room.name} and mistook relief for destiny.`);
+    }
+
+    if (agent.faction === 'dungeon' && ['hatchery', 'pantry', 'lair'].includes(room.kind) && this.turn % 4 === 0) {
+      this.monsterFood += 0.35;
+    }
+  }
+
   checkTraps(agent) {
     if (!this.isActive(agent) || agent.faction !== 'party') return;
     const trap = this.props.find(p => p.type === 'trap' && p.armed && p.roomId === agent.roomId);
-    if (!trap || Math.random() > 0.18) return;
+    if (!trap || Math.random() > 0.22) return;
     trap.armed = false;
     const damage = 3 + Math.floor(Math.random() * 6);
     agent.hp -= damage;
@@ -165,7 +190,7 @@ export class DungeonSim {
   ecosystemTick() {
     if (this.spawnClock !== null) {
       this.spawnClock -= 1;
-      if (this.spawnClock <= 0) this.spawnMonster();
+      if (this.spawnClock <= 0) this.spawnMonsterPack();
     }
 
     if (this.returnClock !== null) {
@@ -175,25 +200,29 @@ export class DungeonSim {
 
     const activeParty = this.agents.filter(a => this.isActive(a) && a.faction === 'party');
     const activeMonsters = this.agents.filter(a => this.isActive(a) && a.faction === 'dungeon' && !a.hidden);
+    const desiredMonsters = Math.min(18, Math.max(5, activeParty.length * 2 + Math.floor(this.reputation)));
 
     if (activeParty.length === 0) this.scheduleReturn();
-    if (activeMonsters.length < 2) this.scheduleMonsterBirth();
+    if (activeMonsters.length < desiredMonsters) this.scheduleMonsterBirth(activeMonsters.length < activeParty.length);
 
-    if (this.turn > 0 && this.turn % 18 === 0) {
+    const hatcheries = this.rooms.filter(r => ['hatchery', 'lair', 'nest'].includes(r.kind)).length;
+    this.monsterFood += hatcheries * 0.06;
+
+    if (this.turn > 0 && this.turn % 10 === 0) {
       this.rearmDungeon();
     }
   }
 
   scheduleReturn() {
     if (this.returnClock === null) {
-      this.returnClock = 4 + Math.floor(Math.random() * 4);
+      this.returnClock = 5 + Math.floor(Math.random() * 5);
       this.event('Above ground, the tavern began simplifying the story.');
     }
   }
 
-  scheduleMonsterBirth() {
+  scheduleMonsterBirth(urgent = false) {
     if (this.spawnClock === null) {
-      this.spawnClock = 3 + Math.floor(Math.random() * 4);
+      this.spawnClock = urgent ? 1 + Math.floor(Math.random() * 2) : 2 + Math.floor(Math.random() * 3);
       this.event('Something under the flagstones began dividing its inheritance.');
     }
   }
@@ -212,7 +241,7 @@ export class DungeonSim {
     }
 
     const livingParty = this.agents.filter(a => this.isActive(a) && a.faction === 'party');
-    const desiredSize = Math.min(6, 4 + Math.floor(this.reputation / 2));
+    const desiredSize = Math.min(7, 4 + Math.floor(this.reputation / 2));
     while (livingParty.length < desiredSize) {
       const role = PARTY_ROLES[(this.agentSeq + livingParty.length) % PARTY_ROLES.length];
       const name = PARTY_NAMES[this.agentSeq % PARTY_NAMES.length] + ` ${this.generation}`;
@@ -222,7 +251,7 @@ export class DungeonSim {
         role,
         faction: 'party',
         roomId: entry,
-        level: Math.max(1, Math.floor(this.reputation / 2))
+        level: Math.max(1, Math.floor(this.reputation / 3))
       }, this.agentSeq);
       this.agents.push(recruit);
       livingParty.push(recruit);
@@ -230,21 +259,38 @@ export class DungeonSim {
     }
   }
 
-  spawnMonster() {
+  spawnMonsterPack() {
     this.spawnClock = null;
-    this.monsterFood = Math.max(0, this.monsterFood - 2);
-    const lair = this.rooms.find(r => ['lair', 'crypt', 'treasure', 'trap'].includes(r.kind))?.id ?? this.rooms.at(-1).id;
+    const activeParty = this.agents.filter(a => this.isActive(a) && a.faction === 'party');
+    const packSize = Math.min(4, Math.max(1, 1 + Math.floor(this.monsterFood / 1.6) + (activeParty.length > 4 ? 1 : 0)));
+    this.monsterFood = Math.max(0, this.monsterFood - packSize * 1.2);
+
+    for (let i = 0; i < packSize; i++) {
+      this.spawnMonster();
+    }
+  }
+
+  spawnMonster() {
+    const lair = this.pickSpawnRoom();
     const role = MONSTER_ROLES[this.agentSeq % MONSTER_ROLES.length];
     const baby = hydrateAgent({
       id: `monster-${this.agentSeq++}`,
-      name: `${role[0].toUpperCase()}${role.slice(1)}ling ${this.generation}`,
+      name: `${role[0].toUpperCase()}${role.slice(1)}ling ${this.generation}.${this.agentSeq}`,
       role,
       faction: 'dungeon',
-      roomId: lair,
-      level: Math.max(1, Math.floor(this.monsterFood / 2) + this.generation % 3)
+      roomId: lair.id,
+      level: Math.max(1, Math.floor(this.generation / 3))
     }, this.agentSeq);
     this.agents.push(baby);
-    this.event(`${baby.name} was born in ${this.roomName(lair)} and immediately had opinions.`);
+    this.event(`${baby.name} crawled out of ${lair.name} and immediately had opinions.`);
+  }
+
+  pickSpawnRoom() {
+    const partyRooms = new Set(this.agents.filter(a => this.isActive(a) && a.faction === 'party').map(a => a.roomId));
+    const candidates = this.rooms.filter(r => ['hatchery', 'lair', 'nest', 'crypt', 'gate'].includes(r.kind));
+    const safe = candidates.filter(r => !partyRooms.has(r.id));
+    const pool = safe.length ? safe : candidates;
+    return pool[Math.floor(Math.random() * pool.length)] ?? this.rooms.at(-1);
   }
 
   rearmDungeon() {
@@ -254,8 +300,8 @@ export class DungeonSim {
       this.event(`${trap.label} reset itself with quiet malice.`);
     }
 
-    const treasureRooms = this.rooms.filter(r => ['treasure', 'lair', 'crypt'].includes(r.kind));
-    if (treasureRooms.length && Math.random() < 0.55) {
+    const treasureRooms = this.rooms.filter(r => ['treasure', 'lair', 'crypt', 'gate'].includes(r.kind));
+    if (treasureRooms.length && Math.random() < 0.72) {
       const room = treasureRooms[Math.floor(Math.random() * treasureRooms.length)];
       this.props.push({
         id: `treasure-${this.propSeq++}`,
