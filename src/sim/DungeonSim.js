@@ -8,8 +8,8 @@ const MONSTER_ROLES = ['goblin', 'skeleton', 'slime'];
 export class DungeonSim {
   constructor(scenario, { onEvent } = {}) {
     this.scenario = scenario;
-    this.rooms = structuredClone(scenario.rooms);
-    this.props = structuredClone(scenario.props);
+    this.rooms = cloneData(scenario.rooms);
+    this.props = cloneData(scenario.props);
     this.agents = scenario.agents.map(hydrateAgent);
     this.graph = buildGraph(scenario.links);
     this.visited = new Set(['entry']);
@@ -290,7 +290,7 @@ export class DungeonSim {
     const candidates = this.rooms.filter(r => ['hatchery', 'lair', 'nest', 'crypt', 'gate'].includes(r.kind));
     const safe = candidates.filter(r => !partyRooms.has(r.id));
     const pool = safe.length ? safe : candidates;
-    return pool[Math.floor(Math.random() * pool.length)] ?? this.rooms.at(-1);
+    return pool[Math.floor(Math.random() * pool.length)] ?? this.rooms[this.rooms.length - 1];
   }
 
   rearmDungeon() {
@@ -353,4 +353,9 @@ export class DungeonSim {
       fallen: this.agents.filter(a => !a.alive).length
     };
   }
+}
+
+function cloneData(value) {
+  if (typeof structuredClone === 'function') return structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
 }
