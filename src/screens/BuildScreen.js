@@ -19,16 +19,14 @@ export class BuildScreen {
             <div class="eyebrow">Theme select</div>
             <h1>던전 표본 선택</h1>
           </div>
-          <button class="btn primary build-top-start" data-action="observe-top">선택한 던전 시작</button>
         </div>
-        <p>표본을 하나 고른 뒤 시작하세요. 모바일에서는 카드가 길어져도 시작 버튼이 항상 보이도록 고정했습니다.</p>
+        <p>표본을 하나 고른 뒤 아래의 시작 버튼을 누르세요. 기존 세 맵은 작게 유지하고, 확장형 개미집 맵은 별도 테마로 분리했습니다.</p>
         <div class="selected-banner" data-selected-banner></div>
         <div class="option-grid">
           ${this.scenarios.map(s => `
             <article class="option-card ${s.id === this.selectedId ? 'is-selected' : ''}" data-id="${s.id}">
               <h3>${s.name}</h3>
               <small>${s.description}</small>
-              <button class="btn primary card-start" data-card-start="${s.id}">이 던전 시작</button>
             </article>
           `).join('')}
         </div>
@@ -50,25 +48,14 @@ export class BuildScreen {
     };
 
     el.querySelectorAll('.option-card').forEach(card => {
-      bindPress(card, (event) => {
-        if (event.target?.matches?.('[data-card-start]')) return;
+      bindPress(card, () => {
         this.selectedId = card.dataset.id;
         updateSelected();
       });
     });
 
-    el.querySelectorAll('[data-card-start]').forEach(button => {
-      bindPress(button, (event) => {
-        event.stopPropagation?.();
-        this.selectedId = button.dataset.cardStart;
-        updateSelected();
-        startSelected();
-      });
-    });
-
     bindPress(el.querySelector('[data-action="back"]'), this.onBack);
     bindPress(el.querySelector('[data-action="observe"]'), startSelected);
-    bindPress(el.querySelector('[data-action="observe-top"]'), startSelected);
 
     updateSelected();
     root.appendChild(el);
