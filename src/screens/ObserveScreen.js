@@ -19,16 +19,16 @@ export class ObserveScreen {
       <div class="viewport">
         <div class="legend">
           <strong>${this.scenario.name}</strong>
-          <span>Drag not required. Just observe the little fools.</span>
+          <span>Slow ant-farm mode: parties leave, monsters breed, rumors return.</span>
         </div>
       </div>
       <aside class="hud">
         <h2>Observation</h2>
         <p>${this.scenario.description}</p>
         <div class="metrics">
-          <div class="metric"><b data-metric="party">0</b><span>party alive</span></div>
+          <div class="metric"><b data-metric="party">0</b><span>party inside</span></div>
           <div class="metric"><b data-metric="dungeon">0</b><span>dungeon awake</span></div>
-          <div class="metric"><b data-metric="treasure">0</b><span>treasures opened</span></div>
+          <div class="metric"><b data-metric="cycles">1</b><span>return cycle</span></div>
           <div class="metric"><b data-metric="fallen">0</b><span>fallen mice</span></div>
         </div>
         <div class="actions">
@@ -69,7 +69,7 @@ export class ObserveScreen {
 
   pushEvent(text) {
     this.events.unshift(text);
-    this.events = this.events.slice(0, 12);
+    this.events = this.events.slice(0, 14);
     this.logEl.innerHTML = this.events.map(e => `<div class="log-entry">${escapeHtml(e)}</div>`).join('');
   }
 
@@ -83,7 +83,7 @@ export class ObserveScreen {
 
   loop() {
     const dt = Math.min(this.three.clock.getDelta(), 0.045);
-    if (this.running) this.sim.update(dt * 1.2);
+    if (this.running) this.sim.update(dt * 0.72);
     this.renderer.renderState(this.sim.snapshot());
     this.updateMetrics();
     this.three.updateCamera(this.sim.time);
