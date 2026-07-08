@@ -1,3 +1,5 @@
+import { bindPress } from '../app/bindPress.js';
+
 export class BuildScreen {
   constructor({ state, scenarios, onBack, onStart }) {
     this.state = state;
@@ -31,15 +33,15 @@ export class BuildScreen {
     `;
 
     el.querySelectorAll('.option-card').forEach(card => {
-      card.addEventListener('click', () => {
+      bindPress(card, () => {
         this.selectedId = card.dataset.id;
         el.querySelectorAll('.option-card').forEach(c => c.classList.remove('is-selected'));
         card.classList.add('is-selected');
       });
     });
 
-    el.querySelector('[data-action="back"]').addEventListener('click', this.onBack);
-    el.querySelector('[data-action="observe"]').addEventListener('click', () => {
+    bindPress(el.querySelector('[data-action="back"]'), this.onBack);
+    bindPress(el.querySelector('[data-action="observe"]'), () => {
       this.onStart({ scenarioId: this.selectedId });
     });
 
