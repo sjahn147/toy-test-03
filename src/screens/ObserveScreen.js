@@ -15,6 +15,8 @@ export class ObserveScreen {
     this.raf = null;
     this.selectedAgentId = null;
     this.pointerDown = null;
+    this.cameraMode = 'fixed';
+    this.mapCamera = { x: 0, y: 2.8, z: 0, distance: 52 };
   }
 
   mount(root) {
@@ -24,7 +26,12 @@ export class ObserveScreen {
       <div class="viewport">
         <div class="legend">
           <strong>${this.scenario.name}</strong>
-          <span>Drag to rotate. Wheel or pinch to zoom. Tap a creature to inspect.</span>
+          <span>Fixed / Follow / Free camera. Tap a creature to inspect or follow it.</span>
+        </div>
+        <div class="camera-strip" data-camera-strip>
+          <button class="camera-btn is-active" data-camera-mode="fixed">고정</button>
+          <button class="camera-btn" data-camera-mode="follow">추적</button>
+          <button class="camera-btn" data-camera-mode="free">자유</button>
         </div>
       </div>
       <aside class="hud">
@@ -64,6 +71,10 @@ export class ObserveScreen {
       onEvent: (event) => this.pushEvent(event.text)
     });
 
+    el.querySelectorAll('[data-camera-mode]').forEach(button => {
+      button.addEventListener('click', () => this.setCameraMode(button.dataset.cameraMode));
+    });
+
     el.querySelector('[data-action="pause"]').addEventListener('click', (e) => {
       this.running = !this.running;
       e.currentTarget.textContent = this.running ? '일시정지' : '재생';
@@ -86,9 +97,24 @@ export class ObserveScreen {
       const agentId = this.renderer.pickAgent(event.clientX, event.clientY);
       this.selectedAgentId = agentId;
       this.renderInspectPanel();
+      if (agentId && this.cameraMode === 'follow') this.pushCameraToFollowTarget(true);
     });
 
     this.loop();
+  }
+
+  setCameraMode(mode) {
+    this.cameraMode = mode;
+    this.el.querySelectorAll('[data-camera-mode]').forEach(button => {
+      button.classList.toggle('is-active', button.dataset.cameraMode === mode);
+    });
+    if (mode === 'fixed') {
+      this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, false);
+    }
+    if (mode === 'follow') {
+      this.ensureFollowTarget();
+      this.pushCameraToFollowTarget(true);
+    }
   }
 
   fitCameraToScenario() {
@@ -101,8 +127,28 @@ export class ObserveScreen {
     const cx = (minX + maxX) / 2;
     const cz = (minZ + maxZ) / 2;
     const span = Math.max(maxX - minX, maxZ - minZ);
-    this.three.target.set(cx, 2.8, cz);
-    this.three.distance = Math.max(24, Math.min(88, span * 1.18));
+    const distance = Math.max(24, Math.min(88, span * 1.18));
+    this.mapCamera = { x: cx, y: 2.8, z: cz, distance };
+    this.three.setCameraTarget(cx, 2.8, cz, distance, true);
+  }
+
+  ensureFollowTarget() {
+    const current = this.sim.agents.find(a => a.id === this.selectedAgentId && a.alive && !a.departed && !a.hidden);
+    if (current) return current;
+    const fallback = this.sim.agents.find(a => a.alive && !a.departed && a.faction === 'party')
+      ?? this.sim.agents.find(a => a.alive && !a.departed && !a.hidden);
+    this.selectedAgentId = fallback?.id ?? null;
+    if (this.selectedAgentId) this.renderInspectPanel();
+    return fallback;
+  }
+
+  pushCameraToFollowTarget(immediate = false) {
+    const agent = this.ensureFollowTarget();
+    if (!agent) return;
+    const room = this.scenario.rooms.find(r => r.id === agent.roomId);
+    if (!room) return;
+    const y = (room.floor ?? 0) * 2.85 + 3.0;
+    this.three.setCameraTarget(room.x, y, room.z, 26, immediate);
   }
 
   pickRoom(kinds) {
@@ -169,7 +215,9 @@ export class ObserveScreen {
     this.renderer.renderState(this.sim.snapshot());
     this.updateMetrics();
     if (this.selectedAgentId) this.renderInspectPanel();
-    this.three.updateCamera(this.sim.time);
+    if (this.cameraMode === 'follow') this.pushCameraToFollowTarget(false);
+    if (this.cameraMode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, false);
+    this.three.updateCamera();
     this.three.render();
     this.raf = requestAnimationFrame(() => this.loop());
   }
