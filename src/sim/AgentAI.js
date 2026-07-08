@@ -13,25 +13,30 @@ const STATS = {
 
 export function hydrateAgent(raw, i) {
   const stats = STATS[raw.role] ?? STATS.goblin;
+  const level = raw.level ?? 1;
+  const partyBoost = raw.faction === 'party' ? level - 1 : Math.floor((level - 1) * 0.6);
   return {
     ...raw,
     index: i,
-    hp: stats.hp,
-    maxHp: stats.hp,
-    attack: stats.attack,
+    level,
+    hp: stats.hp + partyBoost * 3,
+    maxHp: stats.hp + partyBoost * 3,
+    attack: stats.attack + partyBoost,
     courage: stats.courage,
     alive: true,
+    departed: false,
     cooldown: 0,
     mood: raw.hidden ? 'waiting' : 'curious',
-    gold: 0
+    gold: raw.gold ?? 0,
+    kills: raw.kills ?? 0
   };
 }
 
 export function decideAction(agent, sim) {
-  if (!agent.alive) return { type: 'idle' };
+  if (!agent.alive || agent.departed) return { type: 'idle' };
 
-  const enemiesHere = sim.agents.filter(a => a.alive && a.faction !== agent.faction && a.roomId === agent.roomId && !a.hidden);
-  const alliesHere = sim.agents.filter(a => a.alive && a.faction === agent.faction && a.roomId === agent.roomId);
+  const enemiesHere = sim.agents.filter(a => active(a) && a.faction !== agent.faction && a.roomId === agent.roomId && !a.hidden);
+  const alliesHere = sim.agents.filter(a => active(a) && a.faction === agent.faction && a.roomId === agent.roomId);
 
   if (agent.role === 'mimic') {
     const rogueHere = enemiesHere.find(a => a.role === 'rogue');
@@ -42,15 +47,20 @@ export function decideAction(agent, sim) {
     return { type: 'idle' };
   }
 
+  if (agent.faction === 'party' && shouldLeave(agent, sim)) {
+    if (agent.roomId === 'entry') return { type: 'exitDungeon' };
+    return moveToward(agent, sim, 'entry', `${agent.name} started thinking about retirement and reinforcements.`);
+  }
+
   if (enemiesHere.length) {
-    if (agent.role === 'wizard' && agent.hp <= 4) return flee(agent, sim, 'Orwin decided scholarship was better than martyrdom.');
+    if (agent.role === 'wizard' && agent.hp <= agent.maxHp * 0.42) return flee(agent, sim, `${agent.name} chose field research from a safer room.`);
     if (agent.role === 'goblin' && alliesHere.length < 2) return flee(agent, sim, `${agent.name} remembered an urgent goblin appointment elsewhere.`);
     const target = weakest(enemiesHere);
     return { type: 'attack', targetId: target.id };
   }
 
   if (agent.role === 'cleric') {
-    const wounded = sim.agents.find(a => a.alive && a.faction === agent.faction && a.hp < a.maxHp * 0.55);
+    const wounded = sim.agents.find(a => active(a) && a.faction === agent.faction && a.hp < a.maxHp * 0.55);
     if (wounded) {
       if (wounded.roomId === agent.roomId) return { type: 'heal', targetId: wounded.id };
       return moveToward(agent, sim, wounded.roomId, `${agent.name} hurried toward the smell of regret.`);
@@ -77,17 +87,29 @@ export function decideAction(agent, sim) {
   }
 
   if (agent.faction === 'dungeon') {
-    const partyRooms = sim.agents.filter(a => a.alive && a.faction === 'party').map(a => a.roomId);
+    const partyRooms = sim.agents.filter(a => active(a) && a.faction === 'party').map(a => a.roomId);
     const target = nearestRoom(sim.graph, agent.roomId, partyRooms);
     if (target) return moveToward(agent, sim, target);
   }
 
   const neighbors = sim.graph.get(agent.roomId) ?? [];
-  if (neighbors.length && Math.random() < 0.35) {
+  if (neighbors.length && Math.random() < 0.18) {
     return { type: 'move', roomId: neighbors[Math.floor(Math.random() * neighbors.length)] };
   }
 
   return { type: 'idle' };
+}
+
+function active(agent) {
+  return agent.alive && !agent.departed;
+}
+
+function shouldLeave(agent, sim) {
+  if (agent.roomId !== 'entry' && sim.turn < 10) return false;
+  if (agent.hp < agent.maxHp * 0.35) return true;
+  if (agent.gold >= 5 && sim.turn > 14) return true;
+  if (sim.props.every(p => p.type !== 'treasure' || p.opened) && sim.turn > 18) return true;
+  return false;
 }
 
 function weakest(agents) {
@@ -101,7 +123,7 @@ function moveToward(agent, sim, targetRoom, text = null) {
 }
 
 function flee(agent, sim, text) {
-  const enemies = sim.agents.filter(a => a.alive && a.faction !== agent.faction).map(a => a.roomId);
+  const enemies = sim.agents.filter(a => active(a) && a.faction !== agent.faction).map(a => a.roomId);
   const options = sim.graph.get(agent.roomId) ?? [];
   const safer = options.find(room => !enemies.includes(room)) ?? options[0];
   if (!safer) return { type: 'idle' };
