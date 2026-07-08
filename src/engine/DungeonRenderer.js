@@ -1,12 +1,21 @@
 import { THREE } from './ThreeScene.js';
 
+const FLOOR_HEIGHT = 2.85;
+
 const ROOM_COLORS = {
   start: 0x4f6d7a,
   hall: 0x6b5b48,
   treasure: 0x8a6a2b,
   crypt: 0x595b6d,
   trap: 0x6e3f3d,
-  lair: 0x4c5a38
+  lair: 0x4c5a38,
+  nest: 0x445f35,
+  hatchery: 0x6f5d42,
+  shrine: 0x6d648e,
+  armory: 0x687077,
+  pantry: 0x66513a,
+  stairs: 0x3f4f61,
+  gate: 0x523a68
 };
 
 const ROLE_COLORS = {
@@ -33,8 +42,13 @@ export class DungeonRenderer {
     this.buildLinks();
   }
 
+  roomY(room) {
+    return (room.floor ?? 0) * FLOOR_HEIGHT;
+  }
+
   buildRooms() {
     for (const room of this.scenario.rooms) {
+      const y = this.roomY(room);
       const floor = new THREE.Mesh(
         new THREE.BoxGeometry(room.w, 0.35, room.d),
         new THREE.MeshStandardMaterial({
@@ -43,35 +57,64 @@ export class DungeonRenderer {
           metalness: 0.02
         })
       );
-      floor.position.set(room.x, 0, room.z);
+      floor.position.set(room.x, y, room.z);
       floor.userData.roomId = room.id;
       this.group.add(floor);
       this.roomMeshes.set(room.id, floor);
 
       const wallMat = new THREE.MeshStandardMaterial({ color: 0x252435, roughness: 0.88 });
-      const north = wall(room.w, 0.45); north.position.set(room.x, 0.5, room.z - room.d / 2);
-      const south = wall(room.w, 0.45); south.position.set(room.x, 0.5, room.z + room.d / 2);
-      const west = wall(0.45, room.d); west.position.set(room.x - room.w / 2, 0.5, room.z);
-      const east = wall(0.45, room.d); east.position.set(room.x + room.w / 2, 0.5, room.z);
+      const north = wall(room.w, 0.45); north.position.set(room.x, y + 0.5, room.z - room.d / 2);
+      const south = wall(room.w, 0.45); south.position.set(room.x, y + 0.5, room.z + room.d / 2);
+      const west = wall(0.45, room.d); west.position.set(room.x - room.w / 2, y + 0.5, room.z);
+      const east = wall(0.45, room.d); east.position.set(room.x + room.w / 2, y + 0.5, room.z);
       for (const m of [north, south, west, east]) {
         m.material = wallMat;
         this.group.add(m);
       }
+
+      if (room.kind === 'hatchery') this.addRoomMarker(room, 0xff9b72);
+      if (room.kind === 'shrine') this.addRoomMarker(room, 0xb6a5ff);
+      if (room.kind === 'gate') this.addRoomMarker(room, 0xd58cff);
     }
+  }
+
+  addRoomMarker(room, color) {
+    const y = this.roomY(room);
+    const marker = new THREE.Mesh(
+      new THREE.TorusGeometry(Math.min(room.w, room.d) * 0.27, 0.045, 8, 32),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.72 })
+    );
+    marker.rotation.x = Math.PI / 2;
+    marker.position.set(room.x, y + 0.26, room.z);
+    this.group.add(marker);
   }
 
   buildLinks() {
     const mat = new THREE.MeshStandardMaterial({ color: 0x3a3342, roughness: 0.9 });
+    const stairMat = new THREE.MeshStandardMaterial({ color: 0x55647a, roughness: 0.75 });
     for (const [aId, bId] of this.scenario.links) {
       const a = this.scenario.rooms.find(r => r.id === aId);
       const b = this.scenario.rooms.find(r => r.id === bId);
+      if (!a || !b) continue;
+      const ay = this.roomY(a);
+      const by = this.roomY(b);
       const midX = (a.x + b.x) / 2;
+      const midY = (ay + by) / 2 + 0.08;
       const midZ = (a.z + b.z) / 2;
       const dx = Math.abs(a.x - b.x);
       const dz = Math.abs(a.z - b.z);
-      const corridor = new THREE.Mesh(new THREE.BoxGeometry(Math.max(1.2, dx), 0.22, Math.max(1.2, dz)), mat);
-      corridor.position.set(midX, 0.04, midZ);
-      this.group.add(corridor);
+      const dy = Math.abs(ay - by);
+
+      if (dy > 0.1) {
+        const stair = new THREE.Mesh(new THREE.BoxGeometry(Math.max(1.1, dx), 0.24, Math.max(1.1, dz)), stairMat);
+        stair.position.set(midX, midY, midZ);
+        stair.rotation.z = (by - ay) * 0.035;
+        this.group.add(stair);
+      } else {
+        const corridor = new THREE.Mesh(new THREE.BoxGeometry(Math.max(1.2, dx), 0.22, Math.max(1.2, dz)), mat);
+        corridor.position.set(midX, ay + 0.04, midZ);
+        this.group.add(corridor);
+      }
     }
   }
 
@@ -98,8 +141,9 @@ export class DungeonRenderer {
       }
       const room = rooms.find(r => r.id === prop.roomId);
       if (!room) continue;
+      const y = this.roomY(room);
       const offset = prop.type === 'trap' ? [-room.w * 0.22, -room.d * 0.18] : [room.w * 0.22, room.d * 0.18];
-      mesh.position.set(room.x + offset[0], prop.type === 'trap' ? 0.25 : 0.8, room.z + offset[1]);
+      mesh.position.set(room.x + offset[0], y + (prop.type === 'trap' ? 0.25 : 0.8), room.z + offset[1]);
       mesh.visible = prop.type !== 'treasure' || !prop.opened;
     }
   }
@@ -128,10 +172,11 @@ export class DungeonRenderer {
 
       const room = rooms.find(r => r.id === agent.roomId);
       if (!room) continue;
-      const slot = idx % 6;
+      const y = this.roomY(room);
+      const slot = idx % 9;
       const ox = ((slot % 3) - 1) * 0.85;
-      const oz = (Math.floor(slot / 3) - 0.5) * 0.85;
-      mesh.position.lerp(new THREE.Vector3(room.x + ox, 0.9, room.z + oz), 0.18);
+      const oz = (Math.floor(slot / 3) - 1) * 0.85;
+      mesh.position.lerp(new THREE.Vector3(room.x + ox, y + 0.9, room.z + oz), 0.18);
       mesh.rotation.y += 0.04;
       mesh.visible = true;
       const hpScale = Math.max(0.15, agent.hp / agent.maxHp);
@@ -189,6 +234,20 @@ function makeProp(prop) {
     return new THREE.Mesh(
       new THREE.CylinderGeometry(0.55, 0.55, 0.16, 5),
       new THREE.MeshStandardMaterial({ color: 0xbd3d38, roughness: 0.7 })
+    );
+  }
+
+  if (prop.type === 'armory') {
+    return new THREE.Mesh(
+      new THREE.BoxGeometry(1.0, 0.35, 0.35),
+      new THREE.MeshStandardMaterial({ color: 0xa9b2ba, metalness: 0.25, roughness: 0.38 })
+    );
+  }
+
+  if (prop.type === 'shrine') {
+    return new THREE.Mesh(
+      new THREE.CylinderGeometry(0.45, 0.6, 0.9, 8),
+      new THREE.MeshStandardMaterial({ color: 0xb6a5ff, roughness: 0.52 })
     );
   }
 
