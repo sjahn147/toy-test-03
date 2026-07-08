@@ -1,3 +1,5 @@
+import { bindPress } from '../app/bindPress.js';
+
 export class TitleScreen {
   constructor({ onStart }) {
     this.onStart = onStart;
@@ -19,7 +21,7 @@ export class TitleScreen {
         </div>
       </div>
     `;
-    el.querySelector('[data-action="start"]').addEventListener('click', this.onStart);
+    bindPress(el.querySelector('[data-action="start"]'), this.onStart);
     root.appendChild(el);
     this.el = el;
   }
