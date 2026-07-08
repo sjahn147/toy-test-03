@@ -1,15 +1,18 @@
 export function bindPress(element, handler) {
-  let lastPointerAt = 0;
+  let lastPressAt = 0;
 
   const run = (event) => {
+    const now = Date.now();
+    if (now - lastPressAt < 350) return;
+    lastPressAt = now;
     event.preventDefault?.();
-    lastPointerAt = Date.now();
     handler(event);
   };
 
-  element.addEventListener('pointerup', run);
-  element.addEventListener('click', (event) => {
-    if (Date.now() - lastPointerAt < 500) return;
-    handler(event);
+  element.addEventListener('pointerup', run, { passive: false });
+  element.addEventListener('touchend', run, { passive: false });
+  element.addEventListener('click', run);
+  element.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') run(event);
   });
 }
