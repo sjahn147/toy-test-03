@@ -11,6 +11,8 @@ export class DungeonRenderer {
     this.roomMeshes = new Map();
     this.agentMeshes = new Map();
     this.propMeshes = new Map();
+    this.raycaster = new THREE.Raycaster();
+    this.pointer = new THREE.Vector2();
     this.group = new THREE.Group();
     three.scene.add(this.group);
     this.buildRooms();
@@ -124,6 +126,8 @@ export class DungeonRenderer {
       let mesh = this.agentMeshes.get(agent.id);
       if (!mesh) {
         mesh = this.assets.makeAgent(agent);
+        mesh.userData.agentId = agent.id;
+        mesh.traverse(child => { child.userData.agentId = agent.id; });
         this.agentMeshes.set(agent.id, mesh);
         this.group.add(mesh);
       }
@@ -146,6 +150,22 @@ export class DungeonRenderer {
       const mesh = this.agentMeshes.get(agent.id);
       if (mesh) mesh.visible = false;
     }
+  }
+
+  pickAgent(clientX, clientY) {
+    const rect = this.three.renderer.domElement.getBoundingClientRect();
+    this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    this.raycaster.setFromCamera(this.pointer, this.three.camera);
+    const hits = this.raycaster.intersectObjects([...this.agentMeshes.values()], true);
+    for (const hit of hits) {
+      let object = hit.object;
+      while (object) {
+        if (object.userData?.agentId) return object.userData.agentId;
+        object = object.parent;
+      }
+    }
+    return null;
   }
 
   destroy() {
