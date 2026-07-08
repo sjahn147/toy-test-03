@@ -10,9 +10,11 @@ export class ThreeScene {
 
     this.camera = new THREE.PerspectiveCamera(48, 1, 0.1, 600);
     this.target = new THREE.Vector3(2, 3.2, 18);
+    this.desiredTarget = this.target.clone();
     this.azimuth = 0.78;
     this.elevation = 0.72;
     this.distance = 52;
+    this.desiredDistance = this.distance;
     this.minDistance = 18;
     this.maxDistance = 88;
     this.pointers = new Map();
@@ -49,7 +51,7 @@ export class ThreeScene {
   }
 
   makeBackdrop() {
-    const grid = new THREE.GridHelper(70, 70, 0x42384f, 0x201d2b);
+    const grid = new THREE.GridHelper(90, 90, 0x42384f, 0x201d2b);
     grid.position.y = -0.05;
     grid.position.z = 13;
     grid.material.transparent = true;
@@ -63,6 +65,7 @@ export class ThreeScene {
     this.onWheel = (e) => {
       e.preventDefault();
       this.distance = clamp(this.distance + e.deltaY * 0.045, this.minDistance, this.maxDistance);
+      this.desiredDistance = this.distance;
     };
 
     this.onPointerDown = (e) => {
@@ -92,6 +95,7 @@ export class ThreeScene {
         const span = Math.hypot(a.x - b.x, a.y - b.y);
         const ratio = this.pinchStart.span / Math.max(1, span);
         this.distance = clamp(this.pinchStart.distance * ratio, this.minDistance, this.maxDistance);
+        this.desiredDistance = this.distance;
       }
     };
 
@@ -119,7 +123,18 @@ export class ThreeScene {
     this.renderer.setSize(w, h);
   }
 
+  setCameraTarget(x, y, z, distance = null, immediate = false) {
+    this.desiredTarget.set(x, y, z);
+    if (distance !== null) this.desiredDistance = clamp(distance, this.minDistance, this.maxDistance);
+    if (immediate) {
+      this.target.copy(this.desiredTarget);
+      this.distance = this.desiredDistance;
+    }
+  }
+
   updateCamera() {
+    this.target.lerp(this.desiredTarget, 0.11);
+    this.distance += (this.desiredDistance - this.distance) * 0.11;
     const horizontal = Math.cos(this.elevation) * this.distance;
     const y = Math.sin(this.elevation) * this.distance;
     const x = Math.cos(this.azimuth) * horizontal;
