@@ -1,5 +1,6 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
 import { DungeonRenderer } from '../engine/DungeonRenderer.js';
+import { AssetRegistry } from '../engine/AssetRegistry.js';
 import { DungeonSim } from '../sim/DungeonSim.js';
 import { expandScenario } from '../data/generateDungeon.js';
 
@@ -48,8 +49,10 @@ export class ObserveScreen {
     this.viewport = el.querySelector('.viewport');
     this.logEl = el.querySelector('[data-log]');
 
+    this.assets = new AssetRegistry();
+    this.assets.loadManifest();
     this.three = new ThreeScene(this.viewport);
-    this.renderer = new DungeonRenderer(this.three, this.scenario);
+    this.renderer = new DungeonRenderer(this.three, this.scenario, this.assets);
     this.sim = new DungeonSim(this.scenario, {
       onEvent: (event) => this.pushEvent(event.text)
     });
