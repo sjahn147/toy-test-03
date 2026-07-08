@@ -1,0 +1,17 @@
+{
+  "name": "the-little-dungeon-that-could",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A tiny Three.js dungeon-observer web app with simple rule-driven agents.",
+  "scripts": {
+    "start": "python -m http.server 8000"
+  },
+  "keywords": [
+    "threejs",
+    "dungeon",
+    "simulation",
+    "agent-ai",
+    "toy-game"
+  ]
+}
