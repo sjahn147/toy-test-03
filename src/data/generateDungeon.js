@@ -1,70 +1,59 @@
-const FLOOR_THEMES = [
-  {
-    name: 'Upper Cellar',
-    rooms: [
-      ['entry', 'Broken Entry', 'start', -12, 0, 5, 5],
-      ['f0-hall', 'Low Hall', 'hall', -5, 0, 6, 4],
-      ['f0-pantry', 'Rat Pantry', 'pantry', 2, -4, 5, 5],
-      ['f0-armory', 'Borrowed Armory', 'armory', 2, 4, 5, 5],
-      ['f0-nest', 'Goblin Nest', 'nest', 9, -4, 6, 5],
-      ['f0-trap', 'False Floor', 'trap', 9, 4, 5, 5]
-    ],
-    links: [['entry', 'f0-hall'], ['f0-hall', 'f0-pantry'], ['f0-hall', 'f0-armory'], ['f0-pantry', 'f0-nest'], ['f0-armory', 'f0-trap']]
-  },
-  {
-    name: 'Hungry Middle',
-    rooms: [
-      ['f1-stair', 'Crooked Stairs', 'stairs', -8, 0, 5, 5],
-      ['f1-gallery', 'Listening Gallery', 'hall', -1, 0, 7, 5],
-      ['f1-hatchery', 'Warm Hatchery', 'hatchery', 7, -5, 6, 6],
-      ['f1-shrine', 'Bad Little Shrine', 'shrine', 7, 4, 5, 5],
-      ['f1-treasure', 'Bright Mistake', 'treasure', 15, 0, 5, 5],
-      ['f1-lair', 'Wet Lair', 'lair', -1, 7, 6, 5]
-    ],
-    links: [['f1-stair', 'f1-gallery'], ['f1-gallery', 'f1-hatchery'], ['f1-gallery', 'f1-shrine'], ['f1-hatchery', 'f1-treasure'], ['f1-shrine', 'f1-lair']]
-  },
-  {
-    name: 'Deep Folly',
-    rooms: [
-      ['f2-stair', 'Spiral Down', 'stairs', -8, 1, 5, 5],
-      ['f2-crypt', 'Mouse Crypt', 'crypt', -1, 1, 7, 5],
-      ['f2-ossuary', 'Ossuary School', 'crypt', 7, -4, 6, 6],
-      ['f2-mimic', 'Box Court', 'treasure', 7, 5, 6, 5],
-      ['f2-hatchery', 'Second Hatchery', 'hatchery', 15, -4, 6, 5],
-      ['f2-gate', 'Back Gate', 'gate', 15, 5, 5, 5]
-    ],
-    links: [['f2-stair', 'f2-crypt'], ['f2-crypt', 'f2-ossuary'], ['f2-crypt', 'f2-mimic'], ['f2-ossuary', 'f2-hatchery'], ['f2-mimic', 'f2-gate']]
-  }
+const WARREN_ROOMS = [
+  ['entry', 'Broken Entry', 'start', -22, 0, 5, 5],
+  ['mud-hall', 'Mud Hall', 'hall', -15, 0, 7, 5],
+  ['pantry', 'Rat Pantry', 'pantry', -8, -6, 6, 5],
+  ['armory', 'Borrowed Armory', 'armory', -8, 5, 6, 5],
+  ['low-crossing', 'Low Crossing', 'hall', -2, 0, 7, 5],
+  ['nest-a', 'First Goblin Nest', 'nest', 5, -7, 6, 5],
+  ['trap-a', 'False Flagstones', 'trap', 5, 5, 6, 5],
+  ['gallery', 'Listening Gallery', 'hall', 11, 0, 7, 5],
+  ['hatchery-a', 'Warm Hatchery', 'hatchery', 18, -7, 6, 6],
+  ['shrine', 'Bad Little Shrine', 'shrine', 18, 5, 5, 5],
+  ['treasure-a', 'Bright Mistake', 'treasure', 25, -3, 5, 5],
+  ['lair-a', 'Wet Lair', 'lair', 25, 6, 6, 5],
+  ['crypt-a', 'Mouse Crypt', 'crypt', 33, -6, 7, 5],
+  ['mimic-court', 'Box Court', 'treasure', 33, 4, 6, 5],
+  ['hatchery-b', 'Second Hatchery', 'hatchery', 41, -5, 6, 5],
+  ['gate', 'Back Gate', 'gate', 41, 5, 5, 5]
+];
+
+const WARREN_LINKS = [
+  ['entry', 'mud-hall'],
+  ['mud-hall', 'pantry'],
+  ['mud-hall', 'armory'],
+  ['mud-hall', 'low-crossing'],
+  ['low-crossing', 'nest-a'],
+  ['low-crossing', 'trap-a'],
+  ['low-crossing', 'gallery'],
+  ['gallery', 'hatchery-a'],
+  ['gallery', 'shrine'],
+  ['gallery', 'treasure-a'],
+  ['hatchery-a', 'treasure-a'],
+  ['shrine', 'lair-a'],
+  ['treasure-a', 'crypt-a'],
+  ['lair-a', 'mimic-court'],
+  ['crypt-a', 'hatchery-b'],
+  ['mimic-court', 'gate'],
+  ['hatchery-b', 'gate']
 ];
 
 export function expandScenario(baseScenario) {
-  const rooms = [];
-  const links = [];
+  const variant = Math.floor(Math.random() * 9999);
+  const rooms = WARREN_ROOMS.map(([id, name, kind, x, z, w, d]) => ({
+    id,
+    name,
+    kind,
+    floor: 0,
+    x,
+    z,
+    w,
+    d,
+    spawnWeight: ['hatchery', 'lair', 'nest', 'crypt', 'gate'].includes(kind) ? 2 : 0,
+    danger: ['trap', 'hatchery', 'lair', 'crypt'].includes(kind) ? 2 : 1
+  }));
+  const links = [...WARREN_LINKS];
   const props = [];
   const agents = [];
-  const variant = Math.floor(Math.random() * 9999);
-
-  FLOOR_THEMES.forEach((floor, floorIndex) => {
-    const zShift = floorIndex * 13;
-    const xShift = floorIndex % 2 === 0 ? 0 : 1.5;
-    for (const [id, name, kind, x, z, w, d] of floor.rooms) {
-      rooms.push({
-        id,
-        name,
-        kind,
-        floor: floorIndex,
-        x: x + xShift,
-        z: z + zShift,
-        w,
-        d,
-        spawnWeight: ['hatchery', 'lair', 'nest', 'crypt', 'gate'].includes(kind) ? 2 : 0,
-        danger: ['trap', 'hatchery', 'lair', 'crypt'].includes(kind) ? 2 : 1
-      });
-    }
-    links.push(...floor.links);
-  });
-
-  links.push(['f0-trap', 'f1-stair'], ['f1-lair', 'f2-stair']);
 
   const party = [
     ['fighter', 'Rana'],
@@ -78,20 +67,20 @@ export function expandScenario(baseScenario) {
   }
 
   const monsterSeeds = [
-    ['goblin', 'Nib', 'f0-nest'],
-    ['goblin', 'Krek', 'f0-nest'],
-    ['skeleton', 'Clickjaw', 'f2-crypt'],
-    ['skeleton', 'Saint Elbow', 'f2-ossuary'],
-    ['slime', 'The Damp Opinion', 'f1-lair'],
-    ['mimic', 'A Reasonable Chest', 'f2-mimic']
+    ['goblin', 'Nib', 'nest-a'],
+    ['goblin', 'Krek', 'nest-a'],
+    ['goblin', 'Mump', 'pantry'],
+    ['skeleton', 'Clickjaw', 'crypt-a'],
+    ['skeleton', 'Saint Elbow', 'crypt-a'],
+    ['slime', 'The Damp Opinion', 'lair-a'],
+    ['mimic', 'A Reasonable Chest', 'mimic-court']
   ];
 
   monsterSeeds.forEach(([role, name, roomId], i) => {
     agents.push({ id: `${role}-${variant}-${i}`, name, role, faction: 'dungeon', roomId, hidden: role === 'mimic', level: 1 });
   });
 
-  const propRooms = rooms.filter(r => ['treasure', 'trap', 'armory', 'shrine'].includes(r.kind));
-  for (const room of propRooms) {
+  for (const room of rooms) {
     if (room.kind === 'trap') {
       props.push({ id: `trap-${room.id}`, type: 'trap', roomId: room.id, armed: true, label: `${room.name} Mechanism` });
     }
@@ -108,8 +97,8 @@ export function expandScenario(baseScenario) {
 
   return {
     ...baseScenario,
-    name: `${baseScenario.name}: ${rooms.length}-room vivarium`,
-    description: `${baseScenario.description} This run unfolds across three stacked floors with hatcheries, shrines, traps, lairs, treasure rooms, and exits.`,
+    name: `${baseScenario.name}: horizontal vivarium`,
+    description: `${baseScenario.description} 수직 층을 없애고 좌우로 길게 펼쳐, 이동 흐름과 둥지 위치가 더 잘 보이게 조정했습니다.`,
     rooms,
     links,
     agents,
