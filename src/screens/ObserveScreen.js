@@ -7,7 +7,7 @@ import { expandScenario } from '../data/generateDungeon.js';
 export class ObserveScreen {
   constructor({ scenario, state, onBack }) {
     this.baseScenario = scenario;
-    this.scenario = expandScenario(scenario);
+    this.scenario = scenario.useGeneratedMap ? expandScenario(scenario) : scenario;
     this.state = state;
     this.onBack = onBack;
     this.running = true;
