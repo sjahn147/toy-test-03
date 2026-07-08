@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "mode": "primitive-fallback-first",
+  "notes": "Drop licensed local GLB/PNG/OGG assets into assets/vendor and map them here. The game keeps working with procedural fallback meshes when files are missing.",
+  "packs": [
+    {
+      "id": "kenney-dungeon-candidate",
+      "name": "Kenney dungeon asset candidate",
+      "status": "planned",
+      "license": "CC0 / public domain candidate; verify pack license before vendoring",
+      "target": "assets/vendor/kenney/dungeon/"
+    },
+    {
+      "id": "quaternius-creatures-candidate",
+      "name": "Quaternius creature asset candidate",
+      "status": "planned",
+      "license": "verify per downloaded pack",
+      "target": "assets/vendor/quaternius/creatures/"
+    }
+  ],
+  "modelSlots": {
+    "rooms": {
+      "floor": null,
+      "wall": null,
+      "door": null,
+      "stairs": null
+    },
+    "props": {
+      "chest": null,
+      "trap": null,
+      "armory": null,
+      "shrine": null
+    },
+    "agents": {
+      "fighter": null,
+      "rogue": null,
+      "cleric": null,
+      "wizard": null,
+      "goblin": null,
+      "skeleton": null,
+      "slime": null,
+      "mimic": null
+    }
+  }
+}
