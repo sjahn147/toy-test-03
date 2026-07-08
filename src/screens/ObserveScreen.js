@@ -1,10 +1,12 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
 import { DungeonRenderer } from '../engine/DungeonRenderer.js';
 import { DungeonSim } from '../sim/DungeonSim.js';
+import { expandScenario } from '../data/generateDungeon.js';
 
 export class ObserveScreen {
   constructor({ scenario, state, onBack }) {
-    this.scenario = scenario;
+    this.baseScenario = scenario;
+    this.scenario = expandScenario(scenario);
     this.state = state;
     this.onBack = onBack;
     this.running = true;
@@ -19,7 +21,7 @@ export class ObserveScreen {
       <div class="viewport">
         <div class="legend">
           <strong>${this.scenario.name}</strong>
-          <span>Slow ant-farm mode: parties leave, monsters breed, rumors return.</span>
+          <span>Drag to rotate. Wheel or pinch to zoom. Slow ant-farm mode.</span>
         </div>
       </div>
       <aside class="hud">
@@ -56,8 +58,8 @@ export class ObserveScreen {
       this.running = !this.running;
       e.currentTarget.textContent = this.running ? '일시정지' : '재생';
     });
-    el.querySelector('[data-action="noise"]').addEventListener('click', () => this.sim.makeNoise(this.pickRoom(['hall', 'crypt', 'lair'])));
-    el.querySelector('[data-action="coin"]').addEventListener('click', () => this.sim.dropCoin(this.pickRoom(['treasure', 'hall', 'lair'])));
+    el.querySelector('[data-action="noise"]').addEventListener('click', () => this.sim.makeNoise(this.pickRoom(['hall', 'crypt', 'lair', 'hatchery'])));
+    el.querySelector('[data-action="coin"]').addEventListener('click', () => this.sim.dropCoin(this.pickRoom(['treasure', 'hall', 'lair', 'gate'])));
     el.querySelector('[data-action="back"]').addEventListener('click', this.onBack);
 
     this.loop();
@@ -83,7 +85,7 @@ export class ObserveScreen {
 
   loop() {
     const dt = Math.min(this.three.clock.getDelta(), 0.045);
-    if (this.running) this.sim.update(dt * 0.72);
+    if (this.running) this.sim.update(dt * 0.62);
     this.renderer.renderState(this.sim.snapshot());
     this.updateMetrics();
     this.three.updateCamera(this.sim.time);
