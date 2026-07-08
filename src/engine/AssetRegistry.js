@@ -87,14 +87,22 @@ export class AssetRegistry {
     const group = new THREE.Group();
     const color = ROLE_COLORS[agent.role] ?? 0xffffff;
     const body = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.34, 0.72, 4, 8),
-      new THREE.MeshStandardMaterial({ color, roughness: 0.62 })
+      bodyGeometryFor(agent.role),
+      new THREE.MeshStandardMaterial({
+        color,
+        roughness: agent.role === 'slime' ? 0.18 : 0.62,
+        metalness: agent.role === 'fighter' ? 0.12 : 0.02,
+        transparent: agent.role === 'slime',
+        opacity: agent.role === 'slime' ? 0.72 : 1
+      })
     );
-    body.position.y = 0.15;
+    body.position.y = agent.role === 'slime' ? -0.02 : 0.15;
     group.add(body);
 
+    addRoleSilhouette(group, agent.role);
+
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(0.42, 0.035, 6, 20),
+      new THREE.TorusGeometry(0.46, 0.035, 6, 24),
       new THREE.MeshBasicMaterial({ color: agent.faction === 'party' ? 0x88c7ff : 0xff8e73 })
     );
     ring.rotation.x = Math.PI / 2;
@@ -105,7 +113,7 @@ export class AssetRegistry {
       new THREE.BoxGeometry(0.72, 0.06, 0.04),
       new THREE.MeshBasicMaterial({ color: 0x330b0b })
     );
-    hpBack.position.set(0, 1.12, 0);
+    hpBack.position.set(0, 1.16, 0);
     group.add(hpBack);
 
     const hp = new THREE.Mesh(
@@ -113,14 +121,14 @@ export class AssetRegistry {
       new THREE.MeshBasicMaterial({ color: 0x9ee0a3 })
     );
     hp.name = 'hp';
-    hp.position.set(0, 1.12, 0.01);
+    hp.position.set(0, 1.16, 0.01);
     group.add(hp);
 
     const badge = new THREE.Mesh(
       new THREE.SphereGeometry(0.08, 8, 6),
       new THREE.MeshBasicMaterial({ color: roleBadgeColor(agent.role) })
     );
-    badge.position.set(0.28, 0.72, 0.12);
+    badge.position.set(0.34, 0.72, 0.16);
     group.add(badge);
 
     return group;
@@ -135,17 +143,34 @@ export class AssetRegistry {
     }
 
     if (prop.type === 'armory') {
-      return new THREE.Mesh(
+      const group = new THREE.Group();
+      const rack = new THREE.Mesh(
         new THREE.BoxGeometry(1.0, 0.35, 0.35),
         new THREE.MeshStandardMaterial({ color: 0xa9b2ba, metalness: 0.25, roughness: 0.38 })
       );
+      const blade = new THREE.Mesh(
+        new THREE.ConeGeometry(0.12, 0.9, 4),
+        new THREE.MeshStandardMaterial({ color: 0xe6edf2, metalness: 0.45, roughness: 0.25 })
+      );
+      blade.rotation.z = Math.PI / 2;
+      blade.position.set(0, 0.42, 0);
+      group.add(rack, blade);
+      return group;
     }
 
     if (prop.type === 'shrine') {
-      return new THREE.Mesh(
+      const group = new THREE.Group();
+      const base = new THREE.Mesh(
         new THREE.CylinderGeometry(0.45, 0.6, 0.9, 8),
         new THREE.MeshStandardMaterial({ color: 0xb6a5ff, roughness: 0.52 })
       );
+      const light = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 12, 8),
+        new THREE.MeshBasicMaterial({ color: 0xf1eaff })
+      );
+      light.position.y = 0.62;
+      group.add(base, light);
+      return group;
     }
 
     const group = new THREE.Group();
@@ -160,6 +185,84 @@ export class AssetRegistry {
     lid.position.y = 0.42;
     group.add(chest, lid);
     return group;
+  }
+}
+
+function bodyGeometryFor(role) {
+  if (role === 'slime') return new THREE.SphereGeometry(0.52, 16, 10);
+  if (role === 'mimic') return new THREE.BoxGeometry(0.72, 0.62, 0.72);
+  if (role === 'skeleton') return new THREE.CapsuleGeometry(0.28, 0.76, 4, 7);
+  if (role === 'goblin') return new THREE.CapsuleGeometry(0.32, 0.58, 4, 7);
+  return new THREE.CapsuleGeometry(0.34, 0.72, 4, 8);
+}
+
+function addRoleSilhouette(group, role) {
+  if (role === 'fighter') {
+    const shield = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.22, 0.08, 6),
+      new THREE.MeshStandardMaterial({ color: 0xbfd0d8, metalness: 0.25, roughness: 0.38 })
+    );
+    shield.rotation.x = Math.PI / 2;
+    shield.position.set(-0.38, 0.32, 0.18);
+    group.add(shield);
+  }
+
+  if (role === 'rogue') {
+    const hood = new THREE.Mesh(
+      new THREE.ConeGeometry(0.28, 0.36, 5),
+      new THREE.MeshStandardMaterial({ color: 0x3d2b1f, roughness: 0.72 })
+    );
+    hood.position.set(0, 0.82, 0);
+    group.add(hood);
+  }
+
+  if (role === 'cleric') {
+    const halo = new THREE.Mesh(
+      new THREE.TorusGeometry(0.27, 0.025, 6, 18),
+      new THREE.MeshBasicMaterial({ color: 0xf8f2cf })
+    );
+    halo.position.set(0, 0.92, 0);
+    halo.rotation.x = Math.PI / 2;
+    group.add(halo);
+  }
+
+  if (role === 'wizard') {
+    const hat = new THREE.Mesh(
+      new THREE.ConeGeometry(0.29, 0.62, 8),
+      new THREE.MeshStandardMaterial({ color: 0x4e3cc7, roughness: 0.7 })
+    );
+    hat.position.set(0, 0.98, 0);
+    group.add(hat);
+  }
+
+  if (role === 'goblin') {
+    const earMat = new THREE.MeshStandardMaterial({ color: 0xb6ff95, roughness: 0.6 });
+    const left = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.34, 5), earMat);
+    const right = left.clone();
+    left.rotation.z = Math.PI / 2;
+    right.rotation.z = -Math.PI / 2;
+    left.position.set(-0.36, 0.56, 0);
+    right.position.set(0.36, 0.56, 0);
+    group.add(left, right);
+  }
+
+  if (role === 'skeleton') {
+    const skull = new THREE.Mesh(
+      new THREE.SphereGeometry(0.26, 10, 8),
+      new THREE.MeshStandardMaterial({ color: 0xf2efd8, roughness: 0.5 })
+    );
+    skull.position.set(0, 0.82, 0);
+    group.add(skull);
+  }
+
+  if (role === 'mimic') {
+    const teeth = new THREE.Mesh(
+      new THREE.ConeGeometry(0.09, 0.26, 4),
+      new THREE.MeshBasicMaterial({ color: 0xfff4d8 })
+    );
+    teeth.rotation.x = Math.PI;
+    teeth.position.set(0, 0.16, 0.38);
+    group.add(teeth);
   }
 }
 
