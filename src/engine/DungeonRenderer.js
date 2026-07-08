@@ -97,6 +97,7 @@ export class DungeonRenderer {
         this.group.add(mesh);
       }
       const room = rooms.find(r => r.id === prop.roomId);
+      if (!room) continue;
       const offset = prop.type === 'trap' ? [-room.w * 0.22, -room.d * 0.18] : [room.w * 0.22, room.d * 0.18];
       mesh.position.set(room.x + offset[0], prop.type === 'trap' ? 0.25 : 0.8, room.z + offset[1]);
       mesh.visible = prop.type !== 'treasure' || !prop.opened;
@@ -114,7 +115,7 @@ export class DungeonRenderer {
 
     const roomCounts = new Map();
     for (const agent of agents) {
-      if (!agent.alive || agent.hidden) continue;
+      if (!agent.alive || agent.hidden || agent.departed) continue;
       const idx = roomCounts.get(agent.roomId) ?? 0;
       roomCounts.set(agent.roomId, idx + 1);
 
@@ -126,6 +127,7 @@ export class DungeonRenderer {
       }
 
       const room = rooms.find(r => r.id === agent.roomId);
+      if (!room) continue;
       const slot = idx % 6;
       const ox = ((slot % 3) - 1) * 0.85;
       const oz = (Math.floor(slot / 3) - 0.5) * 0.85;
@@ -137,7 +139,7 @@ export class DungeonRenderer {
     }
 
     for (const agent of agents) {
-      if (agent.alive && !agent.hidden) continue;
+      if (agent.alive && !agent.hidden && !agent.departed) continue;
       const mesh = this.agentMeshes.get(agent.id);
       if (mesh) mesh.visible = false;
     }
