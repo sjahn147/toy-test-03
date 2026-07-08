@@ -56,11 +56,15 @@ export class ObserveScreen {
       this.running = !this.running;
       e.currentTarget.textContent = this.running ? '일시정지' : '재생';
     });
-    el.querySelector('[data-action="noise"]').addEventListener('click', () => this.sim.makeNoise('hall'));
-    el.querySelector('[data-action="coin"]').addEventListener('click', () => this.sim.dropCoin('treasure'));
+    el.querySelector('[data-action="noise"]').addEventListener('click', () => this.sim.makeNoise(this.pickRoom(['hall', 'crypt', 'lair'])));
+    el.querySelector('[data-action="coin"]').addEventListener('click', () => this.sim.dropCoin(this.pickRoom(['treasure', 'hall', 'lair'])));
     el.querySelector('[data-action="back"]').addEventListener('click', this.onBack);
 
     this.loop();
+  }
+
+  pickRoom(kinds) {
+    return this.scenario.rooms.find(r => kinds.includes(r.kind))?.id ?? this.scenario.rooms[0].id;
   }
 
   pushEvent(text) {
