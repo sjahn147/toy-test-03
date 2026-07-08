@@ -58,6 +58,7 @@ export class ObserveScreen {
     this.assets = new AssetRegistry();
     this.assets.loadManifest();
     this.three = new ThreeScene(this.viewport);
+    this.fitCameraToScenario();
     this.renderer = new DungeonRenderer(this.three, this.scenario, this.assets);
     this.sim = new DungeonSim(this.scenario, {
       onEvent: (event) => this.pushEvent(event.text)
@@ -88,6 +89,20 @@ export class ObserveScreen {
     });
 
     this.loop();
+  }
+
+  fitCameraToScenario() {
+    const rooms = this.scenario.rooms;
+    if (!rooms.length) return;
+    const minX = Math.min(...rooms.map(r => r.x - r.w / 2));
+    const maxX = Math.max(...rooms.map(r => r.x + r.w / 2));
+    const minZ = Math.min(...rooms.map(r => r.z - r.d / 2));
+    const maxZ = Math.max(...rooms.map(r => r.z + r.d / 2));
+    const cx = (minX + maxX) / 2;
+    const cz = (minZ + maxZ) / 2;
+    const span = Math.max(maxX - minX, maxZ - minZ);
+    this.three.target.set(cx, 2.8, cz);
+    this.three.distance = Math.max(24, Math.min(88, span * 1.18));
   }
 
   pickRoom(kinds) {
