@@ -51,9 +51,9 @@ export const MINIATURE_RECIPES = {
     id: 'ogre_large_v1',
     skeleton: 'ogre',
     scale: 1.08,
-    proportions: { head: 1.12, shoulders: 1.42, legs: 0.9 },
+    proportions: { head: 1.18, shoulders: 1.48, legs: 0.88 },
     palette: { skin: 0x87905c, cloth: 0x6e4430, leather: 0x4b3022, metal: 0x777c78, accent: 0xd6b16f, dark: 0x2c2825 },
-    parts: { head: 'head_ogre_01', hat: null, torso: 'torso_ogre_hide', back: null, waist: 'waist_belt_plain', mainHand: 'wpn_ogre_maul', offHand: null, accent: 'accent_ogre_tusks' }
+    parts: { head: 'head_goblin_01', hat: null, torso: 'torso_goblin_rags', back: null, waist: 'waist_belt_plain', mainHand: 'wpn_bone_club', offHand: null, accent: 'accent_ear_goblin' }
   },
   slime: {
     id: 'slime_common_v1',
