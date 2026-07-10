@@ -67,17 +67,27 @@ export function expandScenario(baseScenario) {
   }
 
   const monsterSeeds = [
-    ['goblin', 'Nib', 'nest-a'],
-    ['goblin', 'Krek', 'nest-a'],
-    ['goblin', 'Mump', 'pantry'],
-    ['skeleton', 'Clickjaw', 'crypt-a'],
-    ['skeleton', 'Saint Elbow', 'crypt-a'],
-    ['slime', 'The Damp Opinion', 'lair-a'],
-    ['mimic', 'A Reasonable Chest', 'mimic-court']
+    ['goblin', 'Goblin A', 'nest-a'],
+    ['goblin', 'Goblin B', 'nest-a'],
+    ['goblin', 'Goblin C', 'pantry'],
+    ['skeleton', 'Skeleton A', 'crypt-a'],
+    ['skeleton', 'Skeleton B', 'crypt-a'],
+    ['slime', 'Slime A', 'lair-a'],
+    ['mimic', 'Mimic A', 'mimic-court'],
+    ['ogre', 'Ogre A', 'gate']
   ];
 
   monsterSeeds.forEach(([role, name, roomId], i) => {
-    agents.push({ id: `${role}-${variant}-${i}`, name, role, faction: 'dungeon', roomId, hidden: role === 'mimic', level: 1 });
+    agents.push({
+      id: `${role}-${variant}-${i}`,
+      name,
+      role,
+      faction: 'dungeon',
+      roomId,
+      hidden: role === 'mimic',
+      size: role === 'ogre' ? 'large' : 'small',
+      level: 1
+    });
   });
 
   for (const room of rooms) {
