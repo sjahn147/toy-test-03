@@ -1,7 +1,25 @@
 {
-  "version": 2,
-  "mode": "procedural-modular-miniatures",
-  "notes": "Agents are assembled from reusable three-head miniature parts. A future GLB part can replace any procedural builder without changing role recipes or simulation code.",
+  "version": 3,
+  "mode": "procedural-modular-dungeon",
+  "notes": "Rooms, ports, doors, corridors, miniatures and effects are generated from shared runtime contracts. Future GLB parts can replace procedural builders without changing recipes or simulation code.",
+  "topology": {
+    "builder": "src/engine/DungeonTopology.js",
+    "connectionModel": "room-port to room-port",
+    "movement": "continuous corridor travel",
+    "surfaceRule": "room floors and corridor floors share the same top-surface elevation"
+  },
+  "environment": {
+    "factory": "src/engine/AssetRegistry.js",
+    "activeAssets": [
+      "room-floor-slab",
+      "inset-room-floor",
+      "segmented-wall",
+      "door-frame",
+      "door-threshold",
+      "corridor-floor",
+      "corridor-curbs"
+    ]
+  },
   "miniatures": {
     "recipes": "src/miniatures/recipes.js",
     "partCatalog": "src/miniatures/partCatalog.js",
@@ -13,6 +31,7 @@
       "wizard",
       "goblin",
       "skeleton",
+      "ogre",
       "slime",
       "mimic"
     ],
@@ -32,41 +51,51 @@
       "baseFx"
     ]
   },
+  "effects": {
+    "active": [
+      "attack",
+      "death",
+      "gold",
+      "heal"
+    ],
+    "source": "DungeonSim.effects",
+    "renderer": "DungeonRenderer.renderEffects"
+  },
   "packs": [
     {
-      "id": "custom-miniatures-v1",
-      "name": "Procedural modular dungeon miniatures",
+      "id": "custom-dungeon-v1",
+      "name": "Procedural port-connected dungeon kit",
+      "status": "active",
+      "license": "Original project code and generated geometry",
+      "target": "src/engine/"
+    },
+    {
+      "id": "custom-miniatures-v2",
+      "name": "Procedural modular dungeon miniatures including a large ogre",
       "status": "active",
       "license": "Original project code and generated geometry",
       "target": "src/miniatures/"
     },
     {
-      "id": "kenney-dungeon-candidate",
-      "name": "Kenney dungeon asset candidate",
-      "status": "planned",
-      "license": "CC0 / public domain candidate; verify pack license before vendoring",
-      "target": "assets/vendor/kenney/dungeon/"
-    },
-    {
       "id": "custom-glb-parts",
-      "name": "Future authored miniature GLB parts",
+      "name": "Future authored environment and miniature GLB parts",
       "status": "planned",
       "license": "Project-owned or explicitly licensed assets only",
-      "target": "assets/miniatures/parts/"
+      "target": "assets/models/"
     }
   ],
   "modelSlots": {
     "rooms": {
-      "floor": null,
-      "wall": null,
-      "door": null,
-      "stairs": null
+      "floor": "procedural:room-floor-slab",
+      "wall": "procedural:segmented-wall",
+      "door": "procedural:door-frame",
+      "corridor": "procedural:corridor-floor"
     },
     "props": {
-      "chest": null,
-      "trap": null,
-      "armory": null,
-      "shrine": null
+      "chest": "procedural:chest",
+      "trap": "procedural:trap",
+      "armory": "procedural:armory",
+      "shrine": "procedural:shrine"
     },
     "agents": {
       "fighter": "recipe:fighter_rana_v1",
@@ -75,6 +104,7 @@
       "wizard": "recipe:wizard_orwin_v1",
       "goblin": "recipe:goblin_common_v1",
       "skeleton": "recipe:skeleton_common_v1",
+      "ogre": "recipe:ogre_large_v1",
       "slime": "recipe:slime_common_v1",
       "mimic": "recipe:mimic_common_v1"
     }
