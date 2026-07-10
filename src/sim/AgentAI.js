@@ -8,7 +8,8 @@ const STATS = {
   goblin: { hp: 8, attack: 3, courage: 4 },
   skeleton: { hp: 10, attack: 3, courage: 10 },
   slime: { hp: 16, attack: 2, courage: 8 },
-  mimic: { hp: 15, attack: 7, courage: 10 }
+  mimic: { hp: 15, attack: 7, courage: 10 },
+  ogre: { hp: 42, attack: 9, courage: 12 }
 };
 
 export function hydrateAgent(raw, i) {
@@ -25,6 +26,7 @@ export function hydrateAgent(raw, i) {
     courage: stats.courage,
     alive: true,
     departed: false,
+    travel: null,
     cooldown: 0,
     mood: raw.hidden ? 'waiting' : 'curious',
     gold: raw.gold ?? 0,
@@ -33,13 +35,13 @@ export function hydrateAgent(raw, i) {
 }
 
 export function decideAction(agent, sim) {
-  if (!agent.alive || agent.departed) return { type: 'idle' };
+  if (!active(agent)) return { type: 'idle' };
 
-  const enemiesHere = sim.agents.filter(a => active(a) && a.faction !== agent.faction && a.roomId === agent.roomId && !a.hidden);
-  const alliesHere = sim.agents.filter(a => active(a) && a.faction === agent.faction && a.roomId === agent.roomId);
+  const enemiesHere = sim.agents.filter(candidate => active(candidate) && candidate.faction !== agent.faction && candidate.roomId === agent.roomId && !candidate.hidden);
+  const alliesHere = sim.agents.filter(candidate => active(candidate) && candidate.faction === agent.faction && candidate.roomId === agent.roomId);
 
   if (agent.role === 'mimic') {
-    const rogueHere = enemiesHere.find(a => a.role === 'rogue');
+    const rogueHere = enemiesHere.find(candidate => candidate.role === 'rogue');
     if (rogueHere) {
       agent.hidden = false;
       return { type: 'attack', targetId: rogueHere.id, text: `${agent.name} revealed too many teeth.` };
@@ -60,7 +62,7 @@ export function decideAction(agent, sim) {
   }
 
   if (agent.role === 'cleric') {
-    const wounded = sim.agents.find(a => active(a) && a.faction === agent.faction && a.hp < a.maxHp * 0.55);
+    const wounded = sim.agents.find(candidate => active(candidate) && candidate.faction === agent.faction && candidate.hp < candidate.maxHp * 0.55);
     if (wounded) {
       if (wounded.roomId === agent.roomId) return { type: 'heal', targetId: wounded.id };
       return moveToward(agent, sim, wounded.roomId, `${agent.name} hurried toward the smell of regret.`);
@@ -68,7 +70,7 @@ export function decideAction(agent, sim) {
   }
 
   if (agent.role === 'rogue') {
-    const treasure = sim.props.find(p => p.type === 'treasure' && !p.opened);
+    const treasure = sim.props.find(prop => prop.type === 'treasure' && !prop.opened);
     if (treasure) {
       if (treasure.roomId === agent.roomId) return { type: 'openTreasure', propId: treasure.id };
       return moveToward(agent, sim, treasure.roomId, `${agent.name} heard a coin whisper his legal name.`);
@@ -76,9 +78,9 @@ export function decideAction(agent, sim) {
   }
 
   if (agent.faction === 'party') {
-    const targetRoom = nearestRoom(sim.graph, agent.roomId, sim.rooms.filter(r => !sim.visited.has(r.id)).map(r => r.id));
+    const targetRoom = nearestRoom(sim.graph, agent.roomId, sim.rooms.filter(room => !sim.visited.has(room.id)).map(room => room.id));
     if (targetRoom) return moveToward(agent, sim, targetRoom);
-    const treasureRoom = nearestRoom(sim.graph, agent.roomId, sim.props.filter(p => p.type === 'treasure' && !p.opened).map(p => p.roomId));
+    const treasureRoom = nearestRoom(sim.graph, agent.roomId, sim.props.filter(prop => prop.type === 'treasure' && !prop.opened).map(prop => prop.roomId));
     if (treasureRoom) return moveToward(agent, sim, treasureRoom);
   }
 
@@ -87,13 +89,14 @@ export function decideAction(agent, sim) {
   }
 
   if (agent.faction === 'dungeon') {
-    const partyRooms = sim.agents.filter(a => active(a) && a.faction === 'party').map(a => a.roomId);
+    const partyRooms = sim.agents.filter(candidate => active(candidate) && candidate.faction === 'party').map(candidate => candidate.roomId);
     const target = nearestRoom(sim.graph, agent.roomId, partyRooms);
     if (target) return moveToward(agent, sim, target);
   }
 
   const neighbors = sim.graph.get(agent.roomId) ?? [];
-  if (neighbors.length && Math.random() < 0.18) {
+  const wanderChance = agent.role === 'ogre' ? 0.08 : 0.18;
+  if (neighbors.length && Math.random() < wanderChance) {
     return { type: 'move', roomId: neighbors[Math.floor(Math.random() * neighbors.length)] };
   }
 
@@ -101,17 +104,17 @@ export function decideAction(agent, sim) {
 }
 
 function active(agent) {
-  return agent.alive && !agent.departed;
+  return agent.alive && !agent.departed && !agent.travel;
 }
 
 function shouldLeave(agent, sim) {
   if (agent.roomId !== 'entry' && sim.turn < 10) return false;
-  const activeMonsters = sim.agents.filter(a => active(a) && a.faction === 'dungeon' && !a.hidden).length;
+  const activeMonsters = sim.agents.filter(candidate => active(candidate) && candidate.faction === 'dungeon' && !candidate.hidden).length;
   if (activeMonsters === 0 && sim.turn > 8) return true;
   if (activeMonsters < 2 && sim.turn > 18 && Math.random() < 0.45) return true;
   if (agent.hp < agent.maxHp * 0.35) return true;
   if (agent.gold >= 5 && sim.turn > 14) return true;
-  if (sim.props.every(p => p.type !== 'treasure' || p.opened) && sim.turn > 18) return true;
+  if (sim.props.every(prop => prop.type !== 'treasure' || prop.opened) && sim.turn > 18) return true;
   return false;
 }
 
@@ -126,7 +129,7 @@ function moveToward(agent, sim, targetRoom, text = null) {
 }
 
 function flee(agent, sim, text) {
-  const enemies = sim.agents.filter(a => active(a) && a.faction !== agent.faction).map(a => a.roomId);
+  const enemies = sim.agents.filter(candidate => active(candidate) && candidate.faction !== agent.faction).map(candidate => candidate.roomId);
   const options = sim.graph.get(agent.roomId) ?? [];
   const safer = options.find(room => !enemies.includes(room)) ?? options[0];
   if (!safer) return { type: 'idle' };
