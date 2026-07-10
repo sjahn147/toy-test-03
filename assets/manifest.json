@@ -1,8 +1,45 @@
 {
-  "version": 1,
-  "mode": "primitive-fallback-first",
-  "notes": "Drop licensed local GLB/PNG/OGG assets into assets/vendor and map them here. The game keeps working with procedural fallback meshes when files are missing.",
+  "version": 2,
+  "mode": "procedural-modular-miniatures",
+  "notes": "Agents are assembled from reusable three-head miniature parts. A future GLB part can replace any procedural builder without changing role recipes or simulation code.",
+  "miniatures": {
+    "recipes": "src/miniatures/recipes.js",
+    "partCatalog": "src/miniatures/partCatalog.js",
+    "factory": "src/engine/MiniatureFactory.js",
+    "roles": [
+      "fighter",
+      "rogue",
+      "cleric",
+      "wizard",
+      "goblin",
+      "skeleton",
+      "slime",
+      "mimic"
+    ],
+    "sharedSockets": [
+      "root",
+      "pelvis",
+      "chest",
+      "head",
+      "headTop",
+      "handL",
+      "handR",
+      "shoulderL",
+      "shoulderR",
+      "back",
+      "waistFront",
+      "waistBack",
+      "baseFx"
+    ]
+  },
   "packs": [
+    {
+      "id": "custom-miniatures-v1",
+      "name": "Procedural modular dungeon miniatures",
+      "status": "active",
+      "license": "Original project code and generated geometry",
+      "target": "src/miniatures/"
+    },
     {
       "id": "kenney-dungeon-candidate",
       "name": "Kenney dungeon asset candidate",
@@ -11,11 +48,11 @@
       "target": "assets/vendor/kenney/dungeon/"
     },
     {
-      "id": "quaternius-creatures-candidate",
-      "name": "Quaternius creature asset candidate",
+      "id": "custom-glb-parts",
+      "name": "Future authored miniature GLB parts",
       "status": "planned",
-      "license": "verify per downloaded pack",
-      "target": "assets/vendor/quaternius/creatures/"
+      "license": "Project-owned or explicitly licensed assets only",
+      "target": "assets/miniatures/parts/"
     }
   ],
   "modelSlots": {
@@ -32,14 +69,14 @@
       "shrine": null
     },
     "agents": {
-      "fighter": null,
-      "rogue": null,
-      "cleric": null,
-      "wizard": null,
-      "goblin": null,
-      "skeleton": null,
-      "slime": null,
-      "mimic": null
+      "fighter": "recipe:fighter_rana_v1",
+      "rogue": "recipe:rogue_milo_v1",
+      "cleric": "recipe:cleric_pell_v1",
+      "wizard": "recipe:wizard_orwin_v1",
+      "goblin": "recipe:goblin_common_v1",
+      "skeleton": "recipe:skeleton_common_v1",
+      "slime": "recipe:slime_common_v1",
+      "mimic": "recipe:mimic_common_v1"
     }
   }
 }
