@@ -16,10 +16,10 @@ export const SCENARIOS = [
       { id: 'rogue', name: 'Milo', role: 'rogue', faction: 'party', roomId: 'entry' },
       { id: 'cleric', name: 'Sister Pell', role: 'cleric', faction: 'party', roomId: 'entry' },
       { id: 'wizard', name: 'Orwin', role: 'wizard', faction: 'party', roomId: 'entry' },
-      { id: 'skel-a', name: 'Clickjaw', role: 'skeleton', faction: 'dungeon', roomId: 'crypt' },
-      { id: 'skel-b', name: 'Rattle', role: 'skeleton', faction: 'dungeon', roomId: 'crypt' },
-      { id: 'gob-a', name: 'Nib', role: 'goblin', faction: 'dungeon', roomId: 'treasure' },
-      { id: 'mimic', name: 'A Reasonable Chest', role: 'mimic', faction: 'dungeon', roomId: 'treasure', hidden: true }
+      { id: 'skel-a', name: 'Skeleton A', role: 'skeleton', faction: 'dungeon', roomId: 'crypt' },
+      { id: 'skel-b', name: 'Skeleton B', role: 'skeleton', faction: 'dungeon', roomId: 'crypt' },
+      { id: 'gob-a', name: 'Goblin A', role: 'goblin', faction: 'dungeon', roomId: 'treasure' },
+      { id: 'mimic', name: 'Mimic A', role: 'mimic', faction: 'dungeon', roomId: 'treasure', hidden: true }
     ],
     props: [
       { id: 'chest-a', type: 'treasure', roomId: 'treasure', label: 'Copper Chest' },
@@ -43,10 +43,10 @@ export const SCENARIOS = [
       { id: 'rogue', name: 'Milo', role: 'rogue', faction: 'party', roomId: 'entry' },
       { id: 'cleric', name: 'Sister Pell', role: 'cleric', faction: 'party', roomId: 'entry' },
       { id: 'wizard', name: 'Orwin', role: 'wizard', faction: 'party', roomId: 'entry' },
-      { id: 'gob-a', name: 'Nib', role: 'goblin', faction: 'dungeon', roomId: 'barracks' },
-      { id: 'gob-b', name: 'Krek', role: 'goblin', faction: 'dungeon', roomId: 'barracks' },
-      { id: 'gob-c', name: 'Mump', role: 'goblin', faction: 'dungeon', roomId: 'kitchen' },
-      { id: 'slime', name: 'The Damp Opinion', role: 'slime', faction: 'dungeon', roomId: 'shrine' }
+      { id: 'gob-a', name: 'Goblin A', role: 'goblin', faction: 'dungeon', roomId: 'barracks' },
+      { id: 'gob-b', name: 'Goblin B', role: 'goblin', faction: 'dungeon', roomId: 'barracks' },
+      { id: 'gob-c', name: 'Goblin C', role: 'goblin', faction: 'dungeon', roomId: 'kitchen' },
+      { id: 'slime', name: 'Slime A', role: 'slime', faction: 'dungeon', roomId: 'shrine' }
     ],
     props: [
       { id: 'chest-a', type: 'treasure', roomId: 'stash', label: 'Button Jar' },
@@ -69,10 +69,10 @@ export const SCENARIOS = [
       { id: 'rogue', name: 'Milo', role: 'rogue', faction: 'party', roomId: 'entry' },
       { id: 'cleric', name: 'Sister Pell', role: 'cleric', faction: 'party', roomId: 'entry' },
       { id: 'wizard', name: 'Orwin', role: 'wizard', faction: 'party', roomId: 'entry' },
-      { id: 'skel-a', name: 'Clickjaw', role: 'skeleton', faction: 'dungeon', roomId: 'ossuary' },
-      { id: 'skel-b', name: 'Rattle', role: 'skeleton', faction: 'dungeon', roomId: 'ossuary' },
-      { id: 'skel-c', name: 'Saint Elbow', role: 'skeleton', faction: 'dungeon', roomId: 'reliquary' },
-      { id: 'mimic', name: 'A Holy Box', role: 'mimic', faction: 'dungeon', roomId: 'reliquary', hidden: true }
+      { id: 'skel-a', name: 'Skeleton A', role: 'skeleton', faction: 'dungeon', roomId: 'ossuary' },
+      { id: 'skel-b', name: 'Skeleton B', role: 'skeleton', faction: 'dungeon', roomId: 'ossuary' },
+      { id: 'skel-c', name: 'Skeleton C', role: 'skeleton', faction: 'dungeon', roomId: 'reliquary' },
+      { id: 'mimic', name: 'Mimic A', role: 'mimic', faction: 'dungeon', roomId: 'reliquary', hidden: true }
     ],
     props: [
       { id: 'chest-a', type: 'treasure', roomId: 'reliquary', label: 'Reliquary Box' },
