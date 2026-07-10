@@ -145,6 +145,13 @@ export class ObserveScreen {
   pushCameraToFollowTarget(immediate = false) {
     const agent = this.ensureFollowTarget();
     if (!agent) return;
+    const world = this.renderer.getAgentWorldPosition(agent.id);
+    if (world) {
+      const distance = agent.role === 'ogre' ? 30 : 25;
+      this.three.setCameraTarget(world.x, world.y + 1.7, world.z, distance, immediate);
+      return;
+    }
+
     const room = this.scenario.rooms.find(r => r.id === agent.roomId);
     if (!room) return;
     const y = (room.floor ?? 0) * 2.85 + 3.0;
@@ -177,10 +184,14 @@ export class ObserveScreen {
     }
 
     const room = this.sim.rooms.find(r => r.id === agent.roomId);
+    const destination = agent.travel ? this.sim.rooms.find(r => r.id === agent.travel.toRoomId) : null;
     const related = this.events.filter(e => e.includes(agent.name)).slice(0, 3);
     const hp = `${Math.max(0, agent.hp)}/${agent.maxHp}`;
-    const status = agent.departed ? 'departed' : agent.alive ? 'active' : 'fallen';
+    const status = agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.travel ? 'travelling' : 'active';
     const thought = currentThought(agent, this.sim);
+    const location = agent.travel
+      ? `Corridor: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}`
+      : `Room: ${room?.name ?? agent.roomId}`;
 
     this.inspectEl.innerHTML = `
       <div class="inspect-head">
@@ -197,7 +208,7 @@ export class ObserveScreen {
         <div><b>${agent.kills ?? 0}</b><span>kills</span></div>
       </div>
       <div class="thought">“${escapeHtml(thought)}”</div>
-      <div class="inspect-room">Room: ${escapeHtml(room?.name ?? agent.roomId)}</div>
+      <div class="inspect-room">${escapeHtml(location)}</div>
       <div class="memory-list">
         ${related.length ? related.map(e => `<div>${escapeHtml(e)}</div>`).join('') : '<div>No recent memorable mistakes.</div>'}
       </div>
@@ -233,6 +244,7 @@ export class ObserveScreen {
 function currentThought(agent, sim) {
   if (!agent.alive) return 'I have become useful documentation.';
   if (agent.departed) return 'The tavern version of this story will be much better.';
+  if (agent.travel) return `The corridor to ${sim.roomName(agent.travel.toRoomId)} is taking this personally.`;
   if (agent.role === 'rogue') return 'That chest is probably fine.';
   if (agent.role === 'cleric') {
     const wounded = sim.agents.find(a => a.alive && a.faction === agent.faction && a.hp < a.maxHp * 0.55);
@@ -242,6 +254,7 @@ function currentThought(agent, sim) {
   if (agent.role === 'fighter') return 'If it moves, it may be a problem I can solve loudly.';
   if (agent.role === 'goblin') return 'I am brave in the plural.';
   if (agent.role === 'skeleton') return sim.lastNoiseRoom ? 'Something made a noise, which is legally my business.' : 'Waiting is also a profession.';
+  if (agent.role === 'ogre') return 'This architecture is too small and therefore offensive.';
   if (agent.role === 'slime') return 'The floor understands me.';
   if (agent.role === 'mimic') return agent.hidden ? 'I am furniture. Trust me.' : 'Surprise is a dietary category.';
   return 'I am making a small decision badly.';
