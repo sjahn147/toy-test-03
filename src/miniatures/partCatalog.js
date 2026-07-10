@@ -20,6 +20,7 @@ export const MINIATURE_PARTS = {
   head_square_01: { slot: 'head', builder: 'headSquare', material: 'skin' },
   head_goblin_01: { slot: 'head', builder: 'headGoblin', material: 'skin' },
   head_skull_01: { slot: 'head', builder: 'headSkull', material: 'skin' },
+  head_ogre_01: { slot: 'head', builder: 'headOgre', material: 'skin' },
 
   hat_helm_round: { slot: 'headTop', builder: 'helmetRound', material: 'metal' },
   hat_hood_rogue: { slot: 'headTop', builder: 'hoodRogue', material: 'leather' },
@@ -33,6 +34,7 @@ export const MINIATURE_PARTS = {
   torso_robe_mage: { slot: 'chest', builder: 'torsoRobeMage', material: 'cloth' },
   torso_goblin_rags: { slot: 'chest', builder: 'torsoGoblinRags', material: 'cloth' },
   torso_bone_rib: { slot: 'chest', builder: 'torsoBoneRib', material: 'skin' },
+  torso_ogre_hide: { slot: 'chest', builder: 'torsoOgreHide', material: 'leather' },
   torso_slime_blob: { slot: 'root', builder: 'torsoSlimeBlob', material: 'skin' },
   torso_mimic_body: { slot: 'root', builder: 'torsoMimicBody', material: 'leather' },
 
@@ -52,6 +54,7 @@ export const MINIATURE_PARTS = {
   wpn_mace: { slot: 'handR', builder: 'mace', material: 'metal' },
   wpn_staff: { slot: 'handR', builder: 'staff', material: 'leather' },
   wpn_bone_club: { slot: 'handR', builder: 'boneClub', material: 'skin' },
+  wpn_ogre_maul: { slot: 'handR', builder: 'ogreMaul', material: 'leather' },
 
   off_shield_round: { slot: 'handL', builder: 'shieldRound', material: 'metal' },
   off_dagger_reverse: { slot: 'handL', builder: 'daggerReverse', material: 'metal' },
@@ -61,6 +64,7 @@ export const MINIATURE_PARTS = {
   accent_halo_small: { slot: 'headTop', builder: 'haloSmall', material: 'accent' },
   accent_arcane_ring: { slot: 'baseFx', builder: 'arcaneRing', material: 'accent' },
   accent_ear_goblin: { slot: 'head', builder: 'goblinEars', material: 'skin' },
+  accent_ogre_tusks: { slot: 'head', builder: 'ogreTusks', material: 'accent' },
   accent_slime_bubbles: { slot: 'root', builder: 'slimeBubbles', material: 'accent' },
   accent_teeth_mimic: { slot: 'root', builder: 'mimicTeeth', material: 'accent' }
 };
