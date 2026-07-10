@@ -163,10 +163,15 @@ export class DungeonRenderer {
       }
     }
 
-    const roomCounts = new Map();
+    const roomMembers = new Map();
+    for (const agent of agents) {
+      if (!agent.alive || agent.hidden || agent.departed || agent.travel) continue;
+      if (!roomMembers.has(agent.roomId)) roomMembers.set(agent.roomId, []);
+      roomMembers.get(agent.roomId).push(agent.id);
+    }
+
     for (const agent of agents) {
       if (!agent.alive || agent.hidden || agent.departed) continue;
-      if (!agent.travel) roomCounts.set(agent.roomId, (roomCounts.get(agent.roomId) ?? 0) + 1);
 
       let mesh = this.agentMeshes.get(agent.id);
       if (!mesh) {
@@ -179,7 +184,7 @@ export class DungeonRenderer {
 
       const target = agent.travel
         ? this.travelPosition(agent)
-        : this.roomPosition(agent, rooms, roomCounts);
+        : this.roomPosition(agent, rooms, roomMembers);
       if (!target) continue;
 
       const bob = agent.role === 'slime' ? Math.sin(time * 5 + agent.index) * 0.05 : Math.sin(time * 4 + agent.index) * 0.025;
@@ -198,16 +203,13 @@ export class DungeonRenderer {
     }
   }
 
-  roomPosition(agent, rooms, roomCounts) {
+  roomPosition(agent, rooms, roomMembers) {
     const room = rooms.find(candidate => candidate.id === agent.roomId);
     if (!room) return null;
-    const members = [...this.agentMeshes.keys()].filter(id => {
-      const candidate = this.scenario.agents.find(raw => raw.id === id);
-      return candidate?.roomId === room.id;
-    });
-    const count = roomCounts.get(room.id) ?? 1;
+    const members = roomMembers.get(room.id) ?? [agent.id];
+    const count = members.length;
     const index = Math.max(0, members.indexOf(agent.id));
-    const slot = index >= 0 ? index % 9 : (agent.index ?? 0) % 9;
+    const slot = index % 9;
     const spacing = count > 6 ? 0.68 : 0.82;
     const ox = ((slot % 3) - 1) * spacing;
     const oz = (Math.floor(slot / 3) - 1) * spacing;
@@ -231,6 +233,12 @@ export class DungeonRenderer {
       z: sample.z,
       rotation: Math.atan2(sample.tx * (forward ? 1 : -1), sample.tz * (forward ? 1 : -1))
     };
+  }
+
+  getAgentWorldPosition(agentId) {
+    const mesh = this.agentMeshes.get(agentId);
+    if (!mesh || !mesh.visible) return null;
+    return mesh.position.clone();
   }
 
   renderEffects(effects, rooms, time) {
