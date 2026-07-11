@@ -11,7 +11,9 @@ export function applyPhase5Ecology(source) {
   const scenario = clone(source);
   if (scenario.props.some(prop => prop.type === 'goblin_lair')) return scenario;
 
-  const available = scenario.rooms.filter(room => !room.tags?.includes('safe_zone'));
+  const available = scenario.rooms.filter(room =>
+    !room.tags?.includes('safe_zone') && !room.tags?.includes('entrance_threshold')
+  );
   const claimed = new Set();
   const lairs = {};
 
