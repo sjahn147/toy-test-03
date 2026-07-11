@@ -171,7 +171,13 @@ export class DungeonSim extends BaseDungeonSim {
     const before = this.agents.length;
     super.spawnMonster(forcedRole);
     const spawned = this.agents[before];
-    if (spawned) this.occupancy.placeAgent(spawned, spawned.roomId);
+    if (!spawned) return;
+
+    const placement = this.occupancy.placeAgent(spawned, spawned.roomId);
+    if (!placement) {
+      this.agents.splice(before, 1);
+      this.event(`${spawned.name} could not emerge because ${this.roomName(spawned.roomId)} was already full.`);
+    }
   }
 
   syncOccupancy() {
