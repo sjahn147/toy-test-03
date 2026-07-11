@@ -11,7 +11,13 @@ export class PartySystem {
 
   initialize(agents) {
     const existing = agents.filter(agent => agent.faction === 'party' && agent.partyId);
-    for (const agent of existing) this.ensurePartyRecord(agent.partyId);
+    for (const agent of existing) {
+      const party = this.ensurePartyRecord(agent.partyId);
+      if (!party.memberIds.includes(agent.id)) party.memberIds.push(agent.id);
+      if (!party.leaderId || !agents.some(candidate => candidate.id === party.leaderId && candidate.alive)) {
+        party.leaderId = agent.id;
+      }
+    }
 
     const unassigned = agents.filter(agent => agent.faction === 'party' && !agent.partyId);
     for (let index = 0; index < unassigned.length; index += PARTY_SIZE) {
@@ -60,9 +66,14 @@ export class PartySystem {
 
   update(agents) {
     for (const party of this.parties.values()) {
+      party.memberIds = party.memberIds.filter(id => {
+        const member = agents.find(agent => agent.id === id);
+        return Boolean(member?.alive);
+      });
+
       const members = party.memberIds
         .map(id => agents.find(agent => agent.id === id))
-        .filter(agent => agent && agent.alive && !agent.departed);
+        .filter(agent => agent && !agent.departed);
       if (!members.length) continue;
 
       let leader = members.find(agent => agent.id === party.leaderId);
