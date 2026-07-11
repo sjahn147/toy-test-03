@@ -2,9 +2,19 @@ import { DungeonSim as Phase4DungeonSim } from './DungeonSimPhase4.js';
 import { hydrateAgent } from './AgentAI.js';
 import { EcosystemSystem } from './EcosystemSystem.js';
 
+const ECOLOGY_RADII = {
+  goblin_lair: 1.15,
+  ossuary_lair: 1.05,
+  spider_lair: 1.15,
+  slime_pool: 1.05,
+  rat_warren: 1.0,
+  ogre_lair: 1.25
+};
+
 export class DungeonSim extends Phase4DungeonSim {
   constructor(scenario, options = {}) {
     super(scenario, options);
+    this.blockEcologyFootprints();
     this.ecosystem = new EcosystemSystem({
       rooms: this.rooms,
       props: this.props,
@@ -13,6 +23,31 @@ export class DungeonSim extends Phase4DungeonSim {
     });
     this.ecosystem.initializeAgents(this.agents);
     this.spawnClock = null;
+  }
+
+  blockEcologyFootprints() {
+    for (const prop of this.props) {
+      const radius = ECOLOGY_RADII[prop.type];
+      if (!radius) continue;
+      const room = this.rooms.find(candidate => candidate.id === prop.roomId);
+      if (!room) continue;
+      const placement = prop.placement ?? {};
+      this.occupancy.blockArea(
+        room.id,
+        room.x + (placement.ox ?? 0),
+        room.z + (placement.oz ?? 0),
+        radius * (placement.scale ?? 1),
+        prop.id
+      );
+    }
+
+    for (const agent of this.agents) {
+      if (!agent.alive || agent.departed || agent.hidden || agent.travel || !agent.roomCell) continue;
+      const blocked = agent.roomCell.footprint?.some(cellId => this.occupancy.blockedCells.has(cellId));
+      if (!blocked) continue;
+      this.occupancy.release(agent.id);
+      this.occupancy.placeAgent(agent, agent.roomId);
+    }
   }
 
   update(dt) {
