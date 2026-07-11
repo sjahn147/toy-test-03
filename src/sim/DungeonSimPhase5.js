@@ -72,9 +72,21 @@ export class DungeonSim extends Phase4DungeonSim {
   }
 
   update(dt) {
+    this.resetReturnedEcologyState();
     this.advanceMaturity(dt);
     this.ecosystem.update(dt, this);
     super.update(dt);
+  }
+
+  resetReturnedEcologyState() {
+    for (const agent of this.agents) {
+      if (agent.faction !== 'party' || !agent.alive || agent.mood !== 'returned') continue;
+      agent.ecologyConsumed = false;
+      agent.corpseCreated = false;
+      agent.hosted = false;
+      agent.carryingHostId = null;
+      agent.mood = 'resurrection-recovery';
+    }
   }
 
   advanceMaturity(dt) {
