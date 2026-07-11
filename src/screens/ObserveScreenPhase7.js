@@ -24,11 +24,12 @@ export class ObserveScreen extends Phase6ObserveScreen {
 
   addTerritoryMetrics() {
     const metrics = this.el.querySelector('.metrics');
-    if (!metrics || metrics.querySelector('[data-metric="territories"]')) return;
-    metrics.insertAdjacentHTML('afterbegin', `
-      <div class="metric"><b data-metric="territories">0</b><span>controlled rooms</span></div>
-      <div class="metric"><b data-metric="contested">0</b><span>contested rooms</span></div>
-      <div class="metric"><b data-metric="fortifications">0</b><span>fortifications</span></div>
-    `);
+    if (!metrics) return;
+    if (!metrics.querySelector('[data-metric="territories"]')) {
+      metrics.insertAdjacentHTML('afterbegin', '<div class="metric"><b data-metric="territories">0</b><span>controlled rooms</span></div>');
+    }
+    if (!metrics.querySelector('[data-metric="fortifications"]')) {
+      metrics.insertAdjacentHTML('afterbegin', '<div class="metric"><b data-metric="fortifications">0</b><span>fortifications</span></div>');
+    }
   }
 }
