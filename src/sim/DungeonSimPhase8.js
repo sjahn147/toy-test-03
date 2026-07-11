@@ -4,6 +4,7 @@ import { ExpeditionSystem } from './ExpeditionSystem.js';
 import { LogisticsSystem } from './LogisticsSystem.js';
 import { ConstructionSiegeSystem } from './ConstructionSiegeSystem.js';
 import { PersonalitySystem } from './PersonalitySystem.js';
+import { OldLanternInnSystem } from './OldLanternInnSystem.js';
 import { factionFor } from '../data/applyPhase6Ecology.js';
 
 const ADVENTURER_FACTION = 'adventurer-expedition';
@@ -67,6 +68,15 @@ export class DungeonSim extends Phase7DungeonSim {
     });
     this.personalitySystem.initialize(this.agents);
 
+    this.oldLanternInnSystem = new OldLanternInnSystem({
+      rooms: this.rooms,
+      graph: this.graph,
+      settlementSystem: this.settlementSystem,
+      territorySystem: this.territorySystem,
+      onEvent: text => this.event(text)
+    });
+    this.oldLanternInnSystem.initialize(this);
+
     this.territorySystem.harvestResources = sim => this.harvestPhysicalResources(sim);
     if (this.entranceQueue) this.entranceQueue.capacityProvider = (count, sim) => this.settlementSystem.canAdmitParty(count, sim);
   }
@@ -78,6 +88,7 @@ export class DungeonSim extends Phase7DungeonSim {
     this.logisticsSystem.update(dt, this);
     this.personalitySystem.update(dt, this);
     super.update(dt);
+    this.oldLanternInnSystem.update(dt, this);
   }
 
   resolve(agent, action) {
@@ -248,7 +259,8 @@ export class DungeonSim extends Phase7DungeonSim {
       expedition: this.expeditionSystem.snapshot(),
       logistics: this.logisticsSystem.snapshot(),
       construction: this.constructionSystem.snapshot(),
-      personality: this.personalitySystem.snapshot(this.agents)
+      personality: this.personalitySystem.snapshot(this.agents),
+      oldLanternInn: this.oldLanternInnSystem.snapshot()
     };
   }
 
@@ -259,7 +271,8 @@ export class DungeonSim extends Phase7DungeonSim {
       ...this.expeditionSystem.metrics(),
       ...this.logisticsSystem.metrics(),
       ...this.constructionSystem.metrics(),
-      ...this.personalitySystem.metrics(this.agents)
+      ...this.personalitySystem.metrics(this.agents),
+      ...this.oldLanternInnSystem.metrics()
     };
   }
 }
