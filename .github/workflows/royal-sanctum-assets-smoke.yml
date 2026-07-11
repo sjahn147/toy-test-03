@@ -1,0 +1,40 @@
+name: Royal sanctum asset smoke
+
+on:
+  push:
+    paths:
+      - 'src/engine/RoyalSanctum*.js'
+      - 'tests/royal-sanctum-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/royal-sanctum-assets-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/engine/RoyalSanctum*.js'
+      - 'tests/royal-sanctum-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/royal-sanctum-assets-smoke.yml'
+
+jobs:
+  royal-sanctum-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/engine/RoyalSanctumLandmarkRecipes.js
+          node --check src/engine/RoyalSanctumGeometry.js
+          node --check src/engine/RoyalSanctumDioramas.js
+          node --check src/engine/RoyalSanctumLandmarkAssetFactory.js
+          node --check src/engine/RoyalSanctumAssetAnimator.js
+          node --check src/engine/RoyalSanctumAssetPack.js
+          node --check tests/royal-sanctum-assets-smoke.mjs
+      - name: Validate production content
+        run: npm run validate:production-content
+      - name: Test royal sanctum contracts
+        run: node tests/royal-sanctum-assets-smoke.mjs
