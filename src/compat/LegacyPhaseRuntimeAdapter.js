@@ -1,10 +1,11 @@
-// 기존 Phase 체인 sim을 정규화 런타임 인터페이스(update/getSnapshot/dispatch/subscribe)로
+// 기존 Phase 체인 sim을 정규화 런타임 인터페이스(update/getSnapshot/dispatch/subscribe/destroy)로
 // 감싸는 호환 어댑터 (docs/architecture/production-layering.md §4).
 // GameRuntimeFacade는 이 어댑터만 알고, sim 내부 구조는 알지 못합니다.
 
 import { DungeonSim as DungeonSimPhase8 } from '../sim/DungeonSimPhase8.js';
 import { createWorldEvent } from '../domain/eventContract.js';
 import { dispatchCommand } from '../application/observerCommands.js';
+import { WorldEventBus } from '../application/WorldEventBus.js';
 import { normalizeLegacySnapshot } from './normalizeLegacySnapshot.js';
 
 const EVENT_BUFFER_LIMIT = 200;
@@ -23,44 +24,58 @@ function sanitizeParams(params) {
 }
 
 export class LegacyPhaseRuntimeAdapter {
-  constructor({ scenario, createSim = defaultCreateSim, sim = null } = {}) {
+  constructor({ scenario, createSim = defaultCreateSim, sim = null, eventBus = null } = {}) {
     this.paused = false;
     this.speed = 1;
-    this.events = [];
     this.eventSeq = 0;
-    this.listeners = new Set();
+    this.destroyed = false;
+    this.ownsSim = !sim;
+    this.eventBus = eventBus ?? new WorldEventBus({ limit: EVENT_BUFFER_LIMIT });
+    this.previousOnEvent = null;
+    this.attachedEventHandler = null;
 
     if (sim) {
       this.sim = sim;
       this.attachToExistingSim(sim);
-    } else {
-      this.sim = createSim(scenario, { onEvent: payload => this.recordLegacyEvent(payload) });
+      return;
     }
+
+    const pendingEvents = [];
+    this.sim = createSim(scenario, {
+      onEvent: payload => {
+        if (this.sim) this.recordLegacyEvent(payload);
+        else pendingEvents.push(payload);
+      }
+    });
+    for (const payload of pendingEvents) this.recordLegacyEvent(payload);
   }
 
   // 화면 코드가 이미 만든 sim 인스턴스를 감쌉니다.
-  static fromSim(sim) {
+  static fromSim(sim, options = {}) {
     if (!sim) throw new Error('fromSim requires a sim instance');
-    return new LegacyPhaseRuntimeAdapter({ sim });
+    return new LegacyPhaseRuntimeAdapter({ ...options, sim });
   }
 
   // 기존 onEvent를 체이닝합니다. 덮어쓸 수 없는 sim이면
   // 이벤트 스트림 없이 스냅샷/커맨드만 제공하도록 degrade합니다.
   attachToExistingSim(sim) {
     try {
-      const previous = typeof sim.onEvent === 'function' ? sim.onEvent : null;
-      sim.onEvent = payload => {
-        if (previous) previous(payload);
+      this.previousOnEvent = typeof sim.onEvent === 'function' ? sim.onEvent : null;
+      this.attachedEventHandler = payload => {
+        if (this.previousOnEvent) this.previousOnEvent(payload);
         this.recordLegacyEvent(payload);
       };
+      sim.onEvent = this.attachedEventHandler;
     } catch {
-      // onEvent가 접근 불가한 sim: 이벤트 없이 동작
+      this.previousOnEvent = null;
+      this.attachedEventHandler = null;
     }
   }
 
   // 레거시 onEvent 페이로드({text, time, turn, ...meta})를
   // eventContract.js의 WorldEvent(type 'legacy.log')로 감쌉니다.
   recordLegacyEvent(payload) {
+    if (this.destroyed) return null;
     const meta = payload && typeof payload === 'object' ? payload : { text: String(payload ?? '') };
     const { text, time, turn, type, sourceId, targetId, ...rest } = meta;
     let event;
@@ -76,30 +91,22 @@ export class LegacyPhaseRuntimeAdapter {
         fallbackText: typeof text === 'string' ? text : ''
       });
     } catch {
-      return; // 계약 위반 페이로드는 버립니다
+      return null;
     }
 
-    this.events.push(event);
-    if (this.events.length > EVENT_BUFFER_LIMIT) {
-      this.events.splice(0, this.events.length - EVENT_BUFFER_LIMIT);
-    }
-    for (const listener of this.listeners) {
-      try {
-        listener(event);
-      } catch {
-        // 리스너 오류가 sim 진행을 막지 않도록 무시
-      }
-    }
+    this.eventBus.publish(event);
+    return event;
   }
 
   update(dt) {
-    if (this.paused) return;
+    if (this.destroyed || this.paused) return;
     const scaled = (Number.isFinite(dt) ? dt : 0) * this.speed;
     if (scaled <= 0) return;
     this.sim.update(scaled);
   }
 
   getSnapshot() {
+    if (this.destroyed) throw new Error('LegacyPhaseRuntimeAdapter is destroyed');
     let metrics = null;
     try {
       metrics = this.sim.metrics();
@@ -107,19 +114,43 @@ export class LegacyPhaseRuntimeAdapter {
       metrics = null;
     }
     return normalizeLegacySnapshot(this.sim.snapshot(), {
-      events: this.events,
+      events: this.eventBus.history(),
       metrics,
       turn: Number.isFinite(this.sim.turn) ? this.sim.turn : null
     });
   }
 
   dispatch(command) {
+    if (this.destroyed) return { ok: false, error: 'runtime adapter is destroyed' };
     return dispatchCommand({ sim: this.sim, adapter: this }, command);
   }
 
   subscribe(listener) {
-    if (typeof listener !== 'function') throw new Error('subscribe requires a listener function');
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    return this.eventBus.subscribe(listener);
+  }
+
+  destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
+
+    if (this.attachedEventHandler && this.sim?.onEvent === this.attachedEventHandler) {
+      try {
+        this.sim.onEvent = this.previousOnEvent;
+      } catch {
+        // 읽기 전용 onEvent 구현은 복구할 수 없으므로 그대로 둡니다.
+      }
+    }
+
+    if (this.ownsSim && typeof this.sim?.destroy === 'function') {
+      try {
+        this.sim.destroy();
+      } catch {
+        // legacy sim teardown failure must not leak event listeners.
+      }
+    }
+
+    this.eventBus.destroy();
+    this.attachedEventHandler = null;
+    this.previousOnEvent = null;
   }
 }
