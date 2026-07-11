@@ -80,12 +80,12 @@ export class DungeonSim extends Phase1DungeonSim {
     super.resolve(agent, action);
   }
 
-  beginTravel(agent, toRoomId) {
+  beginTravel(agent, toRoomId, options = {}) {
     if (agent.faction === 'dungeon' && this.recoverySystem.isSafeRoom(toRoomId)) {
       agent.mood = 'repelled-by-sanctuary';
-      return;
+      return false;
     }
-    super.beginTravel(agent, toRoomId);
+    return super.beginTravel(agent, toRoomId, options);
   }
 
   onDeath(killer, target) {
