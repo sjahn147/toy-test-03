@@ -8,6 +8,10 @@ import { createLaboratoryAssetPack } from './LaboratoryAssetPack.js';
 import { LaboratoryAssetAnimator } from './LaboratoryAssetAnimator.js';
 import { createRoyalSanctumAssetPack } from './RoyalSanctumAssetPack.js';
 import { RoyalSanctumAssetAnimator } from './RoyalSanctumAssetAnimator.js';
+import { createOldLanternAssetPack } from './OldLanternAssetPack.js';
+import { installOldLanternRuntimeBridge } from '../sim/OldLanternRuntimeBridge.js';
+
+installOldLanternRuntimeBridge();
 
 export class Phase8AssetResolver {
   constructor({ diagnosticFallback = true } = {}) {
@@ -41,6 +45,10 @@ export class Phase8AssetResolver {
       priority: 100,
       prepare: root => new RoyalSanctumAssetAnimator(root),
       animate: (animator, deltaSeconds) => animator.update(deltaSeconds)
+    });
+    this.register(createOldLanternAssetPack(), {
+      priority: 120,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.animate?.(root, elapsedSeconds)
     });
   }
 
