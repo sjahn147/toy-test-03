@@ -20,7 +20,8 @@
     "test:phase8d": "node tests/phase8d-construction-siege-smoke.mjs",
     "test:phase8e": "node tests/phase8e-personality-interaction-smoke.mjs",
     "test:content": "node tests/content-pipeline-smoke.mjs",
-    "test:facade": "node tests/runtime-facade-smoke.mjs"
+    "test:facade": "node tests/runtime-facade-smoke.mjs",
+    "test:landmarks": "node tests/campaign-landmark-recipes-smoke.mjs"
   },
   "keywords": ["threejs", "dungeon", "simulation", "agent-ai", "toy-game"]
 }
