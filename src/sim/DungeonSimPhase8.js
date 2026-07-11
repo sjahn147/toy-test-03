@@ -2,6 +2,7 @@ import { DungeonSim as Phase7DungeonSim } from './DungeonSimPhase7.js';
 import { SettlementSystem } from './SettlementSystem.js';
 import { ExpeditionSystem } from './ExpeditionSystem.js';
 import { LogisticsSystem } from './LogisticsSystem.js';
+import { ConstructionSiegeSystem } from './ConstructionSiegeSystem.js';
 import { factionFor } from '../data/applyPhase6Ecology.js';
 
 const ADVENTURER_FACTION = 'adventurer-expedition';
@@ -12,6 +13,7 @@ export class DungeonSim extends Phase7DungeonSim {
     for (const agent of this.agents) {
       if (agent.faction === 'party') agent.ecologyFaction = ADVENTURER_FACTION;
     }
+
     this.settlementSystem = new SettlementSystem({
       rooms: this.rooms,
       props: this.props,
@@ -21,6 +23,7 @@ export class DungeonSim extends Phase7DungeonSim {
       onEvent: text => this.event(text)
     });
     this.settlementSystem.initialize(this.agents, this);
+
     this.expeditionSystem = new ExpeditionSystem({
       rooms: this.rooms,
       props: this.props,
@@ -31,6 +34,7 @@ export class DungeonSim extends Phase7DungeonSim {
       occupancy: this.occupancy,
       onEvent: text => this.event(text)
     });
+
     this.logisticsSystem = new LogisticsSystem({
       rooms: this.rooms,
       props: this.props,
@@ -40,11 +44,24 @@ export class DungeonSim extends Phase7DungeonSim {
       partySystem: this.partySystem,
       onEvent: text => this.event(text)
     });
+
+    this.constructionSystem = new ConstructionSiegeSystem({
+      rooms: this.rooms,
+      props: this.props,
+      graph: this.graph,
+      settlementSystem: this.settlementSystem,
+      territorySystem: this.territorySystem,
+      occupancy: this.occupancy,
+      onEvent: text => this.event(text)
+    });
+    this.logisticsSystem.constructionSystem = this.constructionSystem;
+
     this.territorySystem.harvestResources = sim => this.harvestPhysicalResources(sim);
     if (this.entranceQueue) this.entranceQueue.capacityProvider = (count, sim) => this.settlementSystem.canAdmitParty(count, sim);
   }
 
   update(dt) {
+    this.constructionSystem.update(dt, this);
     this.settlementSystem.update(dt, this);
     this.expeditionSystem.update(dt, this);
     this.logisticsSystem.update(dt, this);
@@ -58,7 +75,14 @@ export class DungeonSim extends Phase7DungeonSim {
         if (logisticsAction.text) this.event(logisticsAction.text);
         if (this.logisticsSystem.resolve(agent, logisticsAction, this)) return;
       }
+
+      const constructionAction = this.constructionSystem.decide(agent, this);
+      if (constructionAction) {
+        if (constructionAction.text) this.event(constructionAction.text);
+        if (this.constructionSystem.resolve(agent, constructionAction, this)) return;
+      }
     }
+
     if (agent?.faction === 'party' && this.isActive(agent) && !agent.travel && !agent.combat) {
       const expeditionAction = this.expeditionSystem.decide(agent, this);
       if (expeditionAction) {
@@ -66,6 +90,7 @@ export class DungeonSim extends Phase7DungeonSim {
         if (this.expeditionSystem.resolve(agent, expeditionAction, this)) return;
       }
     }
+
     if (this.isActive(agent) && !agent.travel && !agent.combat && !agent.carryingHostId) {
       const settlementAction = this.settlementSystem.decide(agent, this);
       if (settlementAction) {
@@ -81,16 +106,32 @@ export class DungeonSim extends Phase7DungeonSim {
       if (prop.type !== 'territory_resource' || (prop.stock ?? 0) < 1) continue;
       const state = this.territorySystem.roomStates.get(prop.roomId);
       if (!state?.owner || state.contested || state.control < 45) continue;
-      const worker = this.agents.find(agent => agent.alive && !agent.departed && !agent.travel && !agent.hidden && !agent.cargoId && agent.roomId === prop.roomId && agent.ecologyFaction === state.owner);
+      const worker = this.agents.find(agent =>
+        agent.alive && !agent.departed && !agent.travel && !agent.hidden && !agent.cargoId &&
+        agent.roomId === prop.roomId && agent.ecologyFaction === state.owner
+      );
       if (!worker) continue;
-      const amount = ['deathEnergy', 'biomass'].includes(prop.resourceType) ? 1.4 : ['scrap', 'bones'].includes(prop.resourceType) ? 1.2 : 1;
-      if (this.logisticsSystem.enqueueHarvest({ worker, resourceType: prop.resourceType, amount, roomId: prop.roomId, factionId: state.owner }, sim)) prop.stock -= 1;
+      const amount = ['deathEnergy', 'biomass'].includes(prop.resourceType)
+        ? 1.4
+        : ['scrap', 'bones'].includes(prop.resourceType)
+          ? 1.2
+          : 1;
+      if (this.logisticsSystem.enqueueHarvest({
+        worker,
+        resourceType: prop.resourceType,
+        amount,
+        roomId: prop.roomId,
+        factionId: state.owner
+      }, sim)) prop.stock -= 1;
     }
   }
 
   spawnEcologyMonster(species, roomId) {
     const settlement = this.settlementSystem.findSettlementForSpawn(species, roomId);
-    if (!this.settlementSystem.canSpawn(species, roomId, settlement?.factionId)) { this.reportCapacityBlock(settlement, species); return null; }
+    if (!this.settlementSystem.canSpawn(species, roomId, settlement?.factionId)) {
+      this.reportCapacityBlock(settlement, species);
+      return null;
+    }
     const spawned = super.spawnEcologyMonster(species, roomId);
     if (!spawned) return null;
     spawned.ecologyFaction ??= settlement?.factionId ?? factionFor(species);
@@ -101,7 +142,10 @@ export class DungeonSim extends Phase7DungeonSim {
   spawnAdvancedMonster(species, roomId) {
     const faction = factionFor(species);
     const settlement = this.settlementSystem.findSettlementForSpawn(species, roomId, faction);
-    if (!this.settlementSystem.canSpawn(species, roomId, faction)) { this.reportCapacityBlock(settlement, species); return null; }
+    if (!this.settlementSystem.canSpawn(species, roomId, faction)) {
+      this.reportCapacityBlock(settlement, species);
+      return null;
+    }
     const spawned = super.spawnAdvancedMonster(species, roomId);
     if (!spawned) return null;
     this.settlementSystem.registerSpawn(spawned, this);
@@ -111,7 +155,10 @@ export class DungeonSim extends Phase7DungeonSim {
   spawnMonster(forcedRole = null) {
     if (forcedRole) {
       const settlement = this.settlementSystem.findSettlementForSpawn(forcedRole, null, factionFor(forcedRole));
-      if (settlement && !this.settlementSystem.canSpawn(forcedRole, settlement.roomId, settlement.factionId)) { this.reportCapacityBlock(settlement, forcedRole); return null; }
+      if (settlement && !this.settlementSystem.canSpawn(forcedRole, settlement.roomId, settlement.factionId)) {
+        this.reportCapacityBlock(settlement, forcedRole);
+        return null;
+      }
     }
     const before = this.agents.length;
     super.spawnMonster(forcedRole);
@@ -119,7 +166,11 @@ export class DungeonSim extends Phase7DungeonSim {
     if (!spawned) return null;
     spawned.ecologyFaction ??= factionFor(spawned.role);
     const home = this.settlementSystem.registerSpawn(spawned, this);
-    if (!home || home.population > home.capacity) { this.occupancy.release(spawned.id); this.agents.splice(before, 1); return null; }
+    if (!home || home.population > home.capacity) {
+      this.occupancy.release(spawned.id);
+      this.agents.splice(before, 1);
+      return null;
+    }
     return spawned;
   }
 
@@ -151,16 +202,30 @@ export class DungeonSim extends Phase7DungeonSim {
 
   returnParty() {
     super.returnParty();
-    for (const agent of this.agents) if (agent.faction === 'party') agent.ecologyFaction = ADVENTURER_FACTION;
+    for (const agent of this.agents) {
+      if (agent.faction === 'party') agent.ecologyFaction = ADVENTURER_FACTION;
+    }
     this.expeditionSystem.initializeParties();
     this.settlementSystem.sync(this);
   }
 
   snapshot() {
-    return { ...super.snapshot(), settlement: this.settlementSystem.snapshot(), expedition: this.expeditionSystem.snapshot(), logistics: this.logisticsSystem.snapshot() };
+    return {
+      ...super.snapshot(),
+      settlement: this.settlementSystem.snapshot(),
+      expedition: this.expeditionSystem.snapshot(),
+      logistics: this.logisticsSystem.snapshot(),
+      construction: this.constructionSystem.snapshot()
+    };
   }
 
   metrics() {
-    return { ...super.metrics(), ...this.settlementSystem.metrics(this.agents), ...this.expeditionSystem.metrics(), ...this.logisticsSystem.metrics() };
+    return {
+      ...super.metrics(),
+      ...this.settlementSystem.metrics(this.agents),
+      ...this.expeditionSystem.metrics(),
+      ...this.logisticsSystem.metrics(),
+      ...this.constructionSystem.metrics()
+    };
   }
 }
