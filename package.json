@@ -13,7 +13,8 @@
     "test:phase5": "node tests/phase5-ecology-smoke.mjs",
     "test:phase6": "node tests/phase6-advanced-ecology-smoke.mjs",
     "test:phase7": "node tests/phase7-territory-smoke.mjs",
-    "test:phase8": "node tests/phase8-settlement-smoke.mjs"
+    "test:phase8": "node tests/phase8-settlement-smoke.mjs",
+    "test:phase8b": "node tests/phase8b-expedition-smoke.mjs"
   },
   "keywords": [
     "threejs",
