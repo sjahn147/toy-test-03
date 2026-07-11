@@ -1,4 +1,37 @@
-import { THREE } from './ThreeScene.js';
 import { getSpiderColonyLandmarkRecipe } from './SpiderColonyLandmarkRecipes.js';
+import { buildSilkRamp } from './SpiderSilkRampDiorama.js';
+import { buildVerticalWell } from './SpiderVerticalWellDiorama.js';
+import { buildQueenNest } from './SpiderQueenNestDiorama.js';
 
-const C = { stone:0x272633, edge:0x514c5e, silk:0xd8d3cc, shadow:0x8c8695, burned:0x353039, chitin:0x3b1d35, chitin2:0x7d315e, venom:0x77dca2, ember:0xff8d46, fire:0xffc46b, rope:0x765943, wood:0x674937, iron:0x58545d, royal:0xb1374d, gold:0xd8b15e, egg:0xe6ddd1, vein:0xb7678c, blood:0x7a2335,
+export class SpiderColonyLandmarkAssetFactory {
+  canCreate(bundleId) {
+    return Boolean(getSpiderColonyLandmarkRecipe(bundleId));
+  }
+
+  create(bundleId, context = {}) {
+    const recipe = getSpiderColonyLandmarkRecipe(bundleId);
+    if (!recipe) return null;
+
+    const state = recipe.states.includes(context.state) ? context.state : recipe.defaultState;
+    const root = bundleId === 'spider.ramp.silk'
+      ? buildSilkRamp(state)
+      : bundleId === 'spider.well.vertical'
+        ? buildVerticalWell(state)
+        : buildQueenNest(state);
+
+    root.name = `campaign-landmark:${bundleId}`;
+    root.userData = {
+      bundleId,
+      roomId: recipe.roomId,
+      state,
+      sockets: [...recipe.sockets],
+      detailBudget: recipe.detailBudget,
+      triangleBudget: recipe.triangleBudget,
+      animationProfile: 'spider-colony-organic'
+    };
+    root.position.set(recipe.placement.ox, 0, recipe.placement.oz);
+    root.rotation.y = recipe.placement.rotation;
+    root.scale.setScalar(recipe.placement.scale);
+    return root;
+  }
+}
