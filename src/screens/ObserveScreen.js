@@ -1,7 +1,7 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
 import { DungeonRenderer } from '../engine/DungeonRenderer.js';
 import { AssetRegistry } from '../engine/AssetRegistry.js';
-import { DungeonSim } from '../sim/DungeonSim.js';
+import { DungeonSim } from '../sim/DungeonSimPhase1.js';
 import { expandScenario } from '../data/generateDungeon.js';
 
 export class ObserveScreen {
@@ -42,6 +42,7 @@ export class ObserveScreen {
           <div class="metric"><b data-metric="dungeon">0</b><span>dungeon awake</span></div>
           <div class="metric"><b data-metric="cycles">1</b><span>return cycle</span></div>
           <div class="metric"><b data-metric="fallen">0</b><span>fallen mice</span></div>
+          <div class="metric"><b data-metric="orphaned">0</b><span>orphan members</span></div>
         </div>
         <section class="inspect-card" data-inspect>
           <div class="inspect-empty">Tap a creature in the dungeon to inspect its tiny bad decisions.</div>
@@ -187,17 +188,18 @@ export class ObserveScreen {
     const destination = agent.travel ? this.sim.rooms.find(r => r.id === agent.travel.toRoomId) : null;
     const related = this.events.filter(e => e.includes(agent.name)).slice(0, 3);
     const hp = `${Math.max(0, agent.hp)}/${agent.maxHp}`;
-    const status = agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.travel ? 'travelling' : 'active';
+    const status = agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.travel?.phase === 'entering' ? 'entering' : agent.travel ? 'travelling' : 'active';
+    const partyState = agent.partyId ? ` · ${agent.partyState ?? 'assembled'}` : '';
     const thought = currentThought(agent, this.sim);
     const location = agent.travel
-      ? `Corridor: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}`
+      ? `${agent.travel.phase === 'entering' ? 'Entering' : 'Corridor'}: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}`
       : `Room: ${room?.name ?? agent.roomId}`;
 
     this.inspectEl.innerHTML = `
       <div class="inspect-head">
         <div>
           <strong>${escapeHtml(agent.name)}</strong>
-          <span>${escapeHtml(agent.role)} · ${escapeHtml(agent.faction)} · ${status}</span>
+          <span>${escapeHtml(agent.role)} · ${escapeHtml(agent.faction)} · ${status}${escapeHtml(partyState)}</span>
         </div>
         <button class="mini-btn" data-clear-inspect>×</button>
       </div>
@@ -244,6 +246,8 @@ export class ObserveScreen {
 function currentThought(agent, sim) {
   if (!agent.alive) return 'I have become useful documentation.';
   if (agent.departed) return 'The tavern version of this story will be much better.';
+  if (agent.orphaned) return `I need to find ${sim.partySystem?.getLeader(agent, sim.agents)?.name ?? 'the others'} before something finds me.`;
+  if (agent.travel?.phase === 'entering') return `There had better be room on the other side of this door.`;
   if (agent.travel) return `The corridor to ${sim.roomName(agent.travel.toRoomId)} is taking this personally.`;
   if (agent.role === 'rogue') return 'That chest is probably fine.';
   if (agent.role === 'cleric') {
