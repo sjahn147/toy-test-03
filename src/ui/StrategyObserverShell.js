@@ -157,7 +157,7 @@ export class StrategyObserverShell {
 
   setMobileSurface(surface) {
     this.mobileSurface = surface;
-    this.screenEl?.dataset.mobileSurface = surface;
+    if (this.screenEl) this.screenEl.dataset.mobileSurface = surface;
     this.screenEl?.querySelectorAll('[data-mobile-target]').forEach(button => button.classList.toggle('is-active', button.dataset.mobileTarget === surface));
   }
 
