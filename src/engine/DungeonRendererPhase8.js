@@ -9,7 +9,8 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
 
   renderState(snapshot) {
     super.renderState(snapshot);
-    this.renderSettlements(snapshot.settlement?.settlements ?? [], snapshot.rooms, snapshot.time);
+    const settlements = (snapshot.settlement?.settlements ?? []).filter(settlement => settlement.type !== 'field-camp');
+    this.renderSettlements(settlements, snapshot.rooms, snapshot.time);
   }
 
   renderSettlements(settlements, rooms, time) {
