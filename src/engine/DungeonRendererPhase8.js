@@ -5,6 +5,7 @@ import { MiniatureAnimator } from './MiniatureAnimator.js';
 export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   constructor(three, scenario, assets) {
     super(three, scenario, assets);
+    this.scenario = scenario;
     this.miniatureAnimator = new MiniatureAnimator();
     this.settlementMeshes = new Map();
     this.settlementSignatures = new Map();
@@ -12,6 +13,9 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.cargoMeshes = new Map();
     this.structureMeshes = new Map();
     this.structureSignatures = new Map();
+    this.landmarkMeshes = new Map();
+    this.landmarkSignatures = new Map();
+    this.lastRenderTime = null;
   }
 
   renderState(snapshot) {
@@ -19,7 +23,10 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     const structures = snapshot.props.filter(prop => PHASE8D_STRUCTURE_TYPES.has(prop.type));
     const filtered = { ...snapshot, props: snapshot.props.filter(prop => prop.type !== 'adventurer_field_camp' && !PHASE8D_STRUCTURE_TYPES.has(prop.type)) };
     super.renderState(filtered);
+    const deltaSeconds = this.lastRenderTime == null ? 0 : Math.max(0, Math.min(0.1, snapshot.time - this.lastRenderTime));
+    this.lastRenderTime = snapshot.time;
     this.animateMiniatures(snapshot.agents, snapshot.effects ?? [], snapshot.time);
+    this.renderCampaignLandmarks(snapshot.rooms, snapshot.time, deltaSeconds);
     this.renderFieldCamps(fieldCamps, snapshot.rooms, snapshot.time);
     this.renderStructures(structures, snapshot.rooms, snapshot.time);
     const settlements = (snapshot.settlement?.settlements ?? []).filter(settlement => settlement.type !== 'field-camp');
@@ -33,6 +40,55 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       const mesh = this.agentMeshes.get(agent.id);
       if (mesh) this.miniatureAnimator.update(mesh, agent, time, effects);
     }
+  }
+
+  renderCampaignLandmarks(rooms, elapsedSeconds, deltaSeconds) {
+    const desired = [];
+    for (const room of rooms) {
+      const bundleIds = room.landmarkBundle
+        ? [room.landmarkBundle]
+        : this.scenario?.meta?.propBundlesByRoom?.[room.id] ?? [];
+      for (const assetId of bundleIds) {
+        const recipe = this.assets.getCampaignLandmarkRecipe(assetId);
+        if (recipe) desired.push({ room, assetId, recipe });
+      }
+    }
+
+    const live = new Set(desired.map(entry => landmarkKey(entry.room.id, entry.assetId)));
+    for (const [key, mesh] of this.landmarkMeshes) {
+      if (live.has(key)) continue;
+      this.removeLandmark(key, mesh);
+    }
+
+    for (const { room, assetId, recipe } of desired) {
+      const key = landmarkKey(room.id, assetId);
+      const state = room.visualState ?? room.stateVariant ?? room.state ?? recipe.defaultState ?? null;
+      const signature = `${assetId}:${state ?? 'default'}`;
+      let mesh = this.landmarkMeshes.get(key);
+      if (!mesh || this.landmarkSignatures.get(key) !== signature) {
+        if (mesh) this.removeLandmark(key, mesh);
+        mesh = this.assets.makeCampaignLandmark(assetId, { room, state, recipe });
+        if (!mesh) continue;
+        mesh.userData.roomId = room.id;
+        mesh.userData.assetId = assetId;
+        this.landmarkMeshes.set(key, mesh);
+        this.landmarkSignatures.set(key, signature);
+        this.group.add(mesh);
+      }
+      const placement = recipe.placement ?? {};
+      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.04, room.z + (placement.oz ?? 0));
+      mesh.rotation.y = placement.rotation ?? 0;
+      mesh.scale.setScalar(placement.scale ?? 1);
+      this.assets.animateCampaignLandmark(mesh, elapsedSeconds, deltaSeconds);
+    }
+  }
+
+  removeLandmark(key, mesh) {
+    this.group.remove(mesh);
+    this.assets.releaseCampaignLandmark(mesh);
+    disposeTree(mesh);
+    this.landmarkMeshes.delete(key);
+    this.landmarkSignatures.delete(key);
   }
 
   renderStructures(structures, rooms, time) {
@@ -79,6 +135,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       let mesh = this.fieldCampMeshes.get(camp.id);
       if (!mesh) {
         mesh = this.assets.makeProp(camp);
+        if (!mesh) continue;
         mesh.userData.fieldCampId = camp.id;
         this.fieldCampMeshes.set(camp.id, mesh);
         this.group.add(mesh);
@@ -164,6 +221,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   }
 
   destroy() {
+    for (const [key, mesh] of this.landmarkMeshes) this.removeLandmark(key, mesh);
     this.settlementMeshes.clear();
     this.settlementSignatures.clear();
     this.fieldCampMeshes.clear();
@@ -172,6 +230,19 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.structureSignatures.clear();
     super.destroy();
   }
+}
+
+function landmarkKey(roomId, assetId) {
+  return `${roomId}:${assetId}`;
+}
+
+function disposeTree(root) {
+  root.traverse(node => {
+    if (!node.isMesh) return;
+    node.geometry?.dispose?.();
+    if (Array.isArray(node.material)) node.material.forEach(material => material?.dispose?.());
+    else node.material?.dispose?.();
+  });
 }
 
 function settlementSignature(settlement) {
