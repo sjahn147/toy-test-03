@@ -1,0 +1,40 @@
+name: Laboratory asset smoke
+
+on:
+  push:
+    paths:
+      - 'src/engine/Laboratory*.js'
+      - 'tests/laboratory-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/laboratory-assets-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/engine/Laboratory*.js'
+      - 'tests/laboratory-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/laboratory-assets-smoke.yml'
+
+jobs:
+  laboratory-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/engine/LaboratoryLandmarkRecipes.js
+          node --check src/engine/LaboratoryGeometry.js
+          node --check src/engine/LaboratoryDioramas.js
+          node --check src/engine/LaboratoryLandmarkAssetFactory.js
+          node --check src/engine/LaboratoryAssetAnimator.js
+          node --check src/engine/LaboratoryAssetPack.js
+          node --check tests/laboratory-assets-smoke.mjs
+      - name: Validate production content
+        run: npm run validate:production-content
+      - name: Test laboratory contracts
+        run: node tests/laboratory-assets-smoke.mjs
