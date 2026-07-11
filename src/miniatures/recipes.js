@@ -41,6 +41,12 @@ export const MINIATURE_RECIPES = {
     palette: { skin: 0xd8d5c4, cloth: 0x6b6470, leather: 0x4b382d, metal: 0x8d969b, accent: 0xe8e2c9, dark: 0x25262a },
     parts: { head: 'head_skull_01', hat: null, torso: 'torso_bone_rib', back: null, waist: 'waist_belt_plain', mainHand: 'wpn_sword_short', offHand: null, accent: null }
   },
+  orc: {
+    id: 'orc_raider_v1', skeleton: 'orc', bodyType: 'masculine', weaponStyle: 'axe-shield', scale: 0.88,
+    proportions: { head: 1.08, shoulders: 1.28, legs: 0.94 },
+    palette: { skin: 0x70824f, cloth: 0x5d3028, leather: 0x493326, metal: 0x858a84, accent: 0xc79a54, dark: 0x25241f },
+    parts: { head: null, hat: null, torso: 'torso_chain_fighter', back: null, waist: 'waist_belt_plain', mainHand: 'wpn_axe_heavy', offHand: 'off_shield_kite', accent: null }
+  },
   ogre: {
     id: 'ogre_large_v2', skeleton: 'ogre', bodyType: 'neutral', weaponStyle: 'heavy-club', scale: 1.08,
     proportions: { head: 1.18, shoulders: 1.48, legs: 0.88 },

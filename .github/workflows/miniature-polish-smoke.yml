@@ -12,6 +12,10 @@ on:
       - 'src/engine/MiniatureWeaponBuilders.js'
       - 'src/engine/MiniatureAnimator.js'
       - 'src/engine/AdvancedMiniatureAnimator.js'
+      - 'src/engine/OrcMiniaturePolish.js'
+      - 'src/engine/MiniaturePhase3Equipment.js'
+      - 'src/engine/MiniaturePresentationPolish.js'
+      - 'src/engine/CombatPresentationBridge.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
       - 'src/miniatures/recipes.js'
@@ -31,6 +35,10 @@ on:
       - 'src/engine/MiniatureWeaponBuilders.js'
       - 'src/engine/MiniatureAnimator.js'
       - 'src/engine/AdvancedMiniatureAnimator.js'
+      - 'src/engine/OrcMiniaturePolish.js'
+      - 'src/engine/MiniaturePhase3Equipment.js'
+      - 'src/engine/MiniaturePresentationPolish.js'
+      - 'src/engine/CombatPresentationBridge.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
       - 'src/miniatures/recipes.js'
@@ -60,6 +68,10 @@ jobs:
           node --check src/engine/MiniatureWeaponBuilders.js
           node --check src/engine/MiniatureAnimator.js
           node --check src/engine/AdvancedMiniatureAnimator.js
+          node --check src/engine/OrcMiniaturePolish.js
+          node --check src/engine/MiniaturePhase3Equipment.js
+          node --check src/engine/MiniaturePresentationPolish.js
+          node --check src/engine/CombatPresentationBridge.js
           node --check src/engine/AssetRegistryPhase8.js
           node --check src/engine/DungeonRendererPhase8.js
           node --check src/miniatures/recipes.js

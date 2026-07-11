@@ -4,7 +4,24 @@ import { MINIATURE_RECIPES } from '../src/miniatures/recipes.js';
 import { MINIATURE_PARTS } from '../src/miniatures/partCatalog.js';
 
 const read = relative => readFile(new URL(relative, import.meta.url), 'utf8');
-const [factory, profiles, humanoid, skeleton, creatures, exotic, weapons, animator, advanced, registry, renderer, observer] = await Promise.all([
+const [
+  factory,
+  profiles,
+  humanoid,
+  skeleton,
+  creatures,
+  exotic,
+  weapons,
+  phase3Equipment,
+  orc,
+  presentation,
+  animator,
+  advanced,
+  bridge,
+  registry,
+  renderer,
+  observer
+] = await Promise.all([
   read('../src/engine/PolishedMiniatureFactory.js'),
   read('../src/engine/MiniatureBodyProfiles.js'),
   read('../src/engine/HumanoidMiniatureRig.js'),
@@ -12,8 +29,12 @@ const [factory, profiles, humanoid, skeleton, creatures, exotic, weapons, animat
   read('../src/engine/CreatureMiniatureBuilders.js'),
   read('../src/engine/ExoticMiniatureBuilders.js'),
   read('../src/engine/MiniatureWeaponBuilders.js'),
+  read('../src/engine/MiniaturePhase3Equipment.js'),
+  read('../src/engine/OrcMiniaturePolish.js'),
+  read('../src/engine/MiniaturePresentationPolish.js'),
   read('../src/engine/MiniatureAnimator.js'),
   read('../src/engine/AdvancedMiniatureAnimator.js'),
+  read('../src/engine/CombatPresentationBridge.js'),
   read('../src/engine/AssetRegistryPhase8.js'),
   read('../src/engine/DungeonRendererPhase8.js'),
   read('../src/ui/StrategyObserverShell.js')
@@ -47,10 +68,44 @@ assert.equal(MINIATURE_PARTS.off_bow_long.builder, 'bowLong');
 assert.equal(MINIATURE_PARTS.wpn_arrow_nocked.builder, 'arrowNocked');
 assert.match(weapons, /buildLongbow/);
 assert.match(weapons, /buildArrow/);
+
+assert.equal(MINIATURE_RECIPES.orc.skeleton, 'orc');
+assert.equal(MINIATURE_RECIPES.orc.weaponStyle, 'axe-shield');
+assert.equal(MINIATURE_PARTS.wpn_axe_heavy.builder, 'axeHeavy');
+assert.equal(MINIATURE_PARTS.off_shield_kite.builder, 'shieldKite');
+assert.match(orc, /decorateOrc/);
+assert.match(orc, /orc_topknot/);
+assert.match(phase3Equipment, /buildHeavyAxe/);
+assert.match(phase3Equipment, /buildKiteShield/);
+assert.match(presentation, /applyMiniaturePresentationPolish/);
+assert.match(presentation, /miniature_contact_shadow/);
+
 assert.match(animator, /attackTimeline/);
 assert.match(advanced, /animateWeaponStyle/);
+assert.match(advanced, /animatePresentation/);
+assert.match(advanced, /sourceAgentId/);
+assert.match(advanced, /corpseProgress/);
+assert.match(advanced, /presentation\.arrow\.visible/);
+assert.match(advanced, /style === 'axe-shield'/);
+
+assert.match(bridge, /installCombatPresentationBridge/);
+assert.match(bridge, /DungeonSim\.prototype\.resolve/);
+assert.match(bridge, /DungeonSim\.prototype\.emitEffect/);
+assert.match(bridge, /DungeonSim\.prototype\.onDeath/);
+assert.match(bridge, /sourceAgentId/);
+assert.match(bridge, /deathAt/);
+assert.match(bridge, /corpseLinger/);
+assert.match(bridge, /CORPSE_LINGER_SECONDS = 2\.4/);
+
+assert.match(factory, /installCombatPresentationBridge/);
+assert.match(factory, /applyMiniaturePresentationPolish/);
+assert.match(factory, /decorateOrc/);
 assert.match(registry, /new PolishedMiniatureFactory/);
+assert.match(renderer, /prepareVisualAgents/);
+assert.match(renderer, /corpse: true/);
+assert.match(renderer, /corpseLinger/);
 assert.match(renderer, /miniatureAnimator\.update/);
+
 assert.ok(!observer.includes('?.dataset.mobileSurface ='));
 assert.ok(observer.includes('if (this.screenEl) this.screenEl.dataset.mobileSurface = surface;'));
 

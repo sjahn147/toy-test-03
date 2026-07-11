@@ -7,11 +7,16 @@ import { buildSkeletonRig } from './SkeletonMiniatureRig.js';
 import { buildSlime, buildMimic } from './CreatureMiniatureBuilders.js';
 import { buildSpider, buildWraith, buildMyconid, buildStirge } from './ExoticMiniatureBuilders.js';
 import { buildLongbow, buildArrow } from './MiniatureWeaponBuilders.js';
+import { buildHeavyAxe, buildKiteShield } from './MiniaturePhase3Equipment.js';
+import { decorateOrc } from './OrcMiniaturePolish.js';
+import { applyMiniaturePresentationPolish } from './MiniaturePresentationPolish.js';
 import { installAdvancedMiniatureAnimation } from './AdvancedMiniatureAnimator.js';
+import { installCombatPresentationBridge } from './CombatPresentationBridge.js';
 
 installAdvancedMiniatureAnimation();
+installCombatPresentationBridge();
 
-const HUMANOID_SKELETONS = new Set(['humanoid', 'goblin', 'ogre']);
+const HUMANOID_SKELETONS = new Set(['humanoid', 'goblin', 'orc', 'ogre']);
 const EXOTIC_BUILDERS = {
   arachnid: buildSpider,
   spectral: buildWraith,
@@ -36,10 +41,12 @@ export class PolishedMiniatureFactory extends MiniatureFactory {
     const bodyType = resolveBodyType(agent, recipe);
     const variation = variationFor(agent);
     const goblin = recipe.skeleton === 'goblin';
+    const orc = recipe.skeleton === 'orc';
     const ogre = recipe.skeleton === 'ogre';
     const rig = buildHumanoidRig(this, model, recipe, BODY_PROFILES[bodyType], variation, { goblin, ogre });
     this.attachEquipment(rig.sockets, recipe, { omitAccent: goblin || ogre });
     if (goblin || ogre) decorateGoblin(this, rig, recipe, variation, { ogre });
+    if (orc) decorateOrc(this, rig, recipe, variation);
     return this.finishRoot(root, agent, recipe, { rig, bodyType, variation });
   }
 
@@ -98,6 +105,7 @@ export class PolishedMiniatureFactory extends MiniatureFactory {
     root.userData.rig = rig;
     if (rig) rig.model = root.getObjectByName('miniature-model');
     this.addIndicators(root, agent);
+    applyMiniaturePresentationPolish(this, root, agent, recipe);
     return root;
   }
 
@@ -115,5 +123,13 @@ export class PolishedMiniatureFactory extends MiniatureFactory {
 
   arrowNocked(recipe) {
     return buildArrow(this, recipe);
+  }
+
+  axeHeavy(recipe) {
+    return buildHeavyAxe(this, recipe);
+  }
+
+  shieldKite(recipe) {
+    return buildKiteShield(this, recipe);
   }
 }
