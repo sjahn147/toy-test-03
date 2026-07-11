@@ -79,15 +79,23 @@ assert.equal(selectSettlementList(snapshot)[0].name, 'Mouse Camp');
 assert.equal(selectRoomList(snapshot)[0].occupantCount, 1);
 assert.equal(selectFollowRoster(snapshot)[0].id, 'hero');
 
+// Legacy expedition snapshots intentionally omit party structure. The compat
+// projector must recover it from agent records without touching gameplay code.
 const normalized = normalizeLegacySnapshot({
   time: 3,
-  agents: [{ id: 'hero', faction: 'party', partyId: 'party-1', roomId: 'hall', alive: true }],
-  rooms: [{ id: 'hall' }],
-  expedition: { parties: [{ id: 'party-1', leaderId: 'hero', memberIds: ['hero'], cohesion: 0.8 }] }
+  agents: [
+    { id: 'hero', name: 'Mira', faction: 'party', partyId: 'party-1', partyLeaderId: 'hero', partyState: 'stretched', roomId: 'hall', alive: true },
+    { id: 'ally', name: 'Ivo', faction: 'party', partyId: 'party-1', partyLeaderId: 'hero', roomId: 'gate', travel: { toRoomId: 'hall' }, alive: true }
+  ],
+  rooms: [{ id: 'hall' }, { id: 'gate' }],
+  expedition: { parties: [{ id: 'party-1', name: 'Lantern Company', provisions: 4, expeditionState: 'exploring' }] }
 });
 assert.ok(normalized.entities.factions['adventurer-expedition']);
-assert.deepEqual(normalized.entities.parties['party-1'].memberIds, ['hero']);
+assert.deepEqual(normalized.entities.parties['party-1'].memberIds.sort(), ['ally', 'hero']);
 assert.equal(normalized.entities.parties['party-1'].leaderId, 'hero');
+assert.equal(normalized.entities.parties['party-1'].state, 'exploring');
+assert.equal(normalized.entities.parties['party-1'].targetRoomId, 'hall');
+assert.equal(normalized.entities.parties['party-1'].cohesion, null);
 
 const screenSource = await readFile(new URL('../src/screens/ObserveScreenPhase8.js', import.meta.url), 'utf8');
 for (const forbidden of ['super.renderInspectPanel()', 'settlementSystem', 'logisticsSystem', 'partySystem', 'this.sim.agents']) {
@@ -97,6 +105,9 @@ assert.match(screenSource, /StrategyObserverShell/, 'production strategy shell i
 assert.match(screenSource, /getViewModel/, 'Phase 8 screen does not consume the facade view model');
 assert.match(screenSource, /this\.selection = \{ type: 'agent', id: this\.selectedAgentId \}/, 'canvas picks are not synchronized to shell selection');
 assert.match(screenSource, /renderer\.renderState\(this\.sim\.snapshot\(\)\)/, 'legacy renderer migration exception disappeared unexpectedly');
+assert.match(screenSource, /setCameraTarget\(this\.mapCamera\.x, this\.mapCamera\.y, this\.mapCamera\.z, null, false\)/, 'overview camera still overwrites user zoom each frame');
+assert.match(screenSource, /cycleFollowTarget/, 'follow roster cycling is not wired');
+assert.match(screenSource, /handleShortcut/, 'camera keyboard shortcuts are not wired');
 
 const shellSource = await readFile(new URL('../src/ui/StrategyObserverShell.js', import.meta.url), 'utf8');
 assert.equal(shellSource.includes('sim.'), false, 'strategy shell accesses simulation internals');
@@ -104,6 +115,13 @@ assert.match(shellSource, /strategy-topbar/);
 assert.match(shellSource, /strategy-navigator/);
 assert.match(shellSource, /strategy-inspector/);
 assert.match(shellSource, /strategy-timeline/);
+assert.match(shellSource, /strategy-mobile-nav/, 'mobile surface navigation is missing');
+assert.match(shellSource, /data-shell-camera-action="focus"/, 'selection focus control is missing');
 assert.match(shellSource, /data-camera-strip/, 'legacy camera controls are not removed during shell mount');
 
-console.log('presentation boundary and production shell smoke passed');
+const expeditionSource = await readFile(new URL('../src/sim/ExpeditionSystem.js', import.meta.url), 'utf8');
+for (const uiField of ['memberIds: [...(party.memberIds', 'leaderId: party.leaderId', 'cohesion: round(party.cohesion']) {
+  assert.equal(expeditionSource.includes(uiField), false, `ExpeditionSystem still contains UI projection field: ${uiField}`);
+}
+
+console.log('presentation boundary, compat party projection and camera UX smoke passed');
