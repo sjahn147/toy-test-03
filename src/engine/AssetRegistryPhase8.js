@@ -7,6 +7,7 @@ import { ConstructionAssetFactory } from './ConstructionAssetFactory.js';
 import { CampaignLandmarkAssetFactory } from './CampaignLandmarkAssetFactory.js';
 import { OldLanternAnnexAssetFactory } from './OldLanternAnnexAssetFactory.js';
 import { CentralMarketLandmarkAssetFactory } from './CentralMarketLandmarkAssetFactory.js';
+import { OssuaryLandmarkAssetFactory } from './OssuaryLandmarkAssetFactory.js';
 
 export const PHASE8D_STRUCTURE_TYPES = new Set(['supply_depot', 'gatehouse', 'siege_workshop', 'ambush_post']);
 
@@ -20,6 +21,7 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
     this.campaignLandmarks = new CampaignLandmarkAssetFactory();
     this.oldLanternAnnex = new OldLanternAnnexAssetFactory();
     this.centralMarket = new CentralMarketLandmarkAssetFactory();
+    this.ossuary = new OssuaryLandmarkAssetFactory();
   }
 
   makeProp(prop) {
@@ -29,7 +31,8 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
   }
 
   makeCampaignLandmark(bundleId, context = {}) {
-    return this.centralMarket.create(bundleId, context)
+    return this.ossuary.create(bundleId, context)
+      ?? this.centralMarket.create(bundleId, context)
       ?? this.oldLanternAnnex.create(bundleId, context)
       ?? this.campaignLandmarks.create(bundleId, context);
   }
