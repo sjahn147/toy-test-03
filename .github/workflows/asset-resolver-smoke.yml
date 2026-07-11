@@ -1,0 +1,30 @@
+name: Asset resolver smoke
+
+on:
+  pull_request:
+    paths:
+      - 'src/engine/AssetPackRegistry.js'
+      - 'src/engine/AssetResolutionDiagnostics.js'
+      - 'src/engine/AssetResolver.js'
+      - 'src/engine/SleepingCitadelAssetPacks.js'
+      - 'tests/asset-resolver-smoke.mjs'
+      - '.github/workflows/asset-resolver-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax check
+        run: |
+          node --check src/engine/AssetPackRegistry.js
+          node --check src/engine/AssetResolutionDiagnostics.js
+          node --check src/engine/AssetResolver.js
+          node --check src/engine/SleepingCitadelAssetPacks.js
+          node --check tests/asset-resolver-smoke.mjs
+      - name: Resolver smoke test
+        run: node tests/asset-resolver-smoke.mjs
