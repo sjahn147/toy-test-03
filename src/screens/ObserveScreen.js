@@ -1,7 +1,7 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
-import { DungeonRendererPhase3 } from '../engine/DungeonRendererPhase3.js';
-import { AssetRegistryPhase3 } from '../engine/AssetRegistryPhase3.js';
-import { DungeonSim } from '../sim/DungeonSimPhase3.js';
+import { DungeonRendererPhase4 } from '../engine/DungeonRendererPhase4.js';
+import { AssetRegistryPhase4 } from '../engine/AssetRegistryPhase4.js';
+import { DungeonSim } from '../sim/DungeonSimPhase4.js';
 import { expandScenario } from '../data/generateDungeon.js';
 import { applyPhase2Facilities } from '../data/applyPhase2Facilities.js';
 
@@ -28,7 +28,7 @@ export class ObserveScreen {
       <div class="viewport">
         <div class="legend">
           <strong>${this.scenario.name}</strong>
-          <span>Physical arrows, spells, healing bolts and phased melee combat are active.</span>
+          <span>Equipment drops, durability, automatic upgrades and visible socket swaps are active.</span>
         </div>
         <div class="camera-strip" data-camera-strip>
           <button class="camera-btn is-active" data-camera-mode="fixed">고정</button>
@@ -46,6 +46,8 @@ export class ObserveScreen {
           <div class="metric"><b data-metric="orphaned">0</b><span>orphan members</span></div>
           <div class="metric"><b data-metric="downed">0</b><span>downed</span></div>
           <div class="metric"><b data-metric="projectiles">0</b><span>projectiles</span></div>
+          <div class="metric"><b data-metric="loot">0</b><span>loot on floor</span></div>
+          <div class="metric"><b data-metric="broken">0</b><span>broken loadouts</span></div>
           <div class="metric"><b data-metric="resurrectable">0</b><span>awaiting return</span></div>
           <div class="metric"><b data-metric="cycles">1</b><span>return cycle</span></div>
           <div class="metric"><b data-metric="fallen">0</b><span>fallen mice</span></div>
@@ -69,11 +71,11 @@ export class ObserveScreen {
     this.logEl = el.querySelector('[data-log]');
     this.inspectEl = el.querySelector('[data-inspect]');
 
-    this.assets = new AssetRegistryPhase3();
+    this.assets = new AssetRegistryPhase4();
     this.assets.loadManifest();
     this.three = new ThreeScene(this.viewport);
     this.fitCameraToScenario();
-    this.renderer = new DungeonRendererPhase3(this.three, this.scenario, this.assets);
+    this.renderer = new DungeonRendererPhase4(this.three, this.scenario, this.assets);
     this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
 
     el.querySelectorAll('[data-camera-mode]').forEach(button => button.addEventListener('click', () => this.setCameraMode(button.dataset.cameraMode)));
@@ -184,12 +186,15 @@ export class ObserveScreen {
       <div class="inspect-head"><div><strong>${escapeHtml(agent.name)}</strong><span>${escapeHtml(agent.role)} · ${escapeHtml(agent.faction)} · ${escapeHtml(status)}</span></div><button class="mini-btn" data-clear-inspect>×</button></div>
       <div class="inspect-grid">
         <div><b>${Math.max(0, agent.hp)}/${agent.maxHp}</b><span>HP</span></div>
+        <div><b>${agent.attack ?? 0}</b><span>attack</span></div>
+        <div><b>${agent.defense ?? 0}</b><span>defense</span></div>
+        <div><b>${agent.gold ?? 0}</b><span>gold</span></div>
         <div><b>${Math.round(agent.fatigue ?? 0)}</b><span>fatigue</span></div>
-        <div><b>${Math.ceil(agent.webbed ?? 0)}</b><span>webbed</span></div>
-        <div><b>${agent.kills ?? 0}</b><span>kills</span></div>
+        <div><b>${agent.inventory?.length ?? 0}</b><span>inventory</span></div>
       </div>
       <div class="thought">“${escapeHtml(currentThought(agent, this.sim))}”</div>
       <div class="inspect-room">${escapeHtml(location)}</div>
+      ${renderEquipment(agent)}
       <div class="memory-list">${related.length ? related.map(event => `<div>${escapeHtml(event)}</div>`).join('') : '<div>No recent memorable mistakes.</div>'}</div>
     `;
     this.inspectEl.querySelector('[data-clear-inspect]').addEventListener('click', () => {
@@ -219,12 +224,27 @@ export class ObserveScreen {
   }
 }
 
+function renderEquipment(agent) {
+  if (agent.faction !== 'party' || !agent.equipment) return '';
+  const rows = Object.entries(agent.equipment).map(([slot, item]) => {
+    if (!item) return `<div class="equipment-row"><span>${escapeHtml(slot)}</span><b>empty</b></div>`;
+    const durability = item.maxDurability >= 90 ? 'stable' : `${Math.ceil(item.durability)}/${item.maxDurability}`;
+    const state = item.broken ? ' · broken' : '';
+    return `<div class="equipment-row"><span>${escapeHtml(slot)}</span><b>${escapeHtml(item.name)}</b><em>${escapeHtml(item.rarity)} · ${durability}${state}</em></div>`;
+  }).join('');
+  const bag = agent.inventory?.length
+    ? agent.inventory.map(item => `<span class="inventory-chip">${escapeHtml(item.name)}</span>`).join('')
+    : '<span class="inventory-chip is-empty">empty pack</span>';
+  return `<section class="equipment-panel"><strong>Loadout</strong>${rows}<div class="inventory-line">${bag}</div></section>`;
+}
+
 function currentThought(agent, sim) {
   if (agent.queued) return 'Everyone is here. Someone is still checking the rope.';
   if (agent.downed) return `I have about ${Math.ceil(agent.bleedout)} seconds of optimism left.`;
   if (!agent.alive && agent.resurrectable) return 'The statue has not forgotten my name yet.';
   if (!agent.alive) return 'I have become useful documentation.';
   if ((agent.webbed ?? 0) > 0) return 'The silk is tighter than the employment contract.';
+  if (Object.values(agent.equipment ?? {}).some(item => item?.broken)) return 'Something important is making the wrong metal noise.';
   if (agent.resurrectionSickness > 0) return 'Being alive again is more tiring than advertised.';
   if (agent.combat?.phase === 'windup') return 'This is the part where commitment becomes visible.';
   if (agent.travel) return `The corridor to ${sim.roomName(agent.travel.toRoomId)} is taking this personally.`;
@@ -233,6 +253,7 @@ function currentThought(agent, sim) {
   if (agent.role === 'rogue') return 'That chest is probably fine.';
   if (agent.role === 'cleric') return 'Everyone is temporarily acceptable.';
   if (agent.role === 'wizard') return 'This is academically survivable.';
+  if (agent.role === 'archer') return 'The correct distance is somebody else’s problem.';
   if (agent.role === 'fighter') return 'If it moves, it may be a problem I can solve loudly.';
   if (agent.role === 'goblin') return 'I am brave in the plural.';
   if (agent.role === 'skeleton') return sim.lastNoiseRoom ? 'Something made a noise, which is legally my business.' : 'Waiting is also a profession.';
