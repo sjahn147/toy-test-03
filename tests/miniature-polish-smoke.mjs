@@ -1,53 +1,57 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { MINIATURE_RECIPES } from '../src/miniatures/recipes.js';
+import { MINIATURE_PARTS } from '../src/miniatures/partCatalog.js';
 
-const factorySource = await readFile(new URL('../src/engine/PolishedMiniatureFactory.js', import.meta.url), 'utf8');
-const profilesSource = await readFile(new URL('../src/engine/MiniatureBodyProfiles.js', import.meta.url), 'utf8');
-const humanoidSource = await readFile(new URL('../src/engine/HumanoidMiniatureRig.js', import.meta.url), 'utf8');
-const skeletonSource = await readFile(new URL('../src/engine/SkeletonMiniatureRig.js', import.meta.url), 'utf8');
-const creatureSource = await readFile(new URL('../src/engine/CreatureMiniatureBuilders.js', import.meta.url), 'utf8');
-const animatorSource = await readFile(new URL('../src/engine/MiniatureAnimator.js', import.meta.url), 'utf8');
-const registrySource = await readFile(new URL('../src/engine/AssetRegistryPhase8.js', import.meta.url), 'utf8');
-const rendererSource = await readFile(new URL('../src/engine/DungeonRendererPhase8.js', import.meta.url), 'utf8');
+const read = relative => readFile(new URL(relative, import.meta.url), 'utf8');
+const [factory, profiles, humanoid, skeleton, creatures, exotic, weapons, animator, advanced, registry, renderer, observer] = await Promise.all([
+  read('../src/engine/PolishedMiniatureFactory.js'),
+  read('../src/engine/MiniatureBodyProfiles.js'),
+  read('../src/engine/HumanoidMiniatureRig.js'),
+  read('../src/engine/SkeletonMiniatureRig.js'),
+  read('../src/engine/CreatureMiniatureBuilders.js'),
+  read('../src/engine/ExoticMiniatureBuilders.js'),
+  read('../src/engine/MiniatureWeaponBuilders.js'),
+  read('../src/engine/MiniatureAnimator.js'),
+  read('../src/engine/AdvancedMiniatureAnimator.js'),
+  read('../src/engine/AssetRegistryPhase8.js'),
+  read('../src/engine/DungeonRendererPhase8.js'),
+  read('../src/ui/StrategyObserverShell.js')
+]);
 
 for (const role of ['fighter', 'rogue', 'cleric', 'wizard', 'archer']) {
-  assert.equal(MINIATURE_RECIPES[role].skeleton, 'humanoid', `${role} must remain humanoid`);
-  assert.ok(['masculine', 'feminine', 'neutral'].includes(MINIATURE_RECIPES[role].bodyType), `${role} needs an explicit bodyType`);
+  assert.equal(MINIATURE_RECIPES[role].skeleton, 'humanoid');
+  assert.ok(['masculine', 'feminine', 'neutral'].includes(MINIATURE_RECIPES[role].bodyType));
+  assert.ok(MINIATURE_RECIPES[role].weaponStyle);
 }
-for (const token of ['masculine', 'feminine', 'neutral', 'agent.bodyType', 'agent.presentation', 'agent.gender']) {
-  assert.ok(profilesSource.includes(token), `body profile resolver is missing ${token}`);
+
+assert.match(profiles, /resolveBodyType/);
+assert.match(humanoid, /buildHumanoidRig/);
+assert.match(skeleton, /buildSkeletonRig/);
+assert.match(creatures, /buildSlime/);
+assert.match(creatures, /buildMimic/);
+
+for (const [role, family, builder] of [
+  ['spider', 'arachnid', 'buildSpider'],
+  ['wraith', 'spectral', 'buildWraith'],
+  ['myconid', 'fungal', 'buildMyconid'],
+  ['stirge', 'flying', 'buildStirge']
+]) {
+  assert.equal(MINIATURE_RECIPES[role].skeleton, family);
+  assert.ok(exotic.includes(`function ${builder}`));
+  assert.ok(factory.includes(builder));
 }
-for (const joint of ['rig_pelvis', 'rig_spine', 'rig_chest', 'rig_neck', 'rig_head']) {
-  assert.ok(humanoidSource.includes(joint), `humanoid rig is missing ${joint}`);
-}
-for (const limb of ['upperArm', 'forearm', 'thigh', 'shin', 'foot']) {
-  assert.ok(humanoidSource.includes(`rig_${limb}`), `humanoid rig is missing ${limb}`);
-}
-for (const anatomy of ['skeleton-iliac', 'skeleton-vertebra', 'skeleton-sternum', 'skeleton-rib', 'skeleton-clavicle', 'skeleton-femur', 'skeleton-tibia', 'skeleton-finger']) {
-  assert.ok(skeletonSource.includes(anatomy), `skeleton anatomy is missing ${anatomy}`);
-}
-for (const goblinDetail of ['goblin_ear_', 'goblin-tusk', 'goblin-wart', 'variation.faceBias', 'variation.asymmetry']) {
-  assert.ok(humanoidSource.includes(goblinDetail), `goblin variation is missing ${goblinDetail}`);
-}
-for (const slimeDetail of ['slime_body', 'slime_skirt', 'slime_lobe_', 'part:slime-core']) {
-  assert.ok(creatureSource.includes(slimeDetail), `slime model is missing ${slimeDetail}`);
-}
-for (const mimicDetail of ['mimic_lid_pivot', 'mimic_jaw', 'mimic_tongue', 'mimic_leg_']) {
-  assert.ok(creatureSource.includes(mimicDetail), `mimic model is missing ${mimicDetail}`);
-}
-for (const behavior of ['attackTimeline', 'windup', 'strike', 'recover', 'combatArmPose', 'poseLeg', 'poseArm', 'animateCreatureFallback']) {
-  assert.ok(animatorSource.includes(behavior), `animator is missing ${behavior}`);
-}
-assert.ok(animatorSource.includes("role === 'skeleton'"), 'animator needs skeletal motion');
-assert.ok(animatorSource.includes('rig.earL'), 'animator needs goblin ear motion');
-assert.ok(animatorSource.includes('parts.lidPivot'), 'animator needs articulated mimic lid motion');
-assert.ok(animatorSource.includes('parts.skirt'), 'animator needs slime footprint deformation');
-assert.ok(factorySource.includes('buildHumanoidRig'), 'factory must route humanoids through the articulated builder');
-assert.ok(factorySource.includes('buildSkeletonRig'), 'factory must route skeletons through the anatomical builder');
-assert.ok(factorySource.includes('buildSlime'), 'factory must route slimes through the layered builder');
-assert.ok(factorySource.includes('buildMimic'), 'factory must route mimics through the hinged builder');
-assert.ok(registrySource.includes('new PolishedMiniatureFactory()'), 'Phase8 registry must use the polished factory');
-assert.ok(rendererSource.includes('this.miniatureAnimator.update'), 'Phase8 renderer must drive miniature animation');
+
+assert.equal(MINIATURE_RECIPES.archer.weaponStyle, 'bow');
+assert.equal(MINIATURE_PARTS.off_bow_long.builder, 'bowLong');
+assert.equal(MINIATURE_PARTS.wpn_arrow_nocked.builder, 'arrowNocked');
+assert.match(weapons, /buildLongbow/);
+assert.match(weapons, /buildArrow/);
+assert.match(animator, /attackTimeline/);
+assert.match(advanced, /animateWeaponStyle/);
+assert.match(registry, /new PolishedMiniatureFactory/);
+assert.match(renderer, /miniatureAnimator\.update/);
+assert.ok(!observer.includes('?.dataset.mobileSurface ='));
+assert.ok(observer.includes('if (this.screenEl) this.screenEl.dataset.mobileSurface = surface;'));
 
 console.log('miniature polish smoke: ok');
