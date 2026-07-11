@@ -1,17 +1,19 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
-import { DungeonRendererPhase5 } from '../engine/DungeonRendererPhase5.js';
-import { AssetRegistryPhase5 } from '../engine/AssetRegistryPhase5.js';
-import { DungeonSim } from '../sim/DungeonSimPhase5.js';
+import { DungeonRendererPhase6 } from '../engine/DungeonRendererPhase6.js';
+import { AssetRegistryPhase6 } from '../engine/AssetRegistryPhase6.js';
+import { DungeonSim } from '../sim/DungeonSimPhase6.js';
 import { expandScenario } from '../data/generateDungeon.js';
 import { applyPhase2Facilities } from '../data/applyPhase2Facilities.js';
 import { applyPhase5Ecology } from '../data/applyPhase5Ecology.js';
+import { applyPhase6Ecology } from '../data/applyPhase6Ecology.js';
 
 export class ObserveScreen {
   constructor({ scenario, state, onBack }) {
     this.baseScenario = scenario;
     const expanded = scenario.useGeneratedMap ? expandScenario(scenario) : scenario;
     const withFacilities = applyPhase2Facilities(expanded);
-    this.scenario = applyPhase5Ecology(withFacilities);
+    const withBasicEcology = applyPhase5Ecology(withFacilities);
+    this.scenario = applyPhase6Ecology(withBasicEcology);
     this.state = state;
     this.onBack = onBack;
     this.running = true;
@@ -30,7 +32,7 @@ export class ObserveScreen {
       <div class="viewport">
         <div class="legend">
           <strong>${this.scenario.name}</strong>
-          <span>Species lairs, hunger, predation, corpses, hosts and staged reproduction are active.</span>
+          <span>Advanced infection, scavenging, faction territory and lair warfare are active.</span>
         </div>
         <div class="camera-strip" data-camera-strip>
           <button class="camera-btn is-active" data-camera-mode="fixed">고정</button>
@@ -47,7 +49,12 @@ export class ObserveScreen {
           <div class="metric"><b data-metric="hungry">0</b><span>hungry monsters</span></div>
           <div class="metric"><b data-metric="corpses">0</b><span>corpses</span></div>
           <div class="metric"><b data-metric="hosts">0</b><span>living hosts</span></div>
-          <div class="metric"><b data-metric="births">0</b><span>developing births</span></div>
+          <div class="metric"><b data-metric="births">0</b><span>basic births</span></div>
+          <div class="metric"><b data-metric="advancedBirths">0</b><span>advanced births</span></div>
+          <div class="metric"><b data-metric="infections">0</b><span>infections</span></div>
+          <div class="metric"><b data-metric="attached">0</b><span>attached stirges</span></div>
+          <div class="metric"><b data-metric="factionTraps">0</b><span>kobold traps</span></div>
+          <div class="metric"><b data-metric="contested">0</b><span>contested rooms</span></div>
           <div class="metric"><b data-metric="waiting">0</b><span>waiting outside</span></div>
           <div class="metric"><b data-metric="orphaned">0</b><span>orphan members</span></div>
           <div class="metric"><b data-metric="downed">0</b><span>downed</span></div>
@@ -77,11 +84,11 @@ export class ObserveScreen {
     this.logEl = el.querySelector('[data-log]');
     this.inspectEl = el.querySelector('[data-inspect]');
 
-    this.assets = new AssetRegistryPhase5();
+    this.assets = new AssetRegistryPhase6();
     this.assets.loadManifest();
     this.three = new ThreeScene(this.viewport);
     this.fitCameraToScenario();
-    this.renderer = new DungeonRendererPhase5(this.three, this.scenario, this.assets);
+    this.renderer = new DungeonRendererPhase6(this.three, this.scenario, this.assets);
     this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
 
     el.querySelectorAll('[data-camera-mode]').forEach(button => button.addEventListener('click', () => this.setCameraMode(button.dataset.cameraMode)));
@@ -185,8 +192,32 @@ export class ObserveScreen {
     const room = this.sim.rooms.find(candidate => candidate.id === agent.roomId);
     const destination = agent.travel ? this.sim.rooms.find(candidate => candidate.id === agent.travel.toRoomId) : null;
     const related = this.events.filter(event => event.includes(agent.name)).slice(0, 3);
-    const status = agent.hosted ? 'living host' : agent.queued ? 'waiting outside' : agent.downed ? `downed ${Math.ceil(agent.bleedout)}s` : agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.combat ? agent.combat.phase : agent.travel ? agent.travel.phase : agent.partyState ?? agent.mood ?? 'active';
-    const location = agent.queued ? 'Outside the expedition gate' : agent.travel ? `${agent.travel.phase === 'entering' ? 'Entering' : 'Corridor'}: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}` : `Room: ${room?.name ?? agent.roomId}`;
+    const status = agent.infected
+      ? 'infected'
+      : agent.attachedToId
+        ? 'feeding attachment'
+        : agent.sporeSleep > 0
+          ? `spore sleep ${Math.ceil(agent.sporeSleep)}s`
+          : agent.hosted
+            ? 'living host'
+            : agent.queued
+              ? 'waiting outside'
+              : agent.downed
+                ? `downed ${Math.ceil(agent.bleedout)}s`
+                : agent.departed
+                  ? 'departed'
+                  : !agent.alive
+                    ? 'fallen'
+                    : agent.combat
+                      ? agent.combat.phase
+                      : agent.travel
+                        ? agent.travel.phase
+                        : agent.partyState ?? agent.mood ?? 'active';
+    const location = agent.queued
+      ? 'Outside the expedition gate'
+      : agent.travel
+        ? `${agent.travel.phase === 'entering' ? 'Entering' : 'Corridor'}: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}`
+        : `Room: ${room?.name ?? agent.roomId}`;
 
     this.inspectEl.innerHTML = `
       <div class="inspect-head"><div><strong>${escapeHtml(agent.name)}</strong><span>${escapeHtml(agent.role)} · ${escapeHtml(agent.faction)} · ${escapeHtml(status)}</span></div><button class="mini-btn" data-clear-inspect>×</button></div>
@@ -232,15 +263,23 @@ export class ObserveScreen {
 }
 
 function renderEcology(agent, sim) {
-  if (agent.faction !== 'dungeon' && !agent.hosted) return '';
+  if (agent.faction !== 'dungeon' && !agent.hosted && !agent.infected) return '';
   const home = sim.rooms.find(room => room.id === agent.homeRoomId)?.name ?? agent.homeRoomId ?? 'none';
   const host = agent.carryingHostId ? sim.ecosystem.hosts.find(candidate => candidate.id === agent.carryingHostId) : null;
+  const infection = sim.advancedEcology?.infections.find(candidate => candidate.targetId === agent.id);
+  const attachmentCount = sim.advancedEcology?.attachments.filter(candidate => candidate.targetId === agent.id).length ?? 0;
+  const territory = sim.advancedEcology?.territories.get(agent.roomId);
   return `
     <section class="equipment-panel ecology-panel">
       <strong>Ecology</strong>
       <div class="equipment-row"><span>home</span><b>${escapeHtml(home)}</b></div>
+      ${agent.ecologyFaction ? `<div class="equipment-row"><span>faction</span><b>${escapeHtml(agent.ecologyFaction)}</b></div>` : ''}
       <div class="equipment-row"><span>hunger</span><b>${Math.round(agent.hunger ?? 0)}/100</b></div>
       <div class="equipment-row"><span>maturity</span><b>${Math.round((agent.maturity ?? 1) * 100)}%</b></div>
+      ${territory?.ownerFaction ? `<div class="equipment-row"><span>territory</span><b>${escapeHtml(territory.ownerFaction)}${territory.contested ? ' · contested' : ''}</b></div>` : ''}
+      ${infection ? `<div class="equipment-row"><span>infection</span><b>${Math.round(infection.elapsed / Math.max(0.01, infection.duration) * 100)}%</b></div>` : ''}
+      ${attachmentCount ? `<div class="equipment-row"><span>stirges</span><b>${attachmentCount} attached</b></div>` : ''}
+      ${agent.sporeSleep > 0 ? `<div class="equipment-row"><span>spores</span><b>${Math.ceil(agent.sporeSleep)}s sleep</b></div>` : ''}
       ${host ? `<div class="equipment-row"><span>carrying</span><b>${escapeHtml(host.targetName)}</b></div>` : ''}
       ${agent.hosted ? '<div class="equipment-row"><span>state</span><b>incubating host</b></div>' : ''}
     </section>`;
@@ -261,6 +300,9 @@ function renderEquipment(agent) {
 }
 
 function currentThought(agent, sim) {
+  if (agent.infected) return 'There is something inside me with a schedule.';
+  if (agent.attachedToId) return 'The blood is warm and the exit plan is excellent.';
+  if (agent.sporeSleep > 0) return 'The mushrooms have made a persuasive argument for lying down.';
   if (agent.hosted) return 'The silk is warm. That is not reassuring.';
   if (agent.queued) return 'Everyone is here. Someone is still checking the rope.';
   if (agent.downed) return `I have about ${Math.ceil(agent.bleedout)} seconds of optimism left.`;
@@ -275,6 +317,14 @@ function currentThought(agent, sim) {
   if (agent.travel) return `The corridor to ${sim.roomName(agent.travel.toRoomId)} is taking this personally.`;
   if ((agent.fatigue ?? 0) > 75) return 'A bench, a fountain, or a small administrative miracle would help.';
   if (agent.orphaned) return `I should be able to hear ${sim.agents.find(candidate => candidate.id === agent.partyLeaderId)?.name ?? 'the others'}.`;
+  if (agent.role === 'zombie') return 'The dead are an underused recruitment pool.';
+  if (agent.role === 'orc') return 'A border is just a fight that has not happened yet.';
+  if (agent.role === 'myconid') return 'Everything becomes soil with enough patience.';
+  if (agent.role === 'stirge') return 'One careful puncture solves several logistical problems.';
+  if (agent.role === 'carrion') return 'Decay is a meal that prepares itself.';
+  if (agent.role === 'kobold') return 'The corridor needs one more spring and somebody else’s ankle.';
+  if (agent.role === 'wraith') return 'Names fade. Hunger does not.';
+  if (agent.role === 'parasite') return 'The safest lair has a pulse.';
   if (agent.role === 'rat') return 'The grain belongs to whoever reaches it first.';
   if (agent.role === 'spider') return 'Stillness is a kind of hunting.';
   if (agent.role === 'rogue') return 'That chest is probably fine.';
