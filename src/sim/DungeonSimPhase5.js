@@ -11,6 +11,15 @@ const ECOLOGY_RADII = {
   ogre_lair: 1.25
 };
 
+const MATURITY_SECONDS = {
+  rat: 24,
+  slime: 30,
+  goblin: 40,
+  spider: 46,
+  ogre: 90,
+  skeleton: 1
+};
+
 export class DungeonSim extends Phase4DungeonSim {
   constructor(scenario, options = {}) {
     super(scenario, options);
@@ -63,8 +72,22 @@ export class DungeonSim extends Phase4DungeonSim {
   }
 
   update(dt) {
+    this.advanceMaturity(dt);
     this.ecosystem.update(dt, this);
     super.update(dt);
+  }
+
+  advanceMaturity(dt) {
+    for (const agent of this.agents) {
+      const duration = MATURITY_SECONDS[agent.role];
+      if (!duration || !agent.alive || agent.faction !== 'dungeon' || (agent.maturity ?? 1) >= 1) continue;
+      const before = agent.maturity ?? 0;
+      agent.maturity = Math.min(1, before + dt / duration);
+      if (before < 1 && agent.maturity >= 1) {
+        agent.mood = 'mature';
+        this.event(`${agent.name} reached ecological adulthood.`);
+      }
+    }
   }
 
   isActive(agent) {
