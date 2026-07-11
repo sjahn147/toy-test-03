@@ -3,11 +3,12 @@ import { DungeonRendererPhase8 } from '../engine/DungeonRendererPhase8.js';
 import { AssetRegistryPhase8 } from '../engine/AssetRegistryPhase8.js';
 import { DungeonSim } from '../sim/DungeonSimPhase8.js';
 import { applyPhase7Territories } from '../data/applyPhase7Territories.js';
+import { applyPhase8SpatialScale } from '../data/applyPhase8SpatialScale.js';
 
 export class ObserveScreen extends Phase6ObserveScreen {
   constructor(options) {
     super(options);
-    this.scenario = applyPhase7Territories(this.scenario);
+    this.scenario = applyPhase7Territories(applyPhase8SpatialScale(this.scenario));
   }
 
   mount(root) {
@@ -22,9 +23,11 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
     this.addSettlementMetrics();
     this.addExpeditionMetrics();
+    this.addLogisticsMetrics();
+    this.fitCameraToScenario();
 
     const legend = this.el.querySelector('.legend span');
-    if (legend) legend.textContent = 'Habitat capacity, expedition provisions, endurance, retreat decisions and destructible field camps are active.';
+    if (legend) legend.textContent = 'Spacious rooms, habitat capacity, expedition endurance, physical cargo routes and raids are active.';
   }
 
   addSettlementMetrics() {
@@ -50,11 +53,25 @@ export class ObserveScreen extends Phase6ObserveScreen {
     `);
   }
 
+  addLogisticsMetrics() {
+    const metrics = this.el.querySelector('.metrics');
+    if (!metrics || metrics.querySelector('[data-metric="cargoInTransit"]')) return;
+    metrics.insertAdjacentHTML('afterbegin', `
+      <div class="metric"><b data-metric="cargoInTransit">0</b><span>cargo in transit</span></div>
+      <div class="metric"><b data-metric="cargoDropped">0</b><span>dropped cargo</span></div>
+      <div class="metric"><b data-metric="cargoDelivered">0</b><span>delivered cargo</span></div>
+      <div class="metric"><b data-metric="cargoRaided">0</b><span>raided cargo</span></div>
+      <div class="metric"><b data-room-area>0</b><span>avg room area</span></div>
+    `);
+  }
+
   updateMetrics() {
     super.updateMetrics();
     const metrics = this.sim?.metrics?.() ?? {};
     const capacity = this.el?.querySelector('[data-settlement-capacity]');
     if (capacity) capacity.textContent = `${metrics.habitatPopulation ?? 0}/${metrics.habitatCapacity ?? 0}`;
+    const roomArea = this.el?.querySelector('[data-room-area]');
+    if (roomArea) roomArea.textContent = Math.round(this.scenario.spatialScale?.averageArea ?? 0);
   }
 
   renderInspectPanel() {
@@ -62,20 +79,12 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const agent = this.sim?.agents?.find(candidate => candidate.id === this.selectedAgentId);
     if (!agent || !this.inspectEl || !this.sim?.settlementSystem) return;
 
-    const home = agent.homeSettlementId
-      ? this.sim.settlementSystem.settlements.get(agent.homeSettlementId)
-      : null;
-    const anchor = home?.anchorPropId
-      ? this.sim.props.find(prop => prop.id === home.anchorPropId)
-      : null;
+    const home = agent.homeSettlementId ? this.sim.settlementSystem.settlements.get(agent.homeSettlementId) : null;
+    const anchor = home?.anchorPropId ? this.sim.props.find(prop => prop.id === home.anchorPropId) : null;
     const insertionPoint = this.inspectEl.querySelector('.memory-list');
     if (!insertionPoint) return;
 
-    const homeName = home
-      ? anchor?.label ?? home.type.replaceAll('-', ' ')
-      : agent.displaced
-        ? 'No viable habitat'
-        : 'Unassigned';
+    const homeName = home ? anchor?.label ?? home.type.replaceAll('-', ' ') : agent.displaced ? 'No viable habitat' : 'Unassigned';
     const state = home?.state ?? (agent.displaced ? 'displaced' : 'none');
     const population = home ? `${home.population}/${home.capacity}` : '—';
     const integrity = home?.indestructible ? 'protected' : home ? `${Math.round(home.structuralIntegrity)}%` : '—';
@@ -90,6 +99,17 @@ export class ObserveScreen extends Phase6ObserveScreen {
         <div class="equipment-row"><span>attachment</span><b>${Math.round((agent.homeAttachment ?? 0) * 100)}%</b><em>range ${agent.roamingRange ?? '—'} rooms</em></div>
       </section>
     `);
+
+    if (agent.carryingSupplyId) {
+      const cargo = this.sim.logisticsSystem?.cargo.find(candidate => candidate.id === agent.carryingSupplyId);
+      if (cargo) insertionPoint.insertAdjacentHTML('beforebegin', `
+        <section class="equipment-panel logistics-panel">
+          <strong>Physical Cargo</strong>
+          <div class="equipment-row"><span>cargo</span><b>${escapeHtml(cargo.resourceType)}</b><em>${formatSupply(cargo.amount)} units</em></div>
+          <div class="equipment-row"><span>destination</span><b>${escapeHtml(this.sim.roomName(cargo.destinationRoomId))}</b><em>${escapeHtml(cargo.state)}</em></div>
+        </section>
+      `);
+    }
 
     if (agent.faction === 'party') this.renderExpeditionPanel(agent, insertionPoint);
   }
