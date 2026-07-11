@@ -5,10 +5,13 @@ const STATS = {
   rogue: { hp: 12, attack: 4, courage: 6 },
   cleric: { hp: 14, attack: 3, courage: 7 },
   wizard: { hp: 9, attack: 6, courage: 3 },
+  archer: { hp: 11, attack: 5, courage: 6 },
   goblin: { hp: 8, attack: 3, courage: 4 },
   skeleton: { hp: 10, attack: 3, courage: 10 },
   slime: { hp: 16, attack: 2, courage: 8 },
   mimic: { hp: 15, attack: 7, courage: 10 },
+  spider: { hp: 9, attack: 3, courage: 7 },
+  orc: { hp: 22, attack: 6, courage: 10 },
   ogre: { hp: 42, attack: 9, courage: 12 }
 };
 
@@ -144,7 +147,7 @@ function partyDirective(agent, sim) {
 }
 
 function active(agent) {
-  return agent.alive && !agent.departed && !agent.travel && !agent.queued;
+  return agent.alive && !agent.departed && !agent.travel && !agent.queued && !agent.downed;
 }
 
 function shouldLeave(agent, sim) {
