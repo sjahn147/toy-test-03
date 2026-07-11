@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/engine/CampaignLandmark*.js'
       - 'src/engine/OldLanternAnnexAssetFactory.js'
+      - 'src/engine/CentralMarketLandmarkAssetFactory.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
       - 'tests/campaign-landmark-recipes-smoke.mjs'
@@ -16,6 +17,7 @@ on:
     paths:
       - 'src/engine/CampaignLandmark*.js'
       - 'src/engine/OldLanternAnnexAssetFactory.js'
+      - 'src/engine/CentralMarketLandmarkAssetFactory.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
       - 'tests/campaign-landmark-recipes-smoke.mjs'
@@ -38,6 +40,7 @@ jobs:
           node --check src/engine/CampaignLandmarkRecipes.js
           node --check src/engine/CampaignLandmarkAssetFactory.js
           node --check src/engine/OldLanternAnnexAssetFactory.js
+          node --check src/engine/CentralMarketLandmarkAssetFactory.js
           node --check src/engine/AssetRegistryPhase8.js
           node --check src/engine/DungeonRendererPhase8.js
       - name: Validate production content
