@@ -31,6 +31,14 @@ export const MINIATURE_RECIPES = {
     palette: { skin: 0xb9826c, cloth: 0x5946b2, leather: 0x513724, metal: 0x9aa5bc, accent: 0x9fdcff, dark: 0x252039 },
     parts: { head: 'head_round_01', hat: 'hat_wizard_tall', torso: 'torso_robe_mage', back: 'back_spellbook', waist: 'waist_scroll_case', mainHand: 'wpn_staff', offHand: 'off_focus_orb', accent: 'accent_arcane_ring' }
   },
+  archer: {
+    id: 'archer_alda_v1',
+    skeleton: 'humanoid',
+    scale: 0.72,
+    proportions: { head: 1.02, shoulders: 0.94, legs: 1.05 },
+    palette: { skin: 0xc99575, cloth: 0x506244, leather: 0x4a3528, metal: 0x9da5a5, accent: 0xc9b36b, dark: 0x282721 },
+    parts: { head: 'head_round_02', hat: 'hat_hood_rogue', torso: 'torso_leather_rogue', back: 'back_quiver', waist: 'waist_pouch_rogue', mainHand: null, offHand: null, accent: null }
+  },
   goblin: {
     id: 'goblin_common_v1',
     skeleton: 'goblin',
