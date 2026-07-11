@@ -14,6 +14,7 @@ export class RoomOccupancySystem {
     this.occupiedByCell = new Map();
     this.agentCells = new Map();
     this.reservations = new Map();
+    this.blockedCells = new Map();
     this.buildGrids();
   }
 
@@ -58,10 +59,8 @@ export class RoomOccupancySystem {
     const reservation = this.reserveDestination(agent, roomId, entryPort);
     if (!reservation) {
       agent.roomCell = null;
-      agent.waitingForCell = true;
       return null;
     }
-    agent.waitingForCell = false;
     return this.commitReservation(agent, reservation);
   }
 
@@ -104,12 +103,19 @@ export class RoomOccupancySystem {
     this.agentCells.set(agent.id, reservation);
     this.reservations.delete(agent.id);
     agent.roomCell = { ...reservation };
-    agent.waitingForCell = false;
     return agent.roomCell;
   }
 
-  cancelReservation(agentId) {
-    this.reservations.delete(agentId);
+  blockArea(roomId, worldX, worldZ, radius, blockerId) {
+    const grid = this.grids.get(roomId);
+    if (!grid) return [];
+    const blocked = [];
+    for (const cell of grid.cells) {
+      if (Math.hypot(cell.x - worldX, cell.z - worldZ) > radius) continue;
+      this.blockedCells.set(cell.id, blockerId);
+      blocked.push(cell.id);
+    }
+    return blocked;
   }
 
   release(agentId) {
@@ -122,6 +128,10 @@ export class RoomOccupancySystem {
     this.agentCells.delete(agentId);
   }
 
+  cancelReservation(agentId) {
+    this.reservations.delete(agentId);
+  }
+
   getAgentCell(agentId) {
     return this.agentCells.get(agentId) ?? null;
   }
@@ -131,6 +141,7 @@ export class RoomOccupancySystem {
   }
 
   isCellFree(cellId, requestingAgentId = null) {
+    if (this.blockedCells.has(cellId)) return false;
     const occupant = this.occupiedByCell.get(cellId);
     if (occupant && occupant !== requestingAgentId) return false;
     for (const reservation of this.reservations.values()) {
@@ -153,7 +164,7 @@ export class RoomOccupancySystem {
     return cells;
   }
 
-  scoreCell(agent, cell, entryPort) {
+  scoreCell(agent, cell, entryPort, grid) {
     const room = this.rooms.find(candidate => candidate.id === cell.roomId);
     const centerDistance = room ? Math.hypot(cell.x - room.x, cell.z - room.z) : 0;
     const portDistance = entryPort ? Math.hypot(cell.x - entryPort.x, cell.z - entryPort.z) : centerDistance;
@@ -188,7 +199,8 @@ export class RoomOccupancySystem {
         cells: grid.cells
       })),
       occupied: [...this.agentCells.entries()].map(([agentId, cell]) => ({ agentId, ...cell })),
-      reserved: [...this.reservations.values()]
+      reserved: [...this.reservations.values()],
+      blocked: [...this.blockedCells.entries()].map(([cellId, blockerId]) => ({ cellId, blockerId }))
     };
   }
 }
