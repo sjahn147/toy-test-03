@@ -22,13 +22,20 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
     this.addPhase8Metrics();
     const legend = this.el.querySelector('.legend span');
-    if (legend) legend.textContent = 'Spacious rooms, habitat capacity, expedition endurance and physical supply logistics are active.';
+    if (legend) legend.textContent = 'Spacious rooms, physical logistics, guarded supply routes, construction, sieges and blockades are active.';
   }
 
   addPhase8Metrics() {
     const metrics = this.el.querySelector('.metrics');
     if (!metrics || metrics.querySelector('[data-metric="settlements"]')) return;
     metrics.insertAdjacentHTML('afterbegin', `
+      <div class="metric"><b data-metric="constructionJobs">0</b><span>building projects</span></div>
+      <div class="metric"><b data-metric="completedStructures">0</b><span>defensive structures</span></div>
+      <div class="metric"><b data-metric="activeSieges">0</b><span>active sieges</span></div>
+      <div class="metric"><b data-metric="blockadedSettlements">0</b><span>blockaded habitats</span></div>
+      <div class="metric"><b data-metric="threatenedSupply">0</b><span>threatened supply</span></div>
+      <div class="metric"><b data-metric="guardedCargo">0</b><span>guarded cargo</span></div>
+      <div class="metric"><b data-metric="highRiskCargo">0</b><span>high-risk routes</span></div>
       <div class="metric"><b data-metric="cargoInTransit">0</b><span>cargo in transit</span></div>
       <div class="metric"><b data-metric="cargoDropped">0</b><span>dropped cargo</span></div>
       <div class="metric"><b data-metric="cargoRaided">0</b><span>raided cargo</span></div>
@@ -36,11 +43,9 @@ export class ObserveScreen extends Phase6ObserveScreen {
       <div class="metric"><b data-metric="fieldCamps">0</b><span>field camps</span></div>
       <div class="metric"><b data-metric="retreatingParties">0</b><span>retreating parties</span></div>
       <div class="metric"><b data-metric="lowSupplyParties">0</b><span>low supply parties</span></div>
-      <div class="metric"><b data-metric="expeditionEndurance">0</b><span>avg endurance</span></div>
       <div class="metric"><b data-metric="settlements">0</b><span>active habitats</span></div>
       <div class="metric"><b data-settlement-capacity>0/0</b><span>habitat population</span></div>
       <div class="metric"><b data-metric="threatenedSettlements">0</b><span>threatened habitats</span></div>
-      <div class="metric"><b data-metric="overcrowdedSettlements">0</b><span>overcrowded habitats</span></div>
       <div class="metric"><b data-metric="displaced">0</b><span>displaced monsters</span></div>
     `);
   }
@@ -61,12 +66,14 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const insertionPoint = this.inspectEl.querySelector('.memory-list');
     if (!insertionPoint) return;
     const homeName = home ? anchor?.label ?? home.type.replaceAll('-', ' ') : agent.displaced ? 'No viable habitat' : 'Unassigned';
+    const cargo = agent.cargoId ? this.sim.logisticsSystem.cargo.find(item => item.id === agent.cargoId) : null;
     insertionPoint.insertAdjacentHTML('beforebegin', `
       <section class="equipment-panel settlement-panel">
-        <strong>Home & Habitat</strong>
+        <strong>Home, Siege & Logistics</strong>
         <div class="equipment-row"><span>home</span><b>${escapeHtml(homeName)}</b><em>${escapeHtml(home?.state ?? (agent.displaced ? 'displaced' : 'none'))}</em></div>
-        <div class="equipment-row"><span>residents</span><b>${home ? `${home.population}/${home.capacity}` : '—'}</b><em>${home?.overcrowded ? `+${home.overcrowded} overcrowded` : 'within capacity'}</em></div>
-        <div class="equipment-row"><span>integrity</span><b>${home?.indestructible ? 'protected' : home ? `${Math.round(home.structuralIntegrity)}%` : '—'}</b><em>${agent.cargoId ? 'carrying cargo' : 'no cargo'}</em></div>
+        <div class="equipment-row"><span>supply</span><b>${escapeHtml(home?.supplyStatus ?? 'open')}</b><em>${Math.round((home?.supplyEfficiency ?? 1) * 100)}% efficiency</em></div>
+        <div class="equipment-row"><span>integrity</span><b>${home?.indestructible ? 'protected' : home ? `${Math.round(home.structuralIntegrity)}%` : '—'}</b><em>${home ? `${home.population}/${home.capacity} residents` : 'no habitat'}</em></div>
+        <div class="equipment-row"><span>cargo</span><b>${cargo ? escapeHtml(cargo.resourceType) : 'none'}</b><em>${cargo ? `${Math.round((cargo.routeRisk ?? 0) * 100)}% risk · ${cargo.escortId ? 'escorted' : 'unguarded'}` : agent.siegeCooldown > 0 ? 'siege recovery' : 'available'}</em></div>
       </section>
     `);
     if (agent.faction === 'party') this.renderExpeditionPanel(agent, insertionPoint);
@@ -81,7 +88,6 @@ export class ObserveScreen extends Phase6ObserveScreen {
         <strong>Expedition Supply</strong>
         <div class="equipment-row"><span>state</span><b>${escapeHtml(party.expeditionState ?? 'exploring')}</b><em>${escapeHtml(base ? this.sim.settlementSystem.label(base) : 'No active base')}</em></div>
         <div class="equipment-row"><span>provisions</span><b>${formatSupply(party.provisions)}/${party.maxProvisions}</b><em>water ${formatSupply(party.water)}/${party.maxWater}</em></div>
-        <div class="equipment-row"><span>medicine</span><b>${formatSupply(party.medicine)}/${party.maxMedicine}</b><em>materials ${formatSupply(party.materials)}/${party.maxMaterials}</em></div>
         <div class="equipment-row"><span>endurance</span><b>${Math.round(party.endurance ?? 0)}/${party.maxExpeditionTime ?? 0}</b><em>${Math.round(party.expeditionTime ?? 0)} elapsed</em></div>
       </section>
     `);
