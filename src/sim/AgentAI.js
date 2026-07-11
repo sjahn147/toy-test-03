@@ -73,8 +73,9 @@ export function decideAction(agent, sim) {
   }
 
   if (agent.faction === 'party' && shouldLeave(agent, sim)) {
-    if (agent.roomId === 'entry') return { type: 'exitDungeon' };
-    return moveToward(agent, sim, 'entry', `${agent.name} started thinking about retirement and reinforcements.`);
+    const entryRoomId = getEntryRoomId(sim);
+    if (agent.roomId === entryRoomId) return { type: 'exitDungeon' };
+    return moveToward(agent, sim, entryRoomId, `${agent.name} started thinking about retirement and reinforcements.`);
   }
 
   if (agent.role === 'cleric') {
@@ -143,12 +144,13 @@ function partyDirective(agent, sim) {
 }
 
 function active(agent) {
-  return agent.alive && !agent.departed && !agent.travel;
+  return agent.alive && !agent.departed && !agent.travel && !agent.queued;
 }
 
 function shouldLeave(agent, sim) {
   if (agent.partyId && agent.partyLeaderId && agent.id !== agent.partyLeaderId) return false;
-  if (agent.roomId !== 'entry' && sim.turn < 10) return false;
+  const entryRoomId = getEntryRoomId(sim);
+  if (agent.roomId !== entryRoomId && sim.turn < 10) return false;
   const activeMonsters = sim.agents.filter(candidate => active(candidate) && candidate.faction === 'dungeon' && !candidate.hidden).length;
   if (activeMonsters === 0 && sim.turn > 8) return true;
   if (activeMonsters < 2 && sim.turn > 18 && Math.random() < 0.45) return true;
@@ -156,6 +158,10 @@ function shouldLeave(agent, sim) {
   if (agent.gold >= 5 && sim.turn > 14) return true;
   if (sim.props.every(prop => prop.type !== 'treasure' || prop.opened) && sim.turn > 18) return true;
   return false;
+}
+
+function getEntryRoomId(sim) {
+  return sim.entryRoomId ?? sim.rooms.find(room => room.kind === 'start')?.id ?? 'entry';
 }
 
 function weakest(agents) {
