@@ -1,0 +1,87 @@
+.equipment-panel {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid rgba(159, 220, 255, 0.2);
+  border-radius: 14px;
+  background: rgba(77, 115, 145, 0.09);
+}
+
+.equipment-panel > strong {
+  color: #cfeaff;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.equipment-row {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 2px 8px;
+  align-items: baseline;
+  padding: 6px 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.equipment-row span {
+  grid-row: 1 / span 2;
+  color: rgba(247, 242, 232, 0.52);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.equipment-row b {
+  overflow: hidden;
+  color: rgba(247, 242, 232, 0.94);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.equipment-row em {
+  color: rgba(232, 196, 106, 0.78);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.inventory-line {
+  display: flex;
+  gap: 5px;
+  overflow: hidden;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.inventory-chip {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(247, 242, 232, 0.76);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inventory-chip.is-empty {
+  color: rgba(247, 242, 232, 0.42);
+}
+
+@media (max-width: 780px) {
+  .equipment-panel {
+    padding: 8px;
+  }
+
+  .equipment-row {
+    grid-template-columns: 56px minmax(0, 1fr);
+    padding: 4px 6px;
+  }
+
+  .equipment-row b {
+    font-size: 10px;
+  }
+}
