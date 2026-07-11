@@ -4,25 +4,74 @@ import { AssetRegistryPhase8 } from '../engine/AssetRegistryPhase8.js';
 import { DungeonSim } from '../sim/DungeonSimPhase8.js';
 import { applyPhase7Territories } from '../data/applyPhase7Territories.js';
 import { applyPhase8SpatialScale } from '../data/applyPhase8SpatialScale.js';
+import { applyPhase8PropLayout } from '../data/applyPhase8PropLayout.js';
+import { createLegacyGameRuntime } from '../application/GameRuntimeFactory.js';
 
 export class ObserveScreen extends Phase6ObserveScreen {
   constructor(options) {
     super(options);
-    this.scenario = applyPhase7Territories(applyPhase8SpatialScale(this.scenario));
+    this.scenario = applyPhase8PropLayout(
+      applyPhase7Territories(applyPhase8SpatialScale(this.scenario))
+    );
+    this.runtime = null;
+    this.runtimeUnsubscribe = null;
   }
 
   mount(root) {
     super.mount(root);
     this.renderer?.destroy();
+    this.runtimeUnsubscribe?.();
+    this.runtime?.destroy();
     this.events = [];
     if (this.logEl) this.logEl.innerHTML = '';
+
     this.assets = new AssetRegistryPhase8();
     this.assets.loadManifest();
     this.renderer = new DungeonRendererPhase8(this.three, this.scenario, this.assets);
-    this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
+
+    // The renderer still consumes the legacy render snapshot during migration,
+    // while update/commands/events/lifecycle now pass through the facade.
+    this.sim = new DungeonSim(this.scenario);
+    this.runtime = createLegacyGameRuntime({ sim: this.sim });
+    this.runtimeUnsubscribe = this.runtime.subscribe(event => {
+      if (event.fallbackText) this.pushEvent(event.fallbackText);
+    });
+    this.bindRuntimeActions();
+
     this.addPhase8Metrics();
     const legend = this.el.querySelector('.legend span');
     if (legend) legend.textContent = 'Spacious rooms, physical logistics, construction, sieges, persistent personalities and targeted full-room interactions are active.';
+  }
+
+  bindRuntimeActions() {
+    this.replaceActionHandler('pause', event => {
+      const command = this.running ? 'clock.pause' : 'clock.resume';
+      const result = this.runtime.dispatch({ type: command });
+      if (!result.ok) return;
+      this.running = !this.running;
+      event.currentTarget.textContent = this.running ? '일시정지' : '재생';
+    });
+    this.replaceActionHandler('noise', () => {
+      this.runtime.dispatch({
+        type: 'sim.make-noise',
+        roomId: this.pickRoom(['hall', 'crypt', 'lair', 'hatchery'])
+      });
+    });
+    this.replaceActionHandler('coin', () => {
+      this.runtime.dispatch({
+        type: 'sim.drop-coin',
+        roomId: this.pickRoom(['treasure', 'hall', 'lair', 'gate'])
+      });
+    });
+  }
+
+  replaceActionHandler(action, handler) {
+    const current = this.el?.querySelector(`[data-action="${action}"]`);
+    if (!current) return null;
+    const replacement = current.cloneNode(true);
+    current.replaceWith(replacement);
+    replacement.addEventListener('click', handler);
+    return replacement;
   }
 
   addPhase8Metrics() {
@@ -57,8 +106,11 @@ export class ObserveScreen extends Phase6ObserveScreen {
   }
 
   updateMetrics() {
-    super.updateMetrics();
-    const metrics = this.sim?.metrics?.() ?? {};
+    const metrics = this.runtime?.getSnapshot().metrics ?? this.sim?.metrics?.() ?? {};
+    for (const [key, value] of Object.entries(metrics)) {
+      const target = this.el?.querySelector(`[data-metric="${key}"]`);
+      if (target) target.textContent = value;
+    }
     const capacity = this.el?.querySelector('[data-settlement-capacity]');
     if (capacity) capacity.textContent = `${metrics.habitatPopulation ?? 0}/${metrics.habitatCapacity ?? 0}`;
   }
@@ -120,6 +172,29 @@ export class ObserveScreen extends Phase6ObserveScreen {
         <div class="equipment-row"><span>endurance</span><b>${Math.round(party.endurance ?? 0)}/${party.maxExpeditionTime ?? 0}</b><em>${Math.round(party.expeditionTime ?? 0)} elapsed</em></div>
       </section>
     `);
+  }
+
+  loop() {
+    if (!this.three || !this.renderer || !this.sim) return;
+    const dt = Math.min(this.three.clock.getDelta(), 0.045);
+    if (this.runtime) this.runtime.update(dt * 0.62);
+    else if (this.running) this.sim.update(dt * 0.62);
+    this.renderer.renderState(this.sim.snapshot());
+    this.updateMetrics();
+    if (this.selectedAgentId) this.renderInspectPanel();
+    if (this.cameraMode === 'follow') this.pushCameraToFollowTarget(false);
+    if (this.cameraMode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, false);
+    this.three.updateCamera();
+    this.three.render();
+    this.raf = requestAnimationFrame(() => this.loop());
+  }
+
+  destroy() {
+    this.runtimeUnsubscribe?.();
+    this.runtimeUnsubscribe = null;
+    this.runtime?.destroy();
+    this.runtime = null;
+    super.destroy();
   }
 }
 
