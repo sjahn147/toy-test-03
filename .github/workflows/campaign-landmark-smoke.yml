@@ -4,12 +4,16 @@ on:
   push:
     paths:
       - 'src/engine/CampaignLandmark*.js'
+      - 'src/engine/OldLanternCoreAssetFactory.js'
       - 'src/engine/OldLanternAnnexAssetFactory.js'
       - 'src/engine/CentralMarketLandmarkAssetFactory.js'
       - 'src/engine/OssuaryLandmarkAssetFactory.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
+      - 'src/sim/OldLanternInnSystem.js'
+      - 'src/sim/DungeonSimPhase8.js'
       - 'tests/campaign-landmark-recipes-smoke.mjs'
+      - 'tests/old-lantern-vertical-slice-smoke.mjs'
       - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
       - 'content/assets/asset-catalog.json'
       - 'package.json'
@@ -17,12 +21,16 @@ on:
   pull_request:
     paths:
       - 'src/engine/CampaignLandmark*.js'
+      - 'src/engine/OldLanternCoreAssetFactory.js'
       - 'src/engine/OldLanternAnnexAssetFactory.js'
       - 'src/engine/CentralMarketLandmarkAssetFactory.js'
       - 'src/engine/OssuaryLandmarkAssetFactory.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
+      - 'src/sim/OldLanternInnSystem.js'
+      - 'src/sim/DungeonSimPhase8.js'
       - 'tests/campaign-landmark-recipes-smoke.mjs'
+      - 'tests/old-lantern-vertical-slice-smoke.mjs'
       - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
       - 'content/assets/asset-catalog.json'
       - 'package.json'
@@ -41,14 +49,19 @@ jobs:
         run: |
           node --check src/engine/CampaignLandmarkRecipes.js
           node --check src/engine/CampaignLandmarkAssetFactory.js
+          node --check src/engine/OldLanternCoreAssetFactory.js
           node --check src/engine/OldLanternAnnexAssetFactory.js
           node --check src/engine/CentralMarketLandmarkAssetFactory.js
           node --check src/engine/OssuaryLandmarkAssetFactory.js
           node --check src/engine/AssetRegistryPhase8.js
           node --check src/engine/DungeonRendererPhase8.js
+          node --check src/sim/OldLanternInnSystem.js
+          node --check src/sim/DungeonSimPhase8.js
       - name: Validate production content
         run: npm run validate:production-content
       - name: Test campaign landmark contracts
         run: npm run test:landmarks
+      - name: Test Old Lantern Inn vertical slice
+        run: npm run test:old-lantern
       - name: Run content compiler smoke
         run: npm run test:content
