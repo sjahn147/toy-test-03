@@ -36,9 +36,33 @@
 - [`../content/campaigns/sleeping-citadel/campaign.manifest.json`](../content/campaigns/sleeping-citadel/campaign.manifest.json)
 - [`../content/assets/asset-catalog.json`](../content/assets/asset-catalog.json)
 - [`../content/ui/surface-manifest.json`](../content/ui/surface-manifest.json)
+- [`../content/schemas/campaign.schema.json`](../content/schemas/campaign.schema.json)
+- [`../content/schemas/asset-catalog.schema.json`](../content/schemas/asset-catalog.schema.json)
+- [`../content/schemas/ui-surface.schema.json`](../content/schemas/ui-surface.schema.json)
 - [`../content/README.md`](../content/README.md)
 
-현재 런타임은 이 파일들을 아직 직접 로드하지 않습니다. 이들은 이후 `ContentRegistry`와 `ScenarioCompiler`가 읽을 기준 데이터이며, 기존 시뮬레이션을 깨지 않고 마이그레이션하기 위한 명세입니다.
+현재 런타임은 manifest를 직접 로드하지 않습니다. 이들은 이후 `ContentRegistry`, `ScenarioCompiler`, `AssetResolver`가 읽을 기준 데이터이며 기존 시뮬레이션을 깨지 않고 마이그레이션하기 위한 명세입니다.
+
+## 계약 검증
+
+콘텐츠를 변경한 뒤 다음 명령을 실행합니다.
+
+```bash
+npm run validate:production-content
+```
+
+검증 범위:
+
+- JSON과 `$schema` 파일 참조
+- 63개 방·13개 구역·초기 진입점
+- 일반·조건부·비밀 연결의 방 참조와 그래프 도달성
+- 구역별 방 목록과 방의 `zoneId` 일치
+- 초기 세력 위치
+- 모든 방의 landmark bundle과 모든 zone kit가 asset catalog에 존재하는지
+- asset template·authored path·여관 vertical slice coverage
+- UI surface ID, region, selector, command, selection type, 접근성 최소값
+
+동일 검사는 `.github/workflows/production-content-contract.yml`에서 콘텐츠·문서 변경 시 실행됩니다.
 
 ## 기존 기술 문서
 
@@ -63,12 +87,13 @@ App
 → 절차적 AssetFactory 및 MiniatureFactory
 ```
 
-`Phase*` 파일 이름은 구현 역사에 따른 임시 구조입니다. 새 기능은 더 이상 새로운 `Phase9`, `Phase10` 계층으로 추가하지 않고, 명시적인 기능 모듈과 조합 루트로 추가하는 것을 원칙으로 합니다.
+`Phase*` 파일 이름은 구현 역사에 따른 임시 구조입니다. 새 기능은 더 이상 새로운 `Phase9`, `Phase10` 계층으로 추가하지 않고 명시적인 기능 모듈과 조합 루트로 추가하는 것을 원칙으로 합니다.
 
 ## 인계 원칙
 
 - 설계 의도와 런타임 동작이 충돌하면 이 문서의 계약을 우선 검토합니다.
-- 캠페인 방이나 어셋을 추가할 때는 먼저 `content/`의 manifest를 갱신합니다.
+- 캠페인 방이나 어셋을 추가할 때는 먼저 `content/` manifest를 갱신합니다.
+- manifest, schema, 설계 문서는 같은 변경에서 함께 유지합니다.
 - 시뮬레이션 시스템은 Three.js 객체를 직접 참조하지 않습니다.
 - UI는 시뮬레이션 내부 객체를 직접 순회하지 않고 selector/view-model을 통해 읽도록 이동합니다.
 - 절차적 어셋은 삭제 대상이 아니라 GLB·텍스처가 없을 때 사용하는 공식 fallback입니다.

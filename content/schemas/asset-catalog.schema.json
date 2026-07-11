@@ -1,85 +1,144 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "asset-catalog",
-  "description": "content/assets/asset-catalog.json 구조 (Codex 저작). entry는 kind 또는 template 중 하나(또는 둘 다)를 가질 수 있어 kind는 필수에서 제외했습니다. status/priority 값은 실제 카탈로그(docs/assets/content-asset-inventory.md 어휘가 아니라 로컬 소문자 어휘 active-procedural/upgrade/author/content)를 따릅니다. src/content/ContentValidator.js가 소비하므로 type/required/properties/items/enum 키워드만 사용합니다.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/the-little-dungeon/content/schemas/asset-catalog.schema.json",
+  "title": "Dungeon ecosystem asset catalog",
   "type": "object",
-  "required": ["schemaVersion", "contentVersion", "entries"],
+  "required": [
+    "schemaVersion",
+    "catalogVersion",
+    "resolverOrder",
+    "roots",
+    "templates",
+    "entries",
+    "coverage"
+  ],
   "properties": {
-    "schemaVersion": { "type": "integer" },
-    "contentVersion": { "type": "string" },
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "catalogVersion": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "minLength": 1 },
+    "resolverOrder": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["authored", "proceduralFallback", "primitiveFallback", "diagnosticMarker"]
+      }
+    },
+    "roots": {
+      "type": "object",
+      "required": ["models", "textures", "audio", "ui", "licenses"],
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "licensePolicy": { "type": "object", "additionalProperties": true },
+    "conventions": { "type": "object", "additionalProperties": true },
+    "performanceBudgets": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 } },
+    "templates": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/template" }
+    },
     "entries": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "status", "priority"],
-        "properties": {
-          "id": { "type": "string", "description": "안정적인 bundle ID (kit.stone-common, habitat.goblin-hearth 등)" },
-          "kind": {
-            "type": "string",
-            "description": "template 없이 독립 정의되는 entry의 분류 (diagnostic/environment-module/habitat/ui-atlas/audio-layer/audio-cue/prop-module 등)"
-          },
-          "template": {
-            "type": "string",
-            "description": "catalog.templates에 정의된 공용 계약 참조 (zone-kit/campaign-landmark/facility/settlement-structure 등)"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["active-procedural", "upgrade", "author", "content"]
-          },
-          "priority": {
-            "type": "string",
-            "enum": ["P0", "P1", "P2", "P3"]
-          },
-          "authored": {
-            "type": "object",
-            "properties": {
-              "model": { "type": "string", "description": "assets/ 기준 GLB 경로" },
-              "texture": { "type": "string" }
-            },
-            "description": "authored 파일이 준비된 경우만 기록"
-          },
-          "proceduralFallback": {
-            "type": "object",
-            "required": ["factory"],
-            "properties": {
-              "factory": { "type": "string", "description": "procedural AssetFactory 클래스 이름" },
-              "recipe": { "type": "string", "description": "recipeFromId가 없을 때의 명시적 레시피 이름" },
-              "recipeFromId": { "type": "boolean", "description": "true면 entry id에서 레시피를 유도 (templates.* 공용 계약)" }
-            }
-          },
-          "legacyProp": {
-            "type": "object",
-            "required": ["type"],
-            "properties": {
-              "type": { "type": "string", "description": "레거시 시나리오 prop type" },
-              "label": { "type": "string" }
-            },
-            "description": "있으면 ScenarioCompiler가 레거시 prop으로 방출, 없으면 meta에만 기록"
-          },
-          "footprint": {
-            "type": "object",
-            "properties": {
-              "shape": { "type": "string", "enum": ["circle", "rect"] },
-              "radius": { "type": "number" },
-              "width": { "type": "number" },
-              "depth": { "type": "number" }
-            },
-            "description": "radius만으로도 원형 footprint를 표현 (shape 생략 시 circle로 간주)"
-          },
-          "clearance": {
-            "type": "object",
-            "properties": {
-              "radius": { "type": "number" },
-              "height": { "type": "number" }
-            },
-            "description": "footprint 바깥에 추가로 비워둘 공간"
-          },
-          "sockets": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" }
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["campaignId", "expectedZoneKitCount", "expectedRoomLandmarkCount"],
+      "properties": {
+        "campaignId": { "type": "string", "minLength": 1 },
+        "expectedZoneKitCount": { "type": "integer", "minimum": 0 },
+        "expectedRoomLandmarkCount": { "type": "integer", "minimum": 0 },
+        "innVerticalSliceIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
         }
-      }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "template": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "proceduralFallback": { "$ref": "#/$defs/fallback" },
+        "primitiveFallback": { "type": "string", "minLength": 1 },
+        "defaultFootprint": { "$ref": "#/$defs/footprint" }
+      },
+      "additionalProperties": true
+    },
+    "entry": {
+      "type": "object",
+      "required": ["id", "status", "priority"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+        "kind": { "type": "string", "minLength": 1 },
+        "template": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["active-procedural", "reuse", "upgrade", "author", "content", "fallback", "planned", "ready"]
+        },
+        "priority": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] },
+        "authored": { "$ref": "#/$defs/authored" },
+        "proceduralFallback": { "$ref": "#/$defs/fallback" },
+        "primitiveFallback": { "type": "string", "minLength": 1 },
+        "footprint": { "$ref": "#/$defs/footprint" },
+        "variants": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "requiredIcons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "loops": { "type": "boolean" }
+      },
+      "anyOf": [
+        { "required": ["kind"] },
+        { "required": ["template"] }
+      ],
+      "additionalProperties": true
+    },
+    "authored": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "model": { "type": "string", "pattern": "^assets/" },
+        "root": { "type": "string", "pattern": "^assets/" },
+        "image": { "type": "string", "pattern": "^assets/" },
+        "metadata": { "type": "string", "pattern": "^assets/" },
+        "audio": { "type": "string", "pattern": "^assets/" }
+      },
+      "additionalProperties": { "type": "string" }
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["factory"],
+      "properties": {
+        "factory": { "type": "string", "minLength": 1 },
+        "recipe": { "type": "string", "minLength": 1 },
+        "recipeFromId": { "type": "boolean" }
+      },
+      "anyOf": [
+        { "required": ["recipe"] },
+        { "required": ["recipeFromId"] }
+      ],
+      "additionalProperties": true
+    },
+    "footprint": {
+      "type": "object",
+      "properties": {
+        "shape": { "type": "string", "enum": ["circle", "box", "cells"] },
+        "radius": { "type": "number", "exclusiveMinimum": 0 },
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "depth": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "additionalProperties": true
     }
   }
 }
