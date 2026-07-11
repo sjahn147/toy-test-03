@@ -22,7 +22,19 @@ export class DungeonSim extends Phase4DungeonSim {
       onEvent: text => this.event(text)
     });
     this.ecosystem.initializeAgents(this.agents);
+    for (const agent of this.agents) this.normalizeEcologyStats(agent);
     this.spawnClock = null;
+  }
+
+  normalizeEcologyStats(agent) {
+    if (agent.role !== 'rat' || agent.ecologyStatsApplied) return;
+    agent.baseAttack = 2;
+    agent.attack = 2;
+    agent.baseMaxHp = 5;
+    agent.maxHp = 5;
+    agent.hp = Math.min(agent.hp, 5);
+    agent.courage = 2;
+    agent.ecologyStatsApplied = true;
   }
 
   blockEcologyFootprints() {
@@ -157,6 +169,7 @@ export class DungeonSim extends Phase4DungeonSim {
       size: species === 'rat' ? 'tiny' : species === 'ogre' ? 'large' : 'small'
     }, index);
 
+    this.normalizeEcologyStats(baby);
     this.agents.push(baby);
     this.combatSystem.initializeAgent(baby);
     this.equipmentSystem.initializeAgent(baby);
