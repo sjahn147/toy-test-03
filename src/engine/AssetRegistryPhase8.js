@@ -2,12 +2,14 @@ import { THREE } from './ThreeScene.js';
 import { AssetRegistryPhase7 } from './AssetRegistryPhase7.js';
 import { SettlementAssetFactory } from './SettlementAssetFactory.js';
 import { ExpeditionAssetFactory } from './ExpeditionAssetFactory.js';
+import { LogisticsAssetFactory } from './LogisticsAssetFactory.js';
 
 export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
   constructor() {
     super();
     this.settlement = new SettlementAssetFactory();
     this.expedition = new ExpeditionAssetFactory();
+    this.logistics = new LogisticsAssetFactory();
   }
 
   makeProp(prop) {
@@ -16,109 +18,38 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
   }
 
   makeEffect(effect) {
-    if (effect.type === 'settlement-threat') return settlementThreat();
-    if (effect.type === 'settlement-collapse') return settlementCollapse();
-    if (effect.type === 'settlement-ruin') return settlementRuin();
-    if (effect.type === 'settlement-rehome') return settlementRehome();
-    if (effect.type === 'expedition-camp-build') return expeditionCampBuild();
+    if (effect.type === 'settlement-threat') return ringEffect(0xf0b35d, 0xd86958, 3);
+    if (effect.type === 'settlement-collapse') return shardEffect(0x79523a, 0x8d8792, 10);
+    if (effect.type === 'settlement-ruin') return shardEffect(0x746d78, 0x332e36, 14);
+    if (effect.type === 'settlement-rehome') return ringEffect(0x84c4ef, 0x9dd58b, 3);
+    if (effect.type === 'expedition-camp-build') return ringEffect(0x7bb7e8, 0xe4c66b, 3);
+    if (effect.type === 'cargo-pickup') return ringEffect(0xe3c66c, 0x7bb7e8, 2);
+    if (effect.type === 'cargo-delivery') return ringEffect(0x8ed18a, 0xe3c66c, 3);
+    if (effect.type === 'cargo-drop') return shardEffect(0xb8874d, 0x6e5040, 7);
+    if (effect.type === 'cargo-raid') return shardEffect(0xd56a57, 0x332e36, 9);
     return super.makeEffect(effect);
   }
 }
 
-function settlementThreat() {
+function ringEffect(primary, secondary, count) {
   const group = new THREE.Group();
-  const amber = material(0xf0b35d, 0.9);
-  const red = material(0xd86958, 0.82);
-  for (const radius of [0.38, 0.58, 0.78]) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.025, 6, 28), radius === 0.58 ? red : amber);
+  for (let i = 0; i < count; i += 1) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34 + i * 0.22, 0.03, 6, 28), material(i % 2 ? secondary : primary, 0.88));
     ring.rotation.x = Math.PI / 2;
-    ring.position.y = (radius - 0.3) * 0.25;
+    ring.position.y = 0.08 + i * 0.14;
     group.add(ring);
-  }
-  for (let i = 0; i < 5; i += 1) {
-    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.42, 5), i % 2 ? red : amber);
-    const angle = i * Math.PI * 2 / 5;
-    spike.position.set(Math.cos(angle) * 0.58, 0.28, Math.sin(angle) * 0.58);
-    spike.rotation.z = -Math.cos(angle) * 0.36;
-    spike.rotation.x = Math.sin(angle) * 0.36;
-    group.add(spike);
   }
   return group;
 }
 
-function settlementCollapse() {
+function shardEffect(primary, secondary, count) {
   const group = new THREE.Group();
-  const wood = material(0x79523a, 0.88);
-  const stone = material(0x8d8792, 0.8);
-  const ember = material(0xe27c4d, 0.78);
-  for (let i = 0; i < 10; i += 1) {
-    const shard = new THREE.Mesh(
-      i % 3 === 0 ? new THREE.DodecahedronGeometry(0.08 + (i % 2) * 0.035, 0) : new THREE.BoxGeometry(0.055, 0.055, 0.34 + (i % 4) * 0.08),
-      i % 3 === 0 ? stone : wood
-    );
-    const angle = i * Math.PI * 2 / 10;
-    shard.position.set(Math.cos(angle) * 0.48, 0.16 + (i % 3) * 0.14, Math.sin(angle) * 0.48);
-    shard.rotation.set(i * 0.31, angle, i * 0.23);
+  for (let i = 0; i < count; i += 1) {
+    const shard = new THREE.Mesh(i % 3 === 0 ? new THREE.DodecahedronGeometry(0.07, 0) : new THREE.BoxGeometry(0.05, 0.05, 0.3), material(i % 2 ? secondary : primary, 0.82));
+    const angle = i * Math.PI * 2 / count;
+    shard.position.set(Math.cos(angle) * 0.48, 0.15 + (i % 3) * 0.13, Math.sin(angle) * 0.48);
+    shard.rotation.set(i * 0.27, angle, i * 0.18);
     group.add(shard);
-  }
-  const warning = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.035, 6, 28), ember);
-  warning.rotation.x = Math.PI / 2;
-  warning.position.y = 0.06;
-  group.add(warning);
-  return group;
-}
-
-function settlementRuin() {
-  const group = new THREE.Group();
-  const ash = material(0x746d78, 0.64);
-  const dark = material(0x332e36, 0.72);
-  for (let i = 0; i < 14; i += 1) {
-    const mote = new THREE.Mesh(new THREE.IcosahedronGeometry(0.045 + (i % 3) * 0.018, 0), i % 3 === 0 ? dark : ash);
-    const angle = i * 2.399;
-    const radius = 0.18 + (i % 5) * 0.12;
-    mote.position.set(Math.cos(angle) * radius, 0.1 + (i % 4) * 0.16, Math.sin(angle) * radius);
-    group.add(mote);
-  }
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.04, 6, 32), dark);
-  ring.rotation.x = Math.PI / 2;
-  ring.position.y = 0.04;
-  group.add(ring);
-  return group;
-}
-
-function settlementRehome() {
-  const group = new THREE.Group();
-  const blue = material(0x84c4ef, 0.86);
-  const green = material(0x9dd58b, 0.82);
-  for (const [radius, y] of [[0.3, 0.08], [0.5, 0.22], [0.7, 0.38]]) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.025, 6, 26), radius === 0.5 ? green : blue);
-    ring.rotation.x = Math.PI / 2;
-    ring.position.y = y;
-    group.add(ring);
-  }
-  const marker = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.48, 6), green);
-  marker.position.y = 0.62;
-  group.add(marker);
-  return group;
-}
-
-function expeditionCampBuild() {
-  const group = new THREE.Group();
-  const blue = material(0x7bb7e8, 0.88);
-  const gold = material(0xe4c66b, 0.9);
-  const ember = material(0xf08b4c, 0.88);
-  for (const radius of [0.36, 0.58, 0.82]) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.03, 6, 28), radius === 0.58 ? gold : blue);
-    ring.rotation.x = Math.PI / 2;
-    ring.position.y = 0.04 + radius * 0.2;
-    group.add(ring);
-  }
-  for (let i = 0; i < 8; i += 1) {
-    const spark = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.28, 5), i % 3 === 0 ? ember : gold);
-    const angle = i * Math.PI / 4;
-    spark.position.set(Math.cos(angle) * 0.52, 0.28 + (i % 2) * 0.18, Math.sin(angle) * 0.52);
-    spark.rotation.z = Math.cos(angle) * 0.4;
-    group.add(spark);
   }
   return group;
 }
