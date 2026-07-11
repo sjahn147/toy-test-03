@@ -5,6 +5,7 @@ import { ExpeditionAssetFactory } from './ExpeditionAssetFactory.js';
 import { LogisticsAssetFactory } from './LogisticsAssetFactory.js';
 import { ConstructionAssetFactory } from './ConstructionAssetFactory.js';
 import { CampaignLandmarkAssetFactory } from './CampaignLandmarkAssetFactory.js';
+import { OldLanternCoreAssetFactory } from './OldLanternCoreAssetFactory.js';
 import { OldLanternAnnexAssetFactory } from './OldLanternAnnexAssetFactory.js';
 import { CentralMarketLandmarkAssetFactory } from './CentralMarketLandmarkAssetFactory.js';
 import { OssuaryLandmarkAssetFactory } from './OssuaryLandmarkAssetFactory.js';
@@ -19,6 +20,7 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
     this.logistics = new LogisticsAssetFactory();
     this.construction = new ConstructionAssetFactory();
     this.campaignLandmarks = new CampaignLandmarkAssetFactory();
+    this.oldLanternCore = new OldLanternCoreAssetFactory();
     this.oldLanternAnnex = new OldLanternAnnexAssetFactory();
     this.centralMarket = new CentralMarketLandmarkAssetFactory();
     this.ossuary = new OssuaryLandmarkAssetFactory();
@@ -33,6 +35,7 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
   makeCampaignLandmark(bundleId, context = {}) {
     return this.ossuary.create(bundleId, context)
       ?? this.centralMarket.create(bundleId, context)
+      ?? this.oldLanternCore.create(bundleId, context)
       ?? this.oldLanternAnnex.create(bundleId, context)
       ?? this.campaignLandmarks.create(bundleId, context);
   }
@@ -51,6 +54,10 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
     if (effect.type === 'construction-complete') return ringEffect(0x8ed18a, 0xe3c66c, 4);
     if (effect.type === 'siege-hit') return shardEffect(0xd56a57, 0x6d4b3b, 8);
     if (effect.type === 'structure-break') return shardEffect(0x77747b, 0x3a3438, 14);
+    if (effect.type === 'old-lantern-upgrade') return ringEffect(0xf1c56f, 0x79b783, 5);
+    if (effect.type === 'old-lantern-downgrade') return shardEffect(0x8e6249, 0x41383a, 12);
+    if (effect.type === 'old-lantern-besieged') return ringEffect(0xd45e4f, 0x5e3938, 4);
+    if (effect.type === 'old-lantern-sacked') return shardEffect(0x3f3433, 0xb34d34, 18);
     return super.makeEffect(effect);
   }
 }
