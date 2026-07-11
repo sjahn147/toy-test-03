@@ -1,134 +1,45 @@
 // 개발 self-check용 소형 캠페인 fixture.
+// content/campaigns/sleeping-citadel/campaign.manifest.json (Codex 저작) shape을 그대로
+// 따릅니다: zones에 macro-grid 없음, factions엔 id/runtimeFactionId/initialRooms/goals만
+// 있고 lair/species 정보는 legacyMappings.FACTION_RUNTIME_BINDINGS가 공급합니다.
 // 6방 / 2존 / 2세력, 비밀 연결 1개, compat.ecology-guards 두 lair 타입
-// (goblin_lair, plague_mortuary) 포함 — campaign.manifest.schema.json 준수.
+// (goblin_lair, plague_mortuary)을 흉내내는 표본이지만, 실제 바인딩 테이블은
+// campaign.sleeping-citadel용 room id만 알고 있으므로 이 fixture로 compileCampaign을
+// 돌리면 lair/agent는 비어 있습니다 — 레이아웃/연결성/스키마 워커 self-check 전용입니다.
 
 export const MINI_CAMPAIGN_MANIFEST = {
   schemaVersion: 1,
   contentVersion: '0.1.0',
-  id: 'campaign.mini-fixture',
-  name: 'The Mini Fixture Vault',
-  description: '콘텐츠 파이프라인 self-check용 6방 표본.',
-  entranceRoomId: 'room.mini-fixture.gate.lantern-steps',
-  layout: { gutter: 8, zoneGap: 24 },
+  id: 'mini-fixture',
+  title: { en: 'The Mini Fixture Vault', ko: '미니 표본 금고' },
+  status: 'design-complete-runtime-pending',
+  entryRoomId: 'A01',
   zones: [
-    { id: 'zone.mini-fixture.gate', code: 'A', name: 'Lantern Gate', grid: { col: 0, row: 0 }, kit: 'kit.stone-common', tags: ['entrance'] },
-    { id: 'zone.mini-fixture.crypt', code: 'B', name: 'Quiet Crypt', grid: { col: 1, row: 0 }, kit: 'kit.stone-common', tags: [] }
+    { id: 'A', name: { en: 'Lantern Gate', ko: '등불 관문' }, zoneKit: 'kit.stone-common', roomIds: ['A01', 'A02', 'A03'] },
+    { id: 'B', name: { en: 'Quiet Crypt', ko: '고요한 지하묘' }, zoneKit: 'kit.stone-common', roomIds: ['B01', 'B02', 'B03'] }
   ],
   rooms: [
-    {
-      id: 'room.mini-fixture.gate.lantern-steps',
-      code: 'A01',
-      zoneId: 'zone.mini-fixture.gate',
-      name: 'Lantern Steps',
-      size: { w: 12, d: 12 },
-      kind: 'start',
-      tags: ['entrance'],
-      functions: ['spawn'],
-      propBundles: [],
-      stateVariants: ['normal'],
-      danger: 0,
-      spawnWeight: 0
-    },
-    {
-      id: 'room.mini-fixture.gate.low-hall',
-      code: 'A02',
-      zoneId: 'zone.mini-fixture.gate',
-      name: 'Low Hall',
-      size: { w: 12, d: 9 },
-      kind: 'hall',
-      tags: [],
-      propBundles: ['prop.chest.copper', 'kit.stone-common'],
-      danger: 1,
-      spawnWeight: 0
-    },
-    {
-      id: 'room.mini-fixture.gate.button-warren',
-      code: 'A03',
-      zoneId: 'zone.mini-fixture.gate',
-      name: 'Button Warren',
-      size: { w: 11, d: 10 },
-      kind: 'nest',
-      tags: [],
-      danger: 2,
-      spawnWeight: 2
-    },
-    {
-      id: 'room.mini-fixture.crypt.quiet-nave',
-      code: 'B01',
-      zoneId: 'zone.mini-fixture.crypt',
-      name: 'Quiet Nave',
-      size: { w: 12, d: 10 },
-      kind: 'crypt',
-      tags: [],
-      danger: 2,
-      spawnWeight: 2
-    },
-    {
-      id: 'room.mini-fixture.crypt.coin-niche',
-      code: 'B02',
-      zoneId: 'zone.mini-fixture.crypt',
-      name: 'Coin Niche',
-      size: { w: 10, d: 10 },
-      kind: 'treasure',
-      tags: [],
-      propBundles: ['prop.trap.flagstone', 'prop.unregistered.sample'],
-      danger: 1,
-      spawnWeight: 0,
-      layoutHint: { dx: 1, dz: -1 }
-    },
-    {
-      id: 'room.mini-fixture.crypt.moss-shrine',
-      code: 'B03',
-      zoneId: 'zone.mini-fixture.crypt',
-      name: 'Moss Shrine',
-      size: { w: 10, d: 10 },
-      kind: 'shrine',
-      tags: [],
-      danger: 1,
-      spawnWeight: 1,
-      settlementCandidate: { scale: 'small', capacity: 4 }
-    }
+    { id: 'A01', zoneId: 'A', name: 'Lantern Steps', kind: 'safe-plaza', size: [12, 12], tags: ['entrance', 'safe-zone'], landmarkBundle: 'kit.stone-common', stateVariants: ['normal', 'crowded'] },
+    { id: 'A02', zoneId: 'A', name: 'Low Hall', kind: 'passage', size: [12, 9], tags: ['route'], landmarkBundle: 'kit.stone-common', stateVariants: ['normal', 'collapsed'] },
+    { id: 'A03', zoneId: 'A', name: 'Button Warren', kind: 'goblin-market', size: [11, 10], tags: ['goblin-settlement'], landmarkBundle: 'kit.stone-common', stateVariants: ['active', 'burned'] },
+    { id: 'B01', zoneId: 'B', name: 'Quiet Nave', kind: 'funeral-chapel', size: [12, 10], tags: ['undead-settlement'], landmarkBundle: 'kit.stone-common', stateVariants: ['dormant', 'active'] },
+    { id: 'B02', zoneId: 'B', name: 'Coin Niche', kind: 'treasure-vault', size: [10, 10], tags: ['rare-loot'], landmarkBundle: 'kit.stone-common', stateVariants: ['sealed', 'opened'] },
+    { id: 'B03', zoneId: 'B', name: 'Moss Shrine', kind: 'chapel', size: [10, 10], tags: ['sanctuary', 'secret-route'], landmarkBundle: 'kit.stone-common', stateVariants: ['dormant', 'reconsecrated'] }
   ],
   connections: [
-    { from: 'room.mini-fixture.gate.lantern-steps', to: 'room.mini-fixture.gate.low-hall', kind: 'normal' },
-    { from: 'room.mini-fixture.gate.low-hall', to: 'room.mini-fixture.gate.button-warren', kind: 'normal' },
-    { from: 'room.mini-fixture.gate.low-hall', to: 'room.mini-fixture.crypt.quiet-nave', kind: 'normal' },
-    { from: 'room.mini-fixture.crypt.quiet-nave', to: 'room.mini-fixture.crypt.coin-niche', kind: 'normal' },
-    { from: 'room.mini-fixture.crypt.quiet-nave', to: 'room.mini-fixture.crypt.moss-shrine', kind: 'normal' },
-    { from: 'room.mini-fixture.crypt.moss-shrine', to: 'room.mini-fixture.gate.button-warren', kind: 'secret', discovery: 'hidden', note: '이끼 뒤 무너진 배수로' }
+    ['A01', 'A02'], ['A02', 'A03'], ['A02', 'B01'], ['B01', 'B02'], ['B01', 'B03']
+  ],
+  secretConnections: [
+    { id: 'secret-B03-A03', from: 'B03', to: 'A03', discovery: ['rogue-search'] }
   ],
   factions: [
-    {
-      id: 'faction.mini-fixture.button-collectors',
-      name: 'Button Collectors',
-      kind: 'ecology',
-      species: 'goblin',
-      legacyEcologyFaction: 'goblin-clan',
-      homeRoomId: 'room.mini-fixture.gate.button-warren',
-      lair: { propType: 'goblin_lair', assetBundle: 'kit.stone-common', capacity: 5, stocks: { foodStock: 3 } },
-      startingAgents: [{ role: 'goblin', count: 2 }]
-    },
-    {
-      id: 'faction.mini-fixture.quiet-choir',
-      name: 'Quiet Choir',
-      kind: 'ecology',
-      species: 'zombie',
-      legacyEcologyFaction: 'undead-host',
-      homeRoomId: 'room.mini-fixture.crypt.quiet-nave',
-      lair: { propType: 'plague_mortuary', capacity: 4, stocks: { corpseStock: 1 } },
-      startingAgents: [
-        { role: 'zombie', count: 1 },
-        { id: 'sc-choir-cantor', role: 'skeleton', name: 'Cantor Hesh' }
-      ]
-    }
+    { id: 'button-collectors', runtimeFactionId: 'goblin-clan', initialRooms: ['A03'], goals: ['collect-scrap'] },
+    { id: 'quiet-choir', runtimeFactionId: 'undead-host', initialRooms: ['B01'], goals: ['restore-chapel'] }
   ],
-  wildlife: [
-    { species: 'rat', lairRoomId: 'room.mini-fixture.crypt.coin-niche', propType: 'rat_warren', count: 2, stocks: { grainStock: 4 } }
-  ]
+  validation: { expectedRoomCount: 6, requireLandmarkBundleForEveryRoom: true }
 };
 
-// fixture와 짝을 이루는 소형 카탈로그 — legacyProp 매핑/미매핑/미등록
-// 세 경로를 모두 연습할 수 있게 구성 (prop.unregistered.sample은 의도적 누락).
+// fixture와 짝을 이루는 소형 카탈로그.
 export const MINI_ASSET_CATALOG = {
   schemaVersion: 1,
   contentVersion: '0.1.0',
@@ -136,27 +47,9 @@ export const MINI_ASSET_CATALOG = {
     {
       id: 'kit.stone-common',
       kind: 'kit',
-      status: 'REUSE',
+      status: 'author',
       priority: 'P0',
       proceduralFallback: { factory: 'AssetRegistryPhase8', recipe: 'stone-common' }
-    },
-    {
-      id: 'prop.chest.copper',
-      kind: 'diorama',
-      status: 'REUSE',
-      priority: 'P1',
-      proceduralFallback: { factory: 'AssetRegistryPhase8', recipe: 'treasure-chest' },
-      legacyProp: { type: 'treasure', label: 'Copper Chest' },
-      footprint: { shape: 'rect', width: 1.2, depth: 0.8 }
-    },
-    {
-      id: 'prop.trap.flagstone',
-      kind: 'diorama',
-      status: 'REUSE',
-      priority: 'P1',
-      proceduralFallback: { factory: 'AssetRegistryPhase8', recipe: 'floor-trap' },
-      legacyProp: { type: 'trap', label: 'Loose Flagstone' },
-      footprint: { shape: 'circle', radius: 0.6 }
     }
   ]
 };

@@ -24,10 +24,13 @@ export function loadSleepingCitadel(rootDir) {
   };
 }
 
-// ContentValidator의 options.manifestSchema로 넘길 스키마 로드
+// ContentValidator의 options.manifestSchema로 넘길 스키마 로드.
+// campaign.schema.json은 Codex가 저작한 $ref 기반 스키마입니다 — validateAgainstSchema는
+// $ref를 해석하지 않으므로 최상위 required/타입 정도만 체크되고, 실질적 도메인 검증은
+// ContentValidator의 수기 체크가 담당합니다.
 export function loadSchemas(rootDir) {
   return {
-    campaignManifestSchema: loadJson(join(rootDir, 'content', 'schemas', 'campaign.manifest.schema.json')),
+    campaignManifestSchema: loadJson(join(rootDir, 'content', 'schemas', 'campaign.schema.json')),
     assetCatalogSchema: loadJson(join(rootDir, 'content', 'schemas', 'asset-catalog.schema.json'))
   };
 }

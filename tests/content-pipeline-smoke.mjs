@@ -36,8 +36,8 @@ try {
   assert.equal(registry.zones.size, 13, 'registry did not index 13 zones');
   assert.equal(registry.rooms.size, 63, 'registry did not index 63 rooms');
   assert.equal(registry.factions.size, 7, 'registry did not index 7 factions');
-  const connections = registry.listConnections(manifest.id);
-  assert.equal(connections.filter(c => c.kind === 'secret').length, 6, 'campaign does not have 6 secret connections');
+  assert.equal((manifest.secretConnections ?? []).length, 6, 'campaign does not have 6 secret connections');
+  assert.equal((manifest.conditionalConnections ?? []).length, 4, 'campaign does not have 4 conditional connections');
   assert.throws(() => registry.registerCampaign(manifest), /duplicate campaign id/, 'duplicate campaign registration did not throw');
   console.log('registry ok');
 
@@ -62,11 +62,12 @@ try {
     assert.ok(room.spatialCapacity >= 1, `room "${room.id}" spatialCapacity < 1`);
   }
   assert.equal(scenario.phase8SpatialScaleApplied, true, 'compiler did not pre-empt phase8 spatial scale');
-  assert.ok(scenario.links.length >= 74, `expected at least 74 links, got ${scenario.links.length}`);
+  assert.ok(scenario.links.length >= 80, `expected at least 80 links, got ${scenario.links.length}`);
   assert.equal(scenario.secretLinks.length, 6, 'compiled scenario does not preserve 6 secret links');
+  assert.equal(report.stats.conditionalConnections, 4, 'compiled scenario does not report 4 conditional connections');
   const party = scenario.agents.filter(agent => agent.faction === 'party');
   assert.equal(party.length, 4, 'compiled scenario does not have a party of 4');
-  assert.ok(party.every(agent => agent.roomId === manifest.entranceRoomId), 'party does not start at the entrance room');
+  assert.ok(party.every(agent => agent.roomId === manifest.entryRoomId), 'party does not start at the entrance room');
   assert.equal(report.missingBundles.length, 0, `unresolved prop bundles: ${report.missingBundles.join(', ')}`);
   const compiledCheck = validateCompiledScenario(scenario);
   assert.equal(compiledCheck.ok, true, `compiled scenario validation failed: ${compiledCheck.errors.map(e => `${e.code}: ${e.message}`).join(' | ')}`);

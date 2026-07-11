@@ -1,9 +1,15 @@
-// campaign.manifest.json → 레거시 시나리오 shape 컴파일러.
+// campaign.manifest.json (Codex 저작, content/campaigns/sleeping-citadel/) →
+// 레거시 시나리오 shape 컴파일러.
+//
+// 이 manifest는 "design-complete-runtime-pending" 문서입니다 — zones에 macro-grid,
+// factions에 lair/species/startingAgents가 없습니다. legacyMappings.js의
+// GRID_BY_ZONE / DESCRIPTIVE_KIND_MAP / FACTION_RUNTIME_BINDINGS / WILDLIFE_BINDINGS가
+// 그 gap을 결정론적으로 메웁니다. manifest 파일 자체는 수정하지 않습니다.
 //
 // Phase 체인 호환 전략 (plan 결정 1):
 //   - manifest 크기는 이미 post-scale 단위 → phase8SpatialScaleApplied: true를 직접
 //     설정하고 legacyDimensions / spatialCapacity를 자체 계산 (Phase8 no-op).
-//   - 세력/야생 lair prop을 manifest에서 직접 방출 → Phase5(goblin_lair 가드),
+//   - 세력/야생 lair prop을 manifest 밖 바인딩 테이블에서 직접 방출 → Phase5(goblin_lair 가드),
 //     Phase6(plague_mortuary 가드)의 휴리스틱 배치 억제.
 //   - Phase2(waystation)와 Phase7(territory_resource)은 그대로 통과시킴.
 // 완전 결정론: RNG/Date 금지 — 같은 manifest면 deep-equal 산출물.
@@ -13,7 +19,6 @@ import {
   SIZE_SCALE,
   POSITION_SCALE,
   spatialCapacity,
-  factionForRole,
   speciesDisplayName,
   speciesSize,
   alphabeticLabel,
@@ -21,15 +26,19 @@ import {
   FACTION_LAIR_DEFAULTS,
   PHASE5_STOCK_FIELDS,
   PHASE6_STOCK_FIELDS,
-  PARTY_ROLE_NAMES
+  PARTY_ROLE_NAMES,
+  GRID_BY_ZONE,
+  mapRoomKind,
+  FACTION_RUNTIME_BINDINGS,
+  WILDLIFE_BINDINGS
 } from './legacyMappings.js';
 
 function round(value) {
   return Math.round(value * 100) / 100;
 }
 
-function zoneTag(code) {
-  return `zone_${String(code).toLowerCase()}`;
+function zoneTag(zoneId) {
+  return `zone_${String(zoneId).toLowerCase()}`;
 }
 
 /**
@@ -44,30 +53,40 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
   const warnings = [];
   const missingBundles = [];
   const bundleIndex = new Map((assetCatalog?.entries ?? []).map(entry => [entry.id, entry]));
+  const entryRoomId = manifest.entryRoomId;
 
-  const zones = manifest.zones ?? [];
+  // manifest zones엔 macro-grid가 없음 — GRID_BY_ZONE으로 보강해 zoneLayout에 전달.
+  const zones = (manifest.zones ?? []).map(zone => ({ ...zone, grid: GRID_BY_ZONE[zone.id] }));
   const zoneById = new Map(zones.map(zone => [zone.id, zone]));
-  const centers = layoutZones({ zones, rooms: manifest.rooms, layout: manifest.layout });
 
-  // 비밀 연결 양단 방 → secret_route 태그
-  const secretConnections = (manifest.connections ?? []).filter(connection => connection.kind === 'secret');
-  const secretRooms = new Set(secretConnections.flatMap(connection => [connection.from, connection.to]));
+  // manifest room.size는 [w,d] 배열 — zoneLayout은 size.w/size.d 객체를 기대함.
+  const roomsForLayout = manifest.rooms.map(room => ({
+    ...room,
+    size: { w: room.size[0], d: room.size[1] }
+  }));
+  const centers = layoutZones({ zones, rooms: roomsForLayout, layout: manifest.layout });
+
+  // 연결 shape: connections는 [a,b] pair, secretConnections/conditionalConnections는 객체.
+  const secretConnections = manifest.secretConnections ?? [];
+  const conditionalConnections = manifest.conditionalConnections ?? [];
+  const secretRooms = new Set(secretConnections.flatMap(c => [c.from, c.to]));
+  const conditionalRooms = new Set(conditionalConnections.flatMap(c => [c.from, c.to]));
 
   // --- rooms ---
   const rooms = manifest.rooms.map(source => {
     const center = centers.get(source.id);
     if (!center) warnings.push(`room "${source.id}" has no layout position (unknown zone "${source.zoneId}"), defaulting to origin`);
     const zone = zoneById.get(source.zoneId);
-    const w = source.size.w;
-    const d = source.size.d;
+    const [w, d] = source.size;
     const tags = [...(source.tags ?? [])];
-    if (zone) tags.push(zoneTag(zone.code));
+    if (zone) tags.push(zoneTag(zone.id));
     tags.push('phase8_spacious');
     if (secretRooms.has(source.id)) tags.push('secret_route');
+    if (conditionalRooms.has(source.id)) tags.push('conditional_route');
     return {
       id: source.id,
       name: source.name,
-      kind: source.kind,
+      kind: mapRoomKind(source.kind, source.id, entryRoomId),
       floor: 0,
       x: center?.x ?? 0,
       z: center?.z ?? 0,
@@ -81,11 +100,14 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     };
   });
   const roomById = new Map(rooms.map(room => [room.id, room]));
-  const codeByRoomId = new Map(manifest.rooms.map(room => [room.id, room.code]));
 
-  // --- links (비밀 통로도 포함 — 레거시 런타임엔 발견 게이트가 없음, plan 결정 2) ---
-  const links = (manifest.connections ?? []).map(connection => [connection.from, connection.to]);
-  const secretLinks = secretConnections.map(connection => [connection.from, connection.to]);
+  // --- links ---
+  // 비밀·조건부 통로 모두 링크에 포함 (레거시 런타임엔 발견/조건 게이트가 없음, plan 결정 2).
+  // 실제 발견/조건 상태는 scenario.secretLinks / scenario.meta.conditionalLinks로 별도 보존.
+  const baseLinks = (manifest.connections ?? []).map(([a, b]) => [a, b]);
+  const conditionalLinks = conditionalConnections.map(c => [c.from, c.to]);
+  const secretLinks = secretConnections.map(c => [c.from, c.to]);
+  const links = [...baseLinks, ...conditionalLinks, ...secretLinks];
 
   // --- props / agents ---
   const props = [];
@@ -96,10 +118,9 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
   const roleCounters = new Map();
 
   const nextPropId = roomId => {
-    const code = codeByRoomId.get(roomId) ?? 'X00';
     const seq = (propSeqByRoom.get(roomId) ?? 0) + 1;
     propSeqByRoom.set(roomId, seq);
-    return `sc-${code}-${seq}`;
+    return `sc-${roomId}-${seq}`;
   };
 
   const emitLairProp = ({ roomId, propType, ecologyFaction, species, capacity, stocks }) => {
@@ -128,7 +149,6 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     };
     props.push(prop);
 
-    // Phase5/6이 lair 방에 붙이던 태그 미러
     const room = roomById.get(roomId);
     if (room && resolvedSpecies) {
       room.tags = [...new Set([...room.tags, ...lairRoomTags(phase, resolvedSpecies)])];
@@ -139,112 +159,124 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     return prop;
   };
 
-  const emitEcologyAgents = ({ entries, ecologyFaction, roomId }) => {
-    for (const entry of entries) {
-      const count = entry.count ?? 1;
-      for (let i = 0; i < count; i += 1) {
-        const role = entry.role;
-        const seq = roleCounters.get(role) ?? 0;
-        roleCounters.set(role, seq + 1);
-        const explicit = count === 1;
-        agents.push({
-          id: explicit && entry.id ? entry.id : `sc-${role}-${seq + 1}`,
-          name: explicit && entry.name ? entry.name : `${speciesDisplayName(role)} ${alphabeticLabel(seq)}`,
-          role,
-          faction: 'dungeon',
-          ecologyFaction,
-          roomId,
-          homeRoomId: roomId,
-          level: 1,
-          size: speciesSize(role)
-        });
-      }
+  const emitEcologyAgents = ({ role, count, ecologyFaction, roomId }) => {
+    for (let i = 0; i < count; i += 1) {
+      const seq = roleCounters.get(role) ?? 0;
+      roleCounters.set(role, seq + 1);
+      agents.push({
+        id: `sc-${role}-${seq + 1}`,
+        name: `${speciesDisplayName(role)} ${alphabeticLabel(seq)}`,
+        role,
+        faction: 'dungeon',
+        ecologyFaction,
+        roomId,
+        homeRoomId: roomId,
+        level: 1,
+        size: speciesSize(role)
+      });
     }
   };
 
+  const propBundlesByRoom = {};
+  const missingLairRooms = [];
+
   for (const faction of manifest.factions ?? []) {
-    if (faction.kind === 'party') {
+    const binding = FACTION_RUNTIME_BINDINGS[faction.id];
+    if (!binding) {
+      warnings.push(`faction "${faction.id}" has no runtime binding; skipping agent/lair emission`);
+      continue;
+    }
+
+    if (binding.kind === 'party') {
       // 파티는 입구에서 시작 (applyPhase2Facilities가 waystation으로 옮김)
-      for (const entry of faction.startingAgents ?? []) {
-        const role = entry.role;
+      for (const entry of binding.startingAgents ?? []) {
         agents.push({
-          id: entry.id ?? role,
-          name: entry.name ?? PARTY_ROLE_NAMES[role] ?? speciesDisplayName(role),
-          role,
+          id: entry.id,
+          name: PARTY_ROLE_NAMES[entry.role] ?? speciesDisplayName(entry.role),
+          role: entry.role,
           faction: 'party',
-          roomId: manifest.entranceRoomId,
+          roomId: entryRoomId,
           level: 1
         });
       }
       continue;
     }
-    if (faction.lair?.propType) {
+
+    for (const lair of binding.lairs ?? []) {
+      if (!roomById.has(lair.roomId)) {
+        missingLairRooms.push(lair.roomId);
+        continue;
+      }
       emitLairProp({
-        roomId: faction.homeRoomId,
-        propType: faction.lair.propType,
-        ecologyFaction: faction.legacyEcologyFaction,
-        species: faction.species,
-        capacity: faction.lair.capacity,
-        stocks: faction.lair.stocks
+        roomId: lair.roomId,
+        propType: lair.propType,
+        ecologyFaction: faction.runtimeFactionId,
+        species: lair.species,
+        capacity: lair.capacity,
+        stocks: lair.stocks
       });
+      emitEcologyAgents({ role: lair.species, count: 1, ecologyFaction: faction.runtimeFactionId, roomId: lair.roomId });
+      if (lair.assetBundle) {
+        propBundlesByRoom[lair.roomId] = [...(propBundlesByRoom[lair.roomId] ?? []), lair.assetBundle];
+        if (!bundleIndex.has(lair.assetBundle) && !missingBundles.includes(lair.assetBundle)) {
+          missingBundles.push(lair.assetBundle);
+          warnings.push(`bundle "${lair.assetBundle}" (faction "${faction.id}" lair) is not in the asset catalog`);
+        }
+      }
     }
-    emitEcologyAgents({
-      entries: faction.startingAgents ?? [],
-      ecologyFaction: faction.legacyEcologyFaction,
-      roomId: faction.homeRoomId
-    });
+  }
+  for (const roomId of missingLairRooms) {
+    warnings.push(`faction lair references unknown room "${roomId}"`);
   }
 
-  for (const entry of manifest.wildlife ?? []) {
-    const ecologyFaction = factionForRole(entry.species);
+  for (const entry of WILDLIFE_BINDINGS) {
+    if (!roomById.has(entry.lairRoomId)) {
+      warnings.push(`wildlife "${entry.species}" lairRoomId "${entry.lairRoomId}" does not exist`);
+      continue;
+    }
+    // 야생종 세력 id는 apply 체인과 동일하게 "wild-<species>" 규칙을 따름 (legacyMappings.factionForRole 미러)
+    const ecologyFaction = `wild-${entry.species}`;
     emitLairProp({
       roomId: entry.lairRoomId,
       propType: entry.propType,
       ecologyFaction,
       species: entry.species,
-      capacity: undefined,
       stocks: entry.stocks
     });
-    emitEcologyAgents({
-      entries: [{ role: entry.species, count: entry.count }],
-      ecologyFaction,
-      roomId: entry.lairRoomId
-    });
+    emitEcologyAgents({ role: entry.species, count: entry.count, ecologyFaction, roomId: entry.lairRoomId });
   }
 
-  // --- propBundles (plan 결정 3) ---
-  // legacyProp 매핑 있으면 레거시 prop 방출, 없으면 meta에만 기록,
-  // 카탈로그 미등록이면 report.missingBundles.
-  const propBundlesByRoom = {};
+  // --- landmarkBundle (plan 결정 3) ---
+  // 카탈로그 legacyProp 매핑이 있으면 레거시 prop으로 방출, 없으면(대부분의 랜드마크는
+  // 순수 시각 디오라마) meta에만 기록. 미등록 bundle은 report.missingBundles.
   for (const source of manifest.rooms) {
-    const bundles = source.propBundles ?? [];
-    if (bundles.length) propBundlesByRoom[source.id] = [...bundles];
-    for (const bundleId of bundles) {
-      const entry = bundleIndex.get(bundleId);
-      if (!entry) {
-        if (!missingBundles.includes(bundleId)) missingBundles.push(bundleId);
-        warnings.push(`bundle "${bundleId}" (room "${source.id}") is not in the asset catalog`);
-        continue;
-      }
-      if (!entry.legacyProp) continue; // 장식/키트: meta 기록만
-      const prop = {
-        id: nextPropId(source.id),
-        type: entry.legacyProp.type,
-        roomId: source.id,
-        label: entry.legacyProp.label ?? entry.id
-      };
-      if (entry.legacyProp.type === 'trap') prop.armed = true;
-      if (entry.legacyProp.type === 'treasure') prop.opened = false;
-      props.push(prop);
+    const bundleId = source.landmarkBundle;
+    if (!bundleId) continue;
+    propBundlesByRoom[source.id] = [...(propBundlesByRoom[source.id] ?? []), bundleId];
+    const entry = bundleIndex.get(bundleId);
+    if (!entry) {
+      if (!missingBundles.includes(bundleId)) missingBundles.push(bundleId);
+      warnings.push(`bundle "${bundleId}" (room "${source.id}") is not in the asset catalog`);
+      continue;
     }
+    if (!entry.legacyProp) continue; // 순수 디오라마: meta 기록만
+    const prop = {
+      id: nextPropId(source.id),
+      type: entry.legacyProp.type,
+      roomId: source.id,
+      label: entry.legacyProp.label ?? entry.id
+    };
+    if (entry.legacyProp.type === 'trap') prop.armed = true;
+    if (entry.legacyProp.type === 'treasure') prop.opened = false;
+    props.push(prop);
   }
 
   // --- scenario ---
   const campaignId = manifest.id;
   const scenario = {
     id: campaignId.startsWith('campaign.') ? campaignId.slice('campaign.'.length) : campaignId,
-    name: manifest.name,
-    description: manifest.description ?? '',
+    name: typeof manifest.title === 'string' ? manifest.title : (manifest.title?.en ?? campaignId),
+    description: typeof manifest.title === 'object' ? (manifest.title?.ko ?? '') : '',
     rooms,
     links,
     secretLinks,
@@ -264,6 +296,8 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     meta: {
       campaignId,
       contentVersion: manifest.contentVersion,
+      status: manifest.status,
+      conditionalLinks,
       propBundlesByRoom
     }
   };
@@ -274,7 +308,8 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     stats: {
       zones: zones.length,
       rooms: rooms.length,
-      connections: links.length,
+      connections: baseLinks.length,
+      conditionalConnections: conditionalLinks.length,
       secretConnections: secretLinks.length,
       factions: (manifest.factions ?? []).length,
       agents: agents.length,

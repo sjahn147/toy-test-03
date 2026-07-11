@@ -1,12 +1,22 @@
 // 캠페인 manifest / 컴파일된 시나리오 밸리데이터.
 // I/O 없음 — 스키마 JSON은 호출자가 loadContentNode.js(node) 또는 fetch(browser)로
 // 읽어 options.manifestSchema로 넘깁니다. ajv 의존 없이 type/required/enum/items만 지원.
+//
+// manifest는 content/campaigns/sleeping-citadel/campaign.manifest.json (Codex 저작)의
+// "design-complete-runtime-pending" shape을 따릅니다 — factions[]에 lair/species 정보가
+// 없으므로, 그 부분의 도메인 검사는 legacyMappings.FACTION_RUNTIME_BINDINGS를 기준으로 합니다.
+// campaign.schema.json은 $ref/oneOf/prefixItems를 쓰므로 validateAgainstSchema(아래의
+// 최소 워커)가 중첩 제약을 완전히 풀어내지 못합니다 — 실질적 계약 검증은 이 파일의
+// 도메인 체크가 담당합니다.
 
 import {
   KIND_MINIMUMS,
   DEFAULT_KIND_MINIMUM,
   RESERVED_ID_PREFIXES,
-  RESERVED_ROOM_IDS
+  RESERVED_ROOM_IDS,
+  mapRoomKind,
+  FACTION_RUNTIME_BINDINGS,
+  WILDLIFE_BINDINGS
 } from './legacyMappings.js';
 
 const GUARD_LAIR_TYPES = ['goblin_lair', 'plague_mortuary'];
@@ -17,6 +27,7 @@ function issue(code, message, refs = []) {
 
 // content/schemas/*.schema.json 구조를 걷는 최소 스키마 체커.
 // 지원 키워드: type(object/array/string/number/integer/boolean), required, properties, items, enum.
+// $ref/oneOf/prefixItems/additionalProperties는 무시됩니다 (해당 하위 트리는 검사 생략).
 export function validateAgainstSchema(value, schema, path = '$') {
   const errors = [];
   walkSchema(value, schema, path, errors);
@@ -77,7 +88,7 @@ function describe(value) {
  * @param {string} campaignId
  * @param {{ strict?: boolean, manifestSchema?: Object|null }} [options]
  *   strict: propBundle 해석 실패를 warning 대신 error로 승격
- *   manifestSchema: content/schemas/campaign.manifest.schema.json의 파싱 결과 (없으면 스키마 검사 생략)
+ *   manifestSchema: content/schemas/campaign.schema.json의 파싱 결과 (없으면 스키마 검사 생략)
  * @returns {{ ok: boolean, errors: Array, warnings: Array }}
  */
 export function validateCampaign(registry, campaignId, options = {}) {
@@ -97,8 +108,10 @@ export function validateCampaign(registry, campaignId, options = {}) {
   const zones = manifest.zones ?? [];
   const rooms = manifest.rooms ?? [];
   const connections = manifest.connections ?? [];
+  const conditionalConnections = manifest.conditionalConnections ?? [];
+  const secretConnections = manifest.secretConnections ?? [];
   const factions = manifest.factions ?? [];
-  const wildlife = manifest.wildlife ?? [];
+  const entryRoomId = manifest.entryRoomId;
 
   // 고유 ID
   const seen = new Set();
@@ -128,37 +141,49 @@ export function validateCampaign(registry, campaignId, options = {}) {
     }
   }
 
-  // 연결 endpoint 존재
-  for (const connection of connections) {
-    for (const endpoint of [connection.from, connection.to]) {
+  // 연결 endpoint 존재 — connections는 [a,b] pair, 나머지 둘은 {from,to} 객체
+  for (const [a, b] of connections) {
+    for (const endpoint of [a, b]) {
       if (!roomIds.has(endpoint)) {
-        errors.push(issue('connection-endpoint', `connection ${connection.from} → ${connection.to} references unknown room "${endpoint}"`, [endpoint]));
+        errors.push(issue('connection-endpoint', `connection ${a} → ${b} references unknown room "${endpoint}"`, [endpoint]));
+      }
+    }
+  }
+  for (const list of [conditionalConnections, secretConnections]) {
+    for (const connection of list) {
+      for (const endpoint of [connection.from, connection.to]) {
+        if (!roomIds.has(endpoint)) {
+          errors.push(issue('connection-endpoint', `connection ${connection.from} → ${connection.to} references unknown room "${endpoint}"`, [endpoint]));
+        }
       }
     }
   }
 
-  // start 방 1개 이상 + 입구 존재
-  const startRooms = rooms.filter(room => room.kind === 'start');
+  // start 방 1개 이상(kind 매핑 후) + 입구 존재
+  const startRooms = rooms.filter(room => mapRoomKind(room.kind, room.id, entryRoomId) === 'start');
   if (startRooms.length === 0) {
-    errors.push(issue('no-start-room', 'campaign has no room with kind "start"', [campaignId]));
+    errors.push(issue('no-start-room', 'campaign has no room mapping to legacy kind "start"', [campaignId]));
   }
-  if (!roomIds.has(manifest.entranceRoomId)) {
-    errors.push(issue('entrance-missing', `entranceRoomId "${manifest.entranceRoomId}" does not exist`, [manifest.entranceRoomId]));
+  if (!roomIds.has(entryRoomId)) {
+    errors.push(issue('entrance-missing', `entryRoomId "${entryRoomId}" does not exist`, [entryRoomId]));
   }
 
-  // 비밀 연결 제외 그래프 연결성 (발견 시스템 도입 대비)
-  if (roomIds.has(manifest.entranceRoomId)) {
+  // 비밀 연결 제외 그래프 연결성 (발견 시스템 도입 대비). 조건부 연결은 기본적으로
+  // 열린 링크로 취급하므로(plan 결정 2) 연결성 검사에 포함합니다.
+  if (roomIds.has(entryRoomId)) {
     const adjacency = new Map();
-    for (const connection of connections) {
-      if (connection.kind === 'secret') continue;
-      if (!roomIds.has(connection.from) || !roomIds.has(connection.to)) continue;
-      if (!adjacency.has(connection.from)) adjacency.set(connection.from, []);
-      if (!adjacency.has(connection.to)) adjacency.set(connection.to, []);
-      adjacency.get(connection.from).push(connection.to);
-      adjacency.get(connection.to).push(connection.from);
-    }
-    const visited = new Set([manifest.entranceRoomId]);
-    const queue = [manifest.entranceRoomId];
+    const addEdge = (from, to) => {
+      if (!roomIds.has(from) || !roomIds.has(to)) return;
+      if (!adjacency.has(from)) adjacency.set(from, []);
+      if (!adjacency.has(to)) adjacency.set(to, []);
+      adjacency.get(from).push(to);
+      adjacency.get(to).push(from);
+    };
+    for (const [a, b] of connections) addEdge(a, b);
+    for (const connection of conditionalConnections) addEdge(connection.from, connection.to);
+
+    const visited = new Set([entryRoomId]);
+    const queue = [entryRoomId];
     while (queue.length) {
       const current = queue.shift();
       for (const next of adjacency.get(current) ?? []) {
@@ -173,45 +198,57 @@ export function validateCampaign(registry, campaignId, options = {}) {
     }
   }
 
-  // 크기 최소치 (post-scale, applyPhase8SpatialScale.KIND_MINIMUMS 기준)
+  // 크기 최소치 (post-scale, applyPhase8SpatialScale.KIND_MINIMUMS 기준). size는 [w,d] 배열.
   for (const room of rooms) {
-    const [minW, minD] = KIND_MINIMUMS[room.kind] ?? DEFAULT_KIND_MINIMUM;
-    const w = room.size?.w;
-    const d = room.size?.d;
+    const legacyKind = mapRoomKind(room.kind, room.id, entryRoomId);
+    const [minW, minD] = KIND_MINIMUMS[legacyKind] ?? DEFAULT_KIND_MINIMUM;
+    const w = room.size?.[0];
+    const d = room.size?.[1];
     if (typeof w !== 'number' || typeof d !== 'number') continue; // 스키마 체크 몫
     if (w < minW || d < minD) {
-      errors.push(issue('size-minimum', `room "${room.id}" (${room.kind}) size ${w}x${d} is below kind minimum ${minW}x${minD}`, [room.id]));
+      errors.push(issue('size-minimum', `room "${room.id}" (${room.kind} → ${legacyKind}) size ${w}x${d} is below kind minimum ${minW}x${minD}`, [room.id]));
     }
   }
 
-  // 세력 homeRoomId / wildlife lairRoomId 존재
+  // 세력 런타임 바인딩 존재 + 참조 방 존재 (manifest 자체엔 lair/homeRoomId가 없음)
   for (const faction of factions) {
-    if (!roomIds.has(faction.homeRoomId)) {
-      errors.push(issue('faction-room-missing', `faction "${faction.id}" homeRoomId "${faction.homeRoomId}" does not exist`, [faction.id, faction.homeRoomId]));
+    const binding = FACTION_RUNTIME_BINDINGS[faction.id];
+    if (!binding) {
+      errors.push(issue('faction-binding-missing', `faction "${faction.id}" has no entry in legacyMappings.FACTION_RUNTIME_BINDINGS`, [faction.id]));
+      continue;
+    }
+    for (const roomId of faction.initialRooms ?? []) {
+      if (!roomIds.has(roomId)) {
+        errors.push(issue('faction-room-missing', `faction "${faction.id}" initialRooms references unknown room "${roomId}"`, [faction.id, roomId]));
+      }
+    }
+    for (const lair of binding.lairs ?? []) {
+      if (!roomIds.has(lair.roomId)) {
+        errors.push(issue('faction-room-missing', `faction "${faction.id}" lair roomId "${lair.roomId}" does not exist`, [faction.id, lair.roomId]));
+      }
     }
   }
-  for (const entry of wildlife) {
+  for (const entry of WILDLIFE_BINDINGS) {
     if (!roomIds.has(entry.lairRoomId)) {
       errors.push(issue('wildlife-room-missing', `wildlife "${entry.species}" lairRoomId "${entry.lairRoomId}" does not exist`, [entry.lairRoomId]));
     }
   }
 
   // compat.ecology-guards: Phase5/6 휴리스틱 배치를 억제하려면
-  // manifest lair에 goblin_lair와 plague_mortuary가 각각 1개 이상 있어야 함
+  // 바인딩 테이블에 goblin_lair와 plague_mortuary가 각각 1개 이상 있어야 함
   const lairTypes = new Set();
-  for (const faction of factions) {
-    if (faction.lair?.propType) lairTypes.add(faction.lair.propType);
+  for (const binding of Object.values(FACTION_RUNTIME_BINDINGS)) {
+    for (const lair of binding.lairs ?? []) lairTypes.add(lair.propType);
   }
-  for (const entry of wildlife) {
-    if (entry.propType) lairTypes.add(entry.propType);
-  }
+  for (const entry of WILDLIFE_BINDINGS) lairTypes.add(entry.propType);
   for (const guardType of GUARD_LAIR_TYPES) {
     if (!lairTypes.has(guardType)) {
-      errors.push(issue('compat.ecology-guards', `manifest must place at least one "${guardType}" lair to suppress the legacy Phase5/6 heuristic placement`, [guardType]));
+      errors.push(issue('compat.ecology-guards', `runtime bindings must place at least one "${guardType}" lair to suppress the legacy Phase5/6 heuristic placement`, [guardType]));
     }
   }
 
-  // propBundle 해석 (기본 warning, strict면 error)
+  // propBundle 해석 (기본 warning, strict면 error) — zone.zoneKit, room.landmarkBundle,
+  // faction lair의 assetBundle(바인딩 테이블)까지 확인.
   const bundleIssues = options.strict ? errors : warnings;
   if (!registry.hasAssetCatalog()) {
     warnings.push(issue('no-asset-catalog', 'no asset catalog registered; propBundle resolution skipped', [campaignId]));
@@ -221,9 +258,11 @@ export function validateCampaign(registry, campaignId, options = {}) {
         bundleIssues.push(issue('bundle-unresolved', `bundle "${bundleId}" (referenced by "${ownerId}") is not in the asset catalog`, [bundleId, ownerId]));
       }
     };
-    for (const zone of zones) if (zone.kit) check(zone.kit, zone.id);
-    for (const room of rooms) for (const bundleId of room.propBundles ?? []) check(bundleId, room.id);
-    for (const faction of factions) if (faction.lair?.assetBundle) check(faction.lair.assetBundle, faction.id);
+    for (const zone of zones) if (zone.zoneKit) check(zone.zoneKit, zone.id);
+    for (const room of rooms) if (room.landmarkBundle) check(room.landmarkBundle, room.id);
+    for (const binding of Object.values(FACTION_RUNTIME_BINDINGS)) {
+      for (const lair of binding.lairs ?? []) if (lair.assetBundle) check(lair.assetBundle, lair.roomId);
+    }
   }
 
   return { ok: errors.length === 0, errors, warnings };

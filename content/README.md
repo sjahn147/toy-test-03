@@ -49,11 +49,20 @@ ID는 파일 경로가 아니라 안정적인 공개 계약입니다.
 
 ### 캠페인과 방
 
+Sleeping Citadel 캠페인은 room bible의 짧은 코드를 그대로 안정 ID로 씁니다 — 방마다 점으로
+구분된 네임스페이스를 붙이지 않습니다. 새 캠페인을 추가할 때도 이 짧은 코드 관례를 따르거나,
+필요하면 자체 네임스페이스를 정하되 같은 문서에 명시하세요.
+
 ```text
-campaign.sleeping-citadel
-zone.sleeping-citadel.gate
-room.sleeping-citadel.gate.safe-plaza
+sleeping-citadel                 캠페인 id (schema: campaign.schema.json)
+A, B, C, ...                     zone id (room bible 구역 문자)
+A01, B06, H36, ...               room id (room bible 코드, zone 접두문자 + 2자리 번호)
+lantern-compact, red-tusk-host   faction id
 ```
+
+세력의 실제 서식지·species·시작 파티 구성은 manifest에 없습니다(design-complete-runtime-pending 단계).
+`src/content/legacyMappings.js`의 `FACTION_RUNTIME_BINDINGS`/`WILDLIFE_BINDINGS`가 room bible 태그를
+근거로 이 값을 공급하며, `src/content/ContentValidator.js`가 manifest와 이 바인딩 테이블을 함께 검사합니다.
 
 ### 어셋
 

@@ -135,3 +135,96 @@ export function alphabeticLabel(index) {
   }
   return label;
 }
+
+// --- content/campaigns/sleeping-citadel/campaign.manifest.json (Codex 저작) 바인딩 ---
+// 이 manifest는 zones에 macro-grid를, factions에 lair/species/startingAgents를
+// 싣지 않은 "design-complete-runtime-pending" 문서입니다. 아래 테이블이 그 gap을
+// 메워 ScenarioCompiler가 실행 가능한 시나리오를 만들도록 합니다. manifest 파일
+// 자체는 건드리지 않고, 여기서만 room bible/campaign overview 태그를 근거로
+// 런타임 바인딩을 결정합니다.
+
+// zone id(단일 문자) → macro-grid 앵커. docs/campaigns/sleeping-citadel-overview.md §3
+// 지리 배치를 그대로 반영 (관문 서쪽 → 중앙시장 → 성소 동쪽).
+export const GRID_BY_ZONE = {
+  A: { col: 0, row: 1 }, B: { col: 1, row: 1 }, C: { col: 1, row: 0 },
+  D: { col: 2, row: 0 }, E: { col: 3, row: 2 }, F: { col: 3, row: 0 },
+  G: { col: 3, row: 1 }, H: { col: 2, row: 2 }, I: { col: 2, row: 1 },
+  J: { col: 4, row: 1 }, K: { col: 4, row: 0 }, L: { col: 5, row: 1 },
+  M: { col: 6, row: 1 }
+};
+
+// 방의 서술적 kind(예: "safe-plaza", "goblin-market") → 레거시 kind enum.
+// 모든 63개 값을 명시적으로 매핑 — 추측성 부분 문자열 매칭을 피합니다.
+// 각 매핑은 KIND_MINIMUMS를 만족하는지 확인된 상태입니다 (WP 통합 시 검증 스크립트로 재확인).
+export const DESCRIPTIVE_KIND_MAP = {
+  'safe-plaza': 'start', 'registry': 'hall', 'gate': 'gate', 'storehouse': 'pantry',
+  'descent': 'hall', 'dormitory': 'hall', 'kitchen': 'pantry', 'water-room': 'hall',
+  'courtyard': 'hall', 'chapel': 'shrine', 'reservoir': 'hall', 'granary': 'pantry',
+  'cellar': 'pantry', 'machinery': 'hall', 'passage': 'hall', 'workshop': 'hall',
+  'scrap-yard': 'hall', 'kobold-workshop': 'lair', 'goblin-market': 'lair', 'magazine': 'pantry',
+  'cloister': 'crypt', 'funeral-chapel': 'shrine', 'ossuary': 'crypt', 'tomb': 'crypt',
+  'death-well': 'shrine', 'spore-field': 'hall', 'glasshouse': 'hall', 'fungal-forest': 'lair',
+  'gardener-room': 'hall', 'fungal-core': 'lair', 'silk-passage': 'hall', 'host-storage': 'hall',
+  'spider-nursery': 'hatchery', 'vertical-well': 'hall', 'boss-nest': 'lair',
+  'inn-common-room': 'hall', 'inn-kitchen': 'pantry', 'inn-guest-wing': 'hall', 'inn-cellar': 'pantry',
+  'secret-office': 'hall', 'market-plaza': 'hall', 'customs-house': 'hall', 'auction-hall': 'treasure',
+  'neutral-water': 'hall', 'secret-junction': 'hall', 'training-yard': 'hall', 'armory': 'armory',
+  'meat-store': 'pantry', 'arena': 'hall', 'war-hall': 'lair', 'laboratory': 'hall',
+  'parasite-vats': 'lair', 'observatory': 'hall', 'summoning-room': 'hall', 'emergency-route': 'hall',
+  'antechamber': 'hall', 'treasure-vault': 'treasure', 'banquet-hall': 'hall', 'throne-room': 'treasure',
+  'royal-bedchamber': 'hall', 'final-gate': 'gate', 'sanctum': 'shrine', 'final-boss-room': 'lair'
+};
+
+export function mapRoomKind(descriptiveKind, roomId, entryRoomId) {
+  if (roomId === entryRoomId) return 'start';
+  return DESCRIPTIVE_KIND_MAP[descriptiveKind] ?? 'hall';
+}
+
+// faction.id → 런타임 바인딩. manifest의 factions[]는 id/runtimeFactionId/initialRooms/goals만
+// 가지므로, 실제 파티 구성원과 생태 lair(species/propType/capacity/stocks/assetBundle)는
+// 여기서 room bible 태그를 근거로 결정론적으로 공급합니다.
+export const FACTION_RUNTIME_BINDINGS = {
+  'lantern-compact': {
+    kind: 'party',
+    startingAgents: [
+      { id: 'fighter', role: 'fighter' },
+      { id: 'rogue', role: 'rogue' },
+      { id: 'cleric', role: 'cleric' },
+      { id: 'wizard', role: 'wizard' }
+    ]
+  },
+  'brass-button-market': {
+    kind: 'ecology',
+    lairs: [{ roomId: 'D19', propType: 'goblin_lair', species: 'goblin', assetBundle: 'habitat.goblin-hearth', capacity: 5, stocks: { foodStock: 3 } }]
+  },
+  'copper-tail-clutch': {
+    kind: 'ecology',
+    lairs: [{ roomId: 'D18', propType: 'kobold_workshop', species: 'kobold', assetBundle: 'habitat.kobold-trapworks', capacity: 5, stocks: { scrapStock: 3 } }]
+  },
+  'red-tusk-host': {
+    kind: 'ecology',
+    lairs: [{ roomId: 'J50', propType: 'orc_tribe_camp', species: 'orc', assetBundle: 'habitat.orc-war-camp', capacity: 4, stocks: { meatStock: 3, trophyStock: 1 } }]
+  },
+  'choir-unfinished-names': {
+    kind: 'ecology',
+    lairs: [
+      { roomId: 'E22', propType: 'plague_mortuary', species: 'zombie', assetBundle: 'habitat.plague-mortuary', capacity: 5, stocks: { corpseStock: 1 } },
+      { roomId: 'E23', propType: 'ossuary_lair', species: 'skeleton', assetBundle: 'habitat.ossuary', capacity: 5, stocks: { boneStock: 3 } }
+    ]
+  },
+  'bluecap-communion': {
+    kind: 'ecology',
+    lairs: [{ roomId: 'F30', propType: 'fungal_garden', species: 'myconid', assetBundle: 'habitat.fungal-colony', capacity: 5, stocks: { sporeStock: 2 } }]
+  },
+  'red-silk-brood': {
+    kind: 'ecology',
+    lairs: [{ roomId: 'G33', propType: 'spider_lair', species: 'spider', assetBundle: 'habitat.spider-brood', capacity: 5, stocks: { bloodStock: 1 } }]
+  }
+};
+
+// manifest에 없는 기초 개체군(쥐/슬라임) — 자원 태그가 명시된 방에 배치.
+// C11 reservoir 태그 "slime", C12 granary 태그 "rat-warren"과 정확히 일치합니다.
+export const WILDLIFE_BINDINGS = [
+  { lairRoomId: 'C12', propType: 'rat_warren', species: 'rat', count: 3, stocks: { grainStock: 5 } },
+  { lairRoomId: 'C11', propType: 'slime_pool', species: 'slime', count: 2, stocks: { biomass: 2 } }
+];

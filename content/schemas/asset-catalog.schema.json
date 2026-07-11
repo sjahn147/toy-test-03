@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "asset-catalog",
-  "description": "content/assets/asset-catalog.json 구조. status/priority 어휘는 docs/assets/content-asset-inventory.md를 따릅니다. src/content/ContentValidator.js가 소비하므로 type/required/properties/items/enum 키워드만 사용합니다.",
+  "description": "content/assets/asset-catalog.json 구조 (Codex 저작). entry는 kind 또는 template 중 하나(또는 둘 다)를 가질 수 있어 kind는 필수에서 제외했습니다. status/priority 값은 실제 카탈로그(docs/assets/content-asset-inventory.md 어휘가 아니라 로컬 소문자 어휘 active-procedural/upgrade/author/content)를 따릅니다. src/content/ContentValidator.js가 소비하므로 type/required/properties/items/enum 키워드만 사용합니다.",
   "type": "object",
   "required": ["schemaVersion", "contentVersion", "entries"],
   "properties": {
@@ -11,16 +11,20 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "kind", "status", "priority"],
+        "required": ["id", "status", "priority"],
         "properties": {
-          "id": { "type": "string", "description": "안정적인 bundle ID (kit.stone-common, habitat.goblin.market 등)" },
+          "id": { "type": "string", "description": "안정적인 bundle ID (kit.stone-common, habitat.goblin-hearth 등)" },
           "kind": {
             "type": "string",
-            "enum": ["diorama", "kit", "habitat", "equipment", "ui"]
+            "description": "template 없이 독립 정의되는 entry의 분류 (diagnostic/environment-module/habitat/ui-atlas/audio-layer/audio-cue/prop-module 등)"
+          },
+          "template": {
+            "type": "string",
+            "description": "catalog.templates에 정의된 공용 계약 참조 (zone-kit/campaign-landmark/facility/settlement-structure 등)"
           },
           "status": {
             "type": "string",
-            "enum": ["REUSE", "UPGRADE", "AUTHOR", "FALLBACK", "CONTENT"]
+            "enum": ["active-procedural", "upgrade", "author", "content"]
           },
           "priority": {
             "type": "string",
@@ -36,10 +40,11 @@
           },
           "proceduralFallback": {
             "type": "object",
-            "required": ["factory", "recipe"],
+            "required": ["factory"],
             "properties": {
               "factory": { "type": "string", "description": "procedural AssetFactory 클래스 이름" },
-              "recipe": { "type": "string" }
+              "recipe": { "type": "string", "description": "recipeFromId가 없을 때의 명시적 레시피 이름" },
+              "recipeFromId": { "type": "boolean", "description": "true면 entry id에서 레시피를 유도 (templates.* 공용 계약)" }
             }
           },
           "legacyProp": {
@@ -53,13 +58,13 @@
           },
           "footprint": {
             "type": "object",
-            "required": ["shape"],
             "properties": {
               "shape": { "type": "string", "enum": ["circle", "rect"] },
               "radius": { "type": "number" },
               "width": { "type": "number" },
               "depth": { "type": "number" }
-            }
+            },
+            "description": "radius만으로도 원형 footprint를 표현 (shape 생략 시 circle로 간주)"
           },
           "clearance": {
             "type": "object",
