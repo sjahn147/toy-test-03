@@ -13,10 +13,23 @@ export function applyPhase6Ecology(source) {
   const scenario = clone(source);
   if (scenario.props.some(prop => prop.type === 'plague_mortuary')) return scenario;
 
+  for (const prop of scenario.props) {
+    if (!prop.species) continue;
+    prop.ecologyFaction ??= factionFor(prop.species);
+  }
+  for (const agent of scenario.agents) {
+    if (agent.faction !== 'dungeon') continue;
+    agent.ecologyFaction ??= factionFor(agent.role);
+  }
+
   const candidates = scenario.rooms.filter(room =>
     !room.tags?.includes('safe_zone') && !room.tags?.includes('entrance_threshold') && room.kind !== 'start'
   );
   const usage = new Map();
+  for (const prop of scenario.props) {
+    if (!prop.species || !prop.roomId) continue;
+    usage.set(prop.roomId, (usage.get(prop.roomId) ?? 0) + 1);
+  }
   const lairs = {};
 
   for (const definition of ADVANCED_LAIRS) {
@@ -54,10 +67,6 @@ export function applyPhase6Ecology(source) {
   ];
   for (const [species, count] of seeds) seedSpecies(scenario, species, lairs[species], count, factionFor(species));
 
-  for (const agent of scenario.agents) {
-    if (agent.faction !== 'dungeon') continue;
-    agent.ecologyFaction ??= factionFor(agent.role);
-  }
   scenario.advancedEcologyLairs = lairs;
   return scenario;
 }
@@ -93,7 +102,7 @@ function seedSpecies(scenario, role, roomId, count, ecologyFaction) {
 
 export function factionFor(role) {
   if (['skeleton', 'zombie', 'wraith'].includes(role)) return 'undead-host';
-  if (['goblin'].includes(role)) return 'goblin-clan';
+  if (role === 'goblin') return 'goblin-clan';
   if (role === 'orc') return 'red-tusk-tribe';
   if (role === 'kobold') return 'copper-tail-clutch';
   if (role === 'myconid') return 'bluecap-colony';
@@ -107,7 +116,16 @@ export function factionFor(role) {
 }
 
 function displayName(role) {
-  const names = { myconid: 'Myconid', stirge: 'Stirge', carrion: 'Carrion Crawler', kobold: 'Kobold', wraith: 'Wraith', parasite: 'Pale Parasite', zombie: 'Zombie', orc: 'Orc' };
+  const names = {
+    myconid: 'Myconid',
+    stirge: 'Stirge',
+    carrion: 'Carrion Crawler',
+    kobold: 'Kobold',
+    wraith: 'Wraith',
+    parasite: 'Pale Parasite',
+    zombie: 'Zombie',
+    orc: 'Orc'
+  };
   return names[role] ?? `${role[0].toUpperCase()}${role.slice(1)}`;
 }
 
