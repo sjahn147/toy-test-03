@@ -25,6 +25,15 @@ export class DungeonSim extends BaseDungeonSim {
 
   resolve(agent, action) {
     const wasHidden = agent.hidden;
+    if (action?.type === 'move') {
+      if (action.text) this.event(action.text);
+      this.beginTravel(agent, action.roomId, {
+        interactionTargetId: action.interactionTargetId ?? null,
+        interactionType: action.interactionType ?? null
+      });
+      return;
+    }
+
     super.resolve(agent, action);
 
     if (action.type === 'exitDungeon' && agent.departed) {
@@ -38,40 +47,69 @@ export class DungeonSim extends BaseDungeonSim {
     }
   }
 
-  beginTravel(agent, toRoomId) {
-    if (!toRoomId || toRoomId === agent.roomId || agent.travel) return;
+  beginTravel(agent, toRoomId, options = {}) {
+    if (!toRoomId || toRoomId === agent.roomId || agent.travel) return false;
+    if (agent.blockedMoveRoomId === toRoomId && (agent.blockedMoveUntilTurn ?? -1) >= this.turn && !options.interactionTargetId) {
+      agent.mood = 'avoiding-blocked-route';
+      return false;
+    }
+
     const connection = findConnection(this.topology, agent.roomId, toRoomId);
     if (!connection) {
       this.event(`${agent.name} could not find a legal corridor to ${this.roomName(toRoomId)}.`);
-      return;
+      this.markBlockedMove(agent, toRoomId);
+      return false;
     }
 
+    const interactionTarget = options.interactionTargetId
+      ? this.agents.find(candidate => candidate.id === options.interactionTargetId && candidate.alive && !candidate.departed)
+      : null;
+    const validInteractionTarget = interactionTarget && projectedRoom(interactionTarget) === toRoomId;
     const entryPort = toRoomId === connection.aId ? connection.aPort : connection.bPort;
-    const destinationCell = this.occupancy.reserveDestination(agent, toRoomId, entryPort);
+    const destinationCell = this.occupancy.reserveDestination(agent, toRoomId, entryPort, {
+      allowInteractionOverflow: Boolean(validInteractionTarget),
+      interactionTargetId: validInteractionTarget ? interactionTarget.id : null,
+      interactionType: validInteractionTarget ? options.interactionType : null
+    });
+
     if (!destinationCell) {
+      this.markBlockedMove(agent, toRoomId);
       this.event(`${agent.name} waited at the door because ${this.roomName(toRoomId)} had no safe floor space.`);
-      agent.mood = 'waiting-at-door';
-      return;
+      agent.mood = validInteractionTarget ? 'interaction-door-blocked' : 'waiting-at-door';
+      return false;
     }
 
     const speed = agent.role === 'ogre' ? 2.45 : agent.faction === 'party' ? 4.25 : 3.35;
     const duration = clamp(connection.length / speed, 0.85, agent.role === 'ogre' ? 4.8 : 3.8);
+    const fromRoomId = agent.roomId;
     this.occupancy.release(agent.id);
     agent.roomCell = null;
+    agent.previousRoomId = fromRoomId;
+    agent.blockedMoveRoomId = null;
+    agent.blockedMoveUntilTurn = -1;
     agent.travel = {
       phase: 'corridor',
       connectionId: connection.id,
-      fromRoomId: agent.roomId,
+      fromRoomId,
       toRoomId,
       entryPort: { ...entryPort },
       destinationCell: { ...destinationCell, footprint: [...destinationCell.footprint] },
+      interactionTargetId: validInteractionTarget ? interactionTarget.id : null,
+      interactionType: validInteractionTarget ? options.interactionType : null,
       elapsed: 0,
       duration,
       progress: 0,
       entryProgress: 0
     };
-    agent.mood = 'moving';
+    agent.mood = validInteractionTarget ? `moving-to-${options.interactionType ?? 'interact'}` : 'moving';
     this.event(`${agent.name} entered the corridor toward ${this.roomName(toRoomId)}.`, { type: 'move-start', sourceId: agent.id });
+    return true;
+  }
+
+  markBlockedMove(agent, roomId) {
+    agent.blockedMoveRoomId = roomId;
+    agent.blockedMoveUntilTurn = this.turn + 2;
+    agent.blockedMoveCount = (agent.blockedMoveCount ?? 0) + 1;
   }
 
   advanceTravel(dt) {
@@ -111,9 +149,15 @@ export class DungeonSim extends BaseDungeonSim {
         const fromRoomId = travel.fromRoomId;
         const toRoomId = travel.toRoomId;
         this.occupancy.commitReservation(agent, travel.destinationCell);
+        const overflow = Boolean(travel.destinationCell.overflow);
         agent.travel = null;
-        agent.mood = 'curious';
-        this.event(`${agent.name} entered ${this.roomName(toRoomId)} from ${this.roomName(fromRoomId)} without landing on anyone.`, { type: 'move-end', sourceId: agent.id });
+        agent.mood = overflow ? `arrived-to-${travel.interactionType ?? 'interact'}` : 'curious';
+        this.event(
+          overflow
+            ? `${agent.name} squeezed into ${this.roomName(toRoomId)} to reach an interaction target.`
+            : `${agent.name} entered ${this.roomName(toRoomId)} from ${this.roomName(fromRoomId)} without landing on anyone.`,
+          { type: 'move-end', sourceId: agent.id, overflow }
+        );
         this.checkRoomEffect(agent);
         this.checkTraps(agent);
       }
@@ -203,9 +247,15 @@ export class DungeonSim extends BaseDungeonSim {
   metrics() {
     return {
       ...super.metrics(),
-      orphaned: this.agents.filter(agent => this.isActive(agent) && agent.faction === 'party' && agent.orphaned).length
+      orphaned: this.agents.filter(agent => this.isActive(agent) && agent.faction === 'party' && agent.orphaned).length,
+      interactionOverflowLandings: this.agents.filter(agent => agent.roomCell?.overflow).length,
+      blockedMovementRetries: this.agents.reduce((sum, agent) => sum + (agent.blockedMoveCount ?? 0), 0)
     };
   }
+}
+
+function projectedRoom(agent) {
+  return agent.travel?.toRoomId ?? agent.roomId;
 }
 
 function clamp(value, min, max) {
