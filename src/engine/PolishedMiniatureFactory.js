@@ -5,8 +5,19 @@ import { BODY_PROFILES, resolveBodyType, variationFor, hash01 } from './Miniatur
 import { buildHumanoidRig, decorateGoblin } from './HumanoidMiniatureRig.js';
 import { buildSkeletonRig } from './SkeletonMiniatureRig.js';
 import { buildSlime, buildMimic } from './CreatureMiniatureBuilders.js';
+import { buildSpider, buildWraith, buildMyconid, buildStirge } from './ExoticMiniatureBuilders.js';
+import { buildLongbow, buildArrow } from './MiniatureWeaponBuilders.js';
+import { installAdvancedMiniatureAnimation } from './AdvancedMiniatureAnimator.js';
+
+installAdvancedMiniatureAnimation();
 
 const HUMANOID_SKELETONS = new Set(['humanoid', 'goblin', 'ogre']);
+const EXOTIC_BUILDERS = {
+  arachnid: buildSpider,
+  spectral: buildWraith,
+  fungal: buildMyconid,
+  flying: buildStirge
+};
 
 export class PolishedMiniatureFactory extends MiniatureFactory {
   create(agent) {
@@ -15,6 +26,7 @@ export class PolishedMiniatureFactory extends MiniatureFactory {
     if (recipe.skeleton === 'mimic') return this.createCreature(agent, recipe, 'mimic');
     if (recipe.skeleton === 'skeleton') return this.createSkeleton(agent, recipe);
     if (HUMANOID_SKELETONS.has(recipe.skeleton)) return this.createHumanoid(agent, recipe);
+    if (EXOTIC_BUILDERS[recipe.skeleton]) return this.createExotic(agent, recipe);
     return super.create(agent);
   }
 
@@ -56,11 +68,21 @@ export class PolishedMiniatureFactory extends MiniatureFactory {
     return this.finishRoot(root, agent, recipe, { rig: null, bodyType: type === 'slime' ? 'amorphous' : 'hinged-creature', variation });
   }
 
+  createExotic(agent, recipe) {
+    const root = this.createRoot(agent, recipe);
+    const model = root.getObjectByName('miniature-model');
+    const variation = variationFor(agent);
+    const builder = EXOTIC_BUILDERS[recipe.skeleton];
+    model.userData.creatureParts = builder(this, model, recipe);
+    return this.finishRoot(root, agent, recipe, { rig: null, bodyType: recipe.skeleton, variation });
+  }
+
   createRoot(agent, recipe) {
     const root = new THREE.Group();
     root.name = `miniature:${recipe.id}`;
     root.userData.recipeId = recipe.id;
     root.userData.role = agent.role;
+    root.userData.weaponStyle = recipe.weaponStyle ?? 'natural';
     root.userData.animationSeed = hash01(agent.id ?? agent.name ?? agent.role);
     const model = new THREE.Group();
     model.name = 'miniature-model';
@@ -85,5 +107,13 @@ export class PolishedMiniatureFactory extends MiniatureFactory {
     if (omitTorso) parts.torso = null;
     if (omitAccent) parts.accent = null;
     this.attachRecipeParts(sockets, { ...recipe, parts });
+  }
+
+  bowLong(recipe) {
+    return buildLongbow(this, recipe);
+  }
+
+  arrowNocked(recipe) {
+    return buildArrow(this, recipe);
   }
 }
