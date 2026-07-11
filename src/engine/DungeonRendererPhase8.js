@@ -17,9 +17,14 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   renderState(snapshot) {
     const fieldCamps = snapshot.props.filter(prop => prop.type === 'adventurer_field_camp');
     const structures = snapshot.props.filter(prop => PHASE8D_STRUCTURE_TYPES.has(prop.type));
-    const filtered = { ...snapshot, props: snapshot.props.filter(prop => prop.type !== 'adventurer_field_camp' && !PHASE8D_STRUCTURE_TYPES.has(prop.type)) };
+    const visualAgents = this.prepareVisualAgents(snapshot.agents, snapshot.time);
+    const filtered = {
+      ...snapshot,
+      agents: visualAgents,
+      props: snapshot.props.filter(prop => prop.type !== 'adventurer_field_camp' && !PHASE8D_STRUCTURE_TYPES.has(prop.type))
+    };
     super.renderState(filtered);
-    this.animateMiniatures(snapshot.agents, snapshot.effects ?? [], snapshot.time);
+    this.animateMiniatures(visualAgents, snapshot.effects ?? [], snapshot.time);
     this.renderFieldCamps(fieldCamps, snapshot.rooms, snapshot.time);
     this.renderStructures(structures, snapshot.rooms, snapshot.time);
     const settlements = (snapshot.settlement?.settlements ?? []).filter(settlement => settlement.type !== 'field-camp');
@@ -27,9 +32,29 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.renderCargo(snapshot.logistics?.cargo ?? [], snapshot.agents, snapshot.rooms, snapshot.time);
   }
 
+  prepareVisualAgents(agents, time) {
+    return agents.map(agent => {
+      if (agent.alive || agent.deathAt === undefined || agent.deathAt === null) return agent;
+      const corpseLinger = agent.corpseLinger ?? 2.4;
+      const age = Math.max(0, time - agent.deathAt);
+      if (age >= corpseLinger) return agent;
+      return {
+        ...agent,
+        alive: true,
+        departed: false,
+        hidden: false,
+        travel: null,
+        downed: true,
+        corpse: true,
+        corpseLinger,
+        hp: 0
+      };
+    });
+  }
+
   animateMiniatures(agents, effects, time) {
     for (const agent of agents) {
-      if (!agent.alive || agent.hidden || agent.departed) continue;
+      if ((!agent.alive && !agent.corpse) || agent.hidden || agent.departed) continue;
       const mesh = this.agentMeshes.get(agent.id);
       if (mesh) this.miniatureAnimator.update(mesh, agent, time, effects);
     }
