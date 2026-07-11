@@ -19,6 +19,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.selection = null;
     this.observerFactionId = null;
     this.timelineFilter = 'all';
+    this.pinnedEventIds = new Set();
     this.viewModel = null;
     this.viewModelClock = 0;
     this.onKeyDown = event => this.handleShortcut(event);
@@ -44,7 +45,10 @@ export class ObserveScreen extends Phase6ObserveScreen {
       onSelect: payload => this.selectEntity(payload),
       onCameraMode: mode => this.setCameraMode(mode),
       onCameraAction: action => this.handleCameraAction(action),
-      onTimelineFilter: filter => { this.timelineFilter = filter; this.refreshViewModel(true); }
+      onTimelineFilter: filter => { this.timelineFilter = filter; this.refreshViewModel(true); },
+      onTimelineEvent: event => this.focusTimelineEvent(event),
+      onTogglePin: eventId => this.togglePinnedEvent(eventId),
+      onAlertOpen: () => this.shell?.announce('Showing major, critical and historic events.')
     });
     this.shell.mount({ screenEl: this.el, viewport: this.viewport, inspectEl: this.inspectEl });
     window.addEventListener('keydown', this.onKeyDown);
@@ -57,6 +61,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     if (type === 'faction') {
       this.observerFactionId = id;
       this.selection = null;
+      this.shell?.announce(`Observing faction ${id}.`);
     }
     if (roomId) this.focusRoom(roomId, true, 28);
     this.refreshViewModel(true);
@@ -80,17 +85,51 @@ export class ObserveScreen extends Phase6ObserveScreen {
       ...this.selectionContext(),
       observerFactionId: this.observerFactionId,
       timelineFilter: this.timelineFilter,
-      timelineLimit: 80
+      timelineLimit: 120
     });
     this.shell?.render(this.viewModel, {
       worldTitle: this.scenario.name,
       selectionType: this.viewModel.selection?.type ?? 'none',
-      cameraMode: this.cameraMode
+      selectionId: this.viewModel.selection?.id ?? null,
+      cameraMode: this.cameraMode,
+      pinnedEventIds: [...this.pinnedEventIds]
     });
     renderStrategyInspector(this.inspectEl, this.viewModel.selection, {
       onClear: () => this.clearSelection(),
       onSelectAgent: id => this.selectEntity({ type: 'agent', id })
     });
+  }
+
+  togglePinnedEvent(eventId) {
+    const id = String(eventId);
+    if (this.pinnedEventIds.has(id)) this.pinnedEventIds.delete(id);
+    else this.pinnedEventIds.add(id);
+    this.shell?.announce(this.pinnedEventIds.has(id) ? 'Event pinned.' : 'Event unpinned.');
+    this.refreshViewModel(true);
+  }
+
+  focusTimelineEvent({ roomId = null, actorId = null, targetId = null }) {
+    const roster = this.viewModel?.followRoster ?? [];
+    const actor = roster.find(agent => agent.id === actorId) ?? roster.find(agent => agent.id === targetId);
+    if (actor) {
+      this.selection = { type: 'agent', id: actor.id };
+      this.selectedAgentId = actor.id;
+      this.cameraMode = 'follow';
+      this.shell?.setCameraMode('follow');
+      this.refreshViewModel(true);
+      this.pushCameraToFollowTarget(true);
+      this.shell?.announce(`Following ${actor.name}.`);
+      return;
+    }
+    if (roomId) {
+      this.selection = { type: 'room', id: roomId };
+      this.selectedAgentId = null;
+      this.cameraMode = 'free';
+      this.shell?.setCameraMode('free');
+      this.focusRoom(roomId, true, 28);
+      this.refreshViewModel(true);
+      this.shell?.announce('Focused event location.');
+    }
   }
 
   clearSelection() {
@@ -133,8 +172,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const roster = this.viewModel?.followRoster ?? [];
     if (!roster.length) return;
     const currentIndex = Math.max(0, roster.findIndex(agent => agent.id === this.selectedAgentId));
-    const nextIndex = (currentIndex + direction + roster.length) % roster.length;
-    const target = roster[nextIndex];
+    const target = roster[(currentIndex + direction + roster.length) % roster.length];
     this.selection = { type: 'agent', id: target.id };
     this.selectedAgentId = target.id;
     this.cameraMode = 'follow';
@@ -165,12 +203,9 @@ export class ObserveScreen extends Phase6ObserveScreen {
       return;
     }
     const inspector = selection.inspector;
-    const roomId = selection.type === 'room'
-      ? selection.id
-      : selection.type === 'settlement'
-        ? inspector.roomId
-        : selection.type === 'party'
-          ? inspector.target?.roomId ?? inspector.base?.roomId
+    const roomId = selection.type === 'room' ? selection.id
+      : selection.type === 'settlement' ? inspector.roomId
+        : selection.type === 'party' ? inspector.target?.roomId ?? inspector.base?.roomId
           : null;
     if (roomId) {
       this.cameraMode = 'free';
@@ -200,24 +235,24 @@ export class ObserveScreen extends Phase6ObserveScreen {
       this.shell.paused = paused;
       this.runtime.dispatch({ type: paused ? 'clock.pause' : 'clock.resume' });
       const button = this.el?.querySelector('[data-shell-action="pause"]');
-      if (button) button.textContent = paused ? '▶' : 'Ⅱ';
+      if (button) { button.textContent = paused ? '▶' : 'Ⅱ'; button.setAttribute('aria-pressed', String(paused)); }
     } else if (['Digit1', 'Digit2', 'Digit4'].includes(event.code)) {
       const speed = Number(event.code.replace('Digit', ''));
       this.runtime.dispatch({ type: 'clock.set-speed', speed });
-      this.el?.querySelectorAll('[data-shell-speed]').forEach(button => button.classList.toggle('is-active', Number(button.dataset.shellSpeed) === speed));
-    } else if (event.key.toLowerCase() === 'f') {
-      this.setCameraMode('follow');
-    } else if (event.key.toLowerCase() === 'r') {
-      this.resetCamera(true);
-    } else if (event.key === '[') {
-      this.cycleFollowTarget(-1);
-    } else if (event.key === ']') {
-      this.cycleFollowTarget(1);
-    } else if (event.key === 'Escape') {
-      this.clearSelection();
-    } else if (event.key === 'Enter') {
-      this.focusSelection(true);
-    }
+      this.el?.querySelectorAll('[data-shell-speed]').forEach(button => {
+        const active = Number(button.dataset.shellSpeed) === speed;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+    } else if (event.key === '/') {
+      event.preventDefault();
+      this.shell?.focusNavigatorSearch();
+    } else if (event.key.toLowerCase() === 'f') this.setCameraMode('follow');
+    else if (event.key.toLowerCase() === 'r') this.resetCamera(true);
+    else if (event.key === '[') this.cycleFollowTarget(-1);
+    else if (event.key === ']') this.cycleFollowTarget(1);
+    else if (event.key === 'Escape') this.clearSelection();
+    else if (event.key === 'Enter') this.focusSelection(true);
   }
 
   renderInspectPanel() {
@@ -226,13 +261,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.refreshViewModel(true);
   }
 
-  pushEvent() {
-    this.viewModelClock = 0;
-  }
-
-  updateMetrics() {
-    this.refreshViewModel(false);
-  }
+  pushEvent() { this.viewModelClock = 0; }
+  updateMetrics() { this.refreshViewModel(false); }
 
   loop() {
     if (!this.three || !this.renderer || !this.sim) return;
@@ -252,6 +282,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     window.removeEventListener('keydown', this.onKeyDown);
     this.shell?.destroy();
     this.shell = null;
+    this.pinnedEventIds.clear();
     this.runtimeUnsubscribe?.();
     this.runtimeUnsubscribe = null;
     this.runtime?.destroy();

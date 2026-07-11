@@ -5,6 +5,18 @@
   background: rgba(255,255,255,.13);
 }
 
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .strategy-shortcut-hint {
   position: absolute;
   right: 12px;
@@ -29,6 +41,54 @@
 .strategy-camera-controls [data-shell-camera-action="previous"],
 .strategy-camera-controls [data-shell-camera-action="next"] { min-width: 30px; padding-inline: 8px; font-size: 16px; }
 
+.strategy-alert.has-critical {
+  border-color: rgba(238,116,108,.72);
+  background: rgba(142,43,49,.22);
+  color: #ffd0c8;
+  box-shadow: 0 0 0 1px rgba(238,116,108,.1), 0 0 22px rgba(186,58,64,.14);
+}
+
+.strategy-nav-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0 9px 7px;
+}
+.strategy-nav-search input {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 34px 8px 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  background: rgba(255,255,255,.045);
+  color: var(--text);
+  outline: none;
+}
+.strategy-nav-search input::placeholder { color: rgba(247,242,232,.38); }
+.strategy-nav-search input:focus {
+  border-color: rgba(232,196,106,.62);
+  box-shadow: 0 0 0 2px rgba(232,196,106,.12);
+}
+.strategy-nav-search kbd {
+  position: absolute;
+  right: 9px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 5px;
+  padding: 1px 5px;
+  color: var(--muted);
+  background: rgba(0,0,0,.25);
+  font: inherit;
+  font-size: 9px;
+}
+
+.strategy-nav-list { height: calc(100% - 141px); }
+.strategy-nav-row.is-selected {
+  border-color: rgba(232,196,106,.5);
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(232,196,106,.16), rgba(232,196,106,.04));
+  box-shadow: inset 2px 0 0 rgba(232,196,106,.9);
+}
+
 .strategy-nav-row,
 .strategy-event,
 .strategy-related-row {
@@ -38,7 +98,9 @@
 .strategy-event:focus-visible,
 .strategy-related-row:focus-visible,
 .strategy-camera-controls button:focus-visible,
-.strategy-mobile-nav button:focus-visible {
+.strategy-mobile-nav button:focus-visible,
+.strategy-event-pin:focus-visible,
+.strategy-alert:focus-visible {
   outline: 2px solid rgba(232,196,106,.9);
   outline-offset: 2px;
 }
@@ -47,13 +109,71 @@
 .strategy-event:active,
 .strategy-related-row:active { transform: translateY(1px); }
 
-.strategy-event[data-room-id] { cursor: pointer; }
-.strategy-event:not([data-room-id]) { cursor: default; }
+.strategy-timeline { grid-template-rows: 38px auto minmax(0, 1fr); }
+.strategy-pinned-events[hidden] { display: none; }
+.strategy-pinned-events {
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(232,196,106,.18);
+  background: linear-gradient(90deg, rgba(232,196,106,.07), transparent 70%);
+}
+.strategy-pinned-events > strong {
+  align-self: center;
+  flex: 0 0 auto;
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.strategy-pinned-events .strategy-event { min-width: 230px; }
+
+.strategy-event {
+  position: relative;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+}
+.strategy-event.is-focusable { cursor: pointer; }
+.strategy-event:not(.is-focusable) { cursor: default; }
 .strategy-event:hover { background: rgba(255,255,255,.075); }
+.strategy-event.severity-major { border-color: rgba(232,196,106,.35); }
+.strategy-event.severity-critical::before,
+.strategy-event.severity-historic::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  border-radius: 10px 0 0 10px;
+  background: currentColor;
+  opacity: .75;
+}
+.strategy-event.severity-critical { color: #ffd0c8; }
+.strategy-event.severity-historic { color: #ffe6a0; }
+.strategy-event p { color: rgba(247,242,232,.88); }
+.strategy-event-pin {
+  appearance: none;
+  align-self: start;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(247,242,232,.35);
+  cursor: pointer;
+}
+.strategy-event-pin:hover,
+.strategy-event-pin.is-pinned {
+  border-color: rgba(232,196,106,.52);
+  background: rgba(232,196,106,.13);
+  color: var(--gold);
+}
 
 .strategy-inspector-scroll,
 .strategy-nav-list,
-.strategy-timeline-list {
+.strategy-timeline-list,
+.strategy-pinned-events {
   scrollbar-width: thin;
   scrollbar-color: rgba(232,196,106,.38) rgba(255,255,255,.04);
 }
@@ -63,7 +183,7 @@
 @media (max-width: 780px) {
   .strategy-observer {
     grid-template-columns: 1fr;
-    grid-template-rows: 52px minmax(0, 1fr) 54px;
+    grid-template-rows: 52px minmax(0, 1fr) 58px;
     grid-template-areas: "top" "mobile" "mobile-nav";
   }
 
@@ -75,13 +195,11 @@
   .strategy-observer[data-mobile-surface="world"] [data-mobile-surface="world"],
   .strategy-observer[data-mobile-surface="navigator"] [data-mobile-surface="navigator"],
   .strategy-observer[data-mobile-surface="inspector"] [data-mobile-surface="inspector"],
-  .strategy-observer[data-mobile-surface="timeline"] [data-mobile-surface="timeline"] {
-    display: block;
-  }
+  .strategy-observer[data-mobile-surface="timeline"] [data-mobile-surface="timeline"] { display: block; }
 
   .strategy-observer[data-mobile-surface="timeline"] [data-mobile-surface="timeline"] {
     display: grid;
-    grid-template-rows: 42px minmax(0, 1fr);
+    grid-template-rows: 42px auto minmax(0, 1fr);
   }
 
   .strategy-mobile-nav {
@@ -96,7 +214,7 @@
   }
   .strategy-mobile-nav button {
     appearance: none;
-    min-height: 40px;
+    min-height: 44px;
     border: 1px solid transparent;
     border-radius: 11px;
     background: transparent;
@@ -112,13 +230,15 @@
 
   .strategy-navigator,
   .strategy-inspector { border: 0; }
-  .strategy-nav-list { height: calc(100% - 98px); }
+  .strategy-nav-list { height: calc(100% - 141px); }
   .strategy-inspector-scroll { height: calc(100% - 46px); }
   .strategy-timeline-list {
     display: grid;
     align-content: start;
     overflow: auto;
   }
+  .strategy-pinned-events { display: grid; overflow: visible; }
+  .strategy-pinned-events .strategy-event,
   .strategy-event { min-width: 0; max-width: none; width: 100%; }
   .strategy-camera-controls {
     left: 8px;
@@ -127,7 +247,8 @@
     overflow-x: auto;
     justify-content: flex-start;
   }
-  .strategy-camera-controls button { flex: 0 0 auto; min-height: 40px; }
+  .strategy-camera-controls button { flex: 0 0 auto; min-height: 44px; }
+  .strategy-event-pin { width: 36px; height: 36px; }
   .strategy-shortcut-hint { display: none; }
   .strategy-world-title { top: 9px; left: 9px; }
 }
