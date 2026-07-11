@@ -1,0 +1,3072 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "0.1.0",
+  "id": "campaign.sleeping-citadel",
+  "name": "잠든 성채 아래의 예순세 방",
+  "description": "광산, 납골 성당, 왕실 연구소가 겹겹이 쌓인 봉인된 성채. 7개 세력이 63개 방과 13개 구역을 두고 생태·물류·정착 경쟁을 벌입니다.",
+  "entranceRoomId": "room.sleeping-citadel.gate.lantern-plaza",
+  "layout": {
+    "gutter": 8,
+    "zoneGap": 24
+  },
+  "zones": [
+    {
+      "id": "zone.sleeping-citadel.gate",
+      "code": "A",
+      "name": "Surface Gate and Expedition Haven",
+      "nameKo": "지상 관문과 원정 안전지대",
+      "grid": {
+        "col": 0,
+        "row": 1
+      },
+      "kit": "kit.stone-common",
+      "tags": [
+        "safe-zone",
+        "entrance"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.residential",
+      "code": "B",
+      "name": "Abandoned Residential Quarter",
+      "nameKo": "버려진 주거구",
+      "grid": {
+        "col": 1,
+        "row": 1
+      },
+      "kit": "kit.residential",
+      "tags": [
+        "settlement-candidate"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.flooded",
+      "code": "C",
+      "name": "Flooded Storage District",
+      "nameKo": "침수된 저장 구역",
+      "grid": {
+        "col": 1,
+        "row": 0
+      },
+      "kit": "kit.flooded",
+      "tags": [
+        "water",
+        "floodgates"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.industrial",
+      "code": "D",
+      "name": "Goblin-Kobold Industrial Corridor",
+      "nameKo": "고블린·코볼트 산업 회랑",
+      "grid": {
+        "col": 2,
+        "row": 0
+      },
+      "kit": "kit.industrial",
+      "tags": [
+        "production",
+        "contested"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.ossuary",
+      "code": "E",
+      "name": "Ossuary Cathedral",
+      "nameKo": "납골 성당",
+      "grid": {
+        "col": 3,
+        "row": 2
+      },
+      "kit": "kit.ossuary",
+      "tags": [
+        "undead"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.fungal",
+      "code": "F",
+      "name": "Fungal Gardens",
+      "nameKo": "균류 정원",
+      "grid": {
+        "col": 3,
+        "row": 0
+      },
+      "kit": "kit.fungal",
+      "tags": [
+        "fungal"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.spider",
+      "code": "G",
+      "name": "Spider Vertical Colony",
+      "nameKo": "거미 수직 군락",
+      "grid": {
+        "col": 3,
+        "row": 1
+      },
+      "kit": "kit.spider",
+      "tags": [
+        "spider",
+        "vertical"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.inn",
+      "code": "H",
+      "name": "Old Inn Ruins",
+      "nameKo": "오래된 여관 폐허",
+      "grid": {
+        "col": 2,
+        "row": 2
+      },
+      "kit": "kit.residential",
+      "tags": [
+        "inn",
+        "settlement-candidate"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.market",
+      "code": "I",
+      "name": "Central Crossmarket",
+      "nameKo": "중앙 교차시장",
+      "grid": {
+        "col": 2,
+        "row": 1
+      },
+      "kit": "kit.stone-common",
+      "tags": [
+        "hub",
+        "contested"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.orc",
+      "code": "J",
+      "name": "Orc Barracks and Arena",
+      "nameKo": "오크 병영과 투기장",
+      "grid": {
+        "col": 4,
+        "row": 1
+      },
+      "kit": "kit.stone-common",
+      "tags": [
+        "orc",
+        "military"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.laboratory",
+      "code": "K",
+      "name": "Sealed Laboratory",
+      "nameKo": "봉인 연구소",
+      "grid": {
+        "col": 4,
+        "row": 0
+      },
+      "kit": "kit.laboratory",
+      "tags": [
+        "laboratory",
+        "hazard"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.royal",
+      "code": "L",
+      "name": "Deep Royal Quarter",
+      "nameKo": "심층 왕실 구역",
+      "grid": {
+        "col": 5,
+        "row": 1
+      },
+      "kit": "kit.royal",
+      "tags": [
+        "royal"
+      ]
+    },
+    {
+      "id": "zone.sleeping-citadel.sanctum",
+      "code": "M",
+      "name": "Final Sanctum",
+      "nameKo": "최종 성소",
+      "grid": {
+        "col": 6,
+        "row": 1
+      },
+      "kit": "kit.sanctum",
+      "tags": [
+        "sanctum",
+        "endgame"
+      ]
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room.sleeping-citadel.gate.lantern-plaza",
+      "code": "A01",
+      "zoneId": "zone.sleeping-citadel.gate",
+      "name": "Lantern Plaza",
+      "nameKo": "등불 광장",
+      "size": {
+        "w": 20,
+        "d": 16
+      },
+      "kind": "start",
+      "tags": [
+        "entrance",
+        "safe_zone",
+        "plaza"
+      ],
+      "functions": [
+        "spawn",
+        "party-assembly",
+        "respawn",
+        "resupply"
+      ],
+      "propBundles": [
+        "waystation.plaza.core"
+      ],
+      "stateVariants": [
+        "normal",
+        "refugee-crowded",
+        "abandoned"
+      ],
+      "danger": 0,
+      "spawnWeight": 0,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 12
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.gate.expedition-registry",
+      "code": "A02",
+      "zoneId": "zone.sleeping-citadel.gate",
+      "name": "Expedition Registry",
+      "nameKo": "원정대 등록소",
+      "size": {
+        "w": 13,
+        "d": 10
+      },
+      "kind": "hall",
+      "tags": [
+        "safe_zone",
+        "office"
+      ],
+      "functions": [
+        "party-assembly",
+        "recruitment",
+        "campaign-goals"
+      ],
+      "propBundles": [
+        "waystation.registry.office"
+      ],
+      "stateVariants": [
+        "normal",
+        "memorial",
+        "recruiting-post"
+      ],
+      "danger": 0,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.gate.sealed-gate",
+      "code": "A03",
+      "zoneId": "zone.sleeping-citadel.gate",
+      "name": "The Sealed Gate",
+      "nameKo": "봉인된 대문",
+      "size": {
+        "w": 18,
+        "d": 11
+      },
+      "kind": "gate",
+      "tags": [
+        "safe_zone",
+        "gate",
+        "chokepoint"
+      ],
+      "functions": [
+        "campaign-entry",
+        "capacity-bottleneck",
+        "siege-front"
+      ],
+      "propBundles": [
+        "gate.citadel.outer"
+      ],
+      "stateVariants": [
+        "maintained",
+        "pressured",
+        "supply-gate"
+      ],
+      "danger": 0,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.gate.baggage-vault",
+      "code": "A04",
+      "zoneId": "zone.sleeping-citadel.gate",
+      "name": "Baggage Vault",
+      "nameKo": "짐 보관소",
+      "size": {
+        "w": 14,
+        "d": 11
+      },
+      "kind": "pantry",
+      "tags": [
+        "safe_zone",
+        "storage"
+      ],
+      "functions": [
+        "starting-supplies",
+        "merchant-backstore",
+        "loot-settlement"
+      ],
+      "propBundles": [
+        "waystation.baggage.store"
+      ],
+      "stateVariants": [
+        "ordered",
+        "overcrowded",
+        "rat-damaged"
+      ],
+      "danger": 0,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.gate.descent-of-forty-lamps",
+      "code": "A05",
+      "zoneId": "zone.sleeping-citadel.gate",
+      "name": "Descent of Forty Lamps",
+      "nameKo": "마흔 등불의 하강계단",
+      "size": {
+        "w": 12,
+        "d": 18
+      },
+      "kind": "hall",
+      "tags": [
+        "entrance_threshold",
+        "stairs",
+        "chokepoint"
+      ],
+      "functions": [
+        "boundary",
+        "formation-line"
+      ],
+      "propBundles": [
+        "stairs.citadel.descent"
+      ],
+      "stateVariants": [
+        "lit",
+        "blackout",
+        "outpost-line"
+      ],
+      "danger": 1,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.residential.broken-dormitory",
+      "code": "B06",
+      "zoneId": "zone.sleeping-citadel.residential",
+      "name": "Broken Dormitory",
+      "nameKo": "무너진 공동 침실",
+      "size": {
+        "w": 17,
+        "d": 13
+      },
+      "kind": "hall",
+      "tags": [
+        "camp-candidate",
+        "salvage",
+        "rat-habitat"
+      ],
+      "functions": [
+        "camp",
+        "capacity-expansion",
+        "materials"
+      ],
+      "propBundles": [
+        "residential.dormitory.ruined"
+      ],
+      "stateVariants": [
+        "ruined",
+        "camp",
+        "outpost-quarters",
+        "burned"
+      ],
+      "danger": 1,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "medium",
+        "capacity": 6
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.residential.communal-kitchen",
+      "code": "B07",
+      "zoneId": "zone.sleeping-citadel.residential",
+      "name": "Communal Kitchen",
+      "nameKo": "공동 부엌",
+      "size": {
+        "w": 14,
+        "d": 12
+      },
+      "kind": "pantry",
+      "tags": [
+        "kitchen",
+        "food"
+      ],
+      "functions": [
+        "cooking",
+        "camp-endurance",
+        "interim-inn-kitchen"
+      ],
+      "propBundles": [
+        "residential.kitchen.common"
+      ],
+      "stateVariants": [
+        "rotten",
+        "adventurer-canteen",
+        "goblin-cookhouse",
+        "slime-fouled"
+      ],
+      "danger": 1,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.residential.laundry-cistern",
+      "code": "B08",
+      "zoneId": "zone.sleeping-citadel.residential",
+      "name": "Laundry Cistern",
+      "nameKo": "세탁실과 온수조",
+      "size": {
+        "w": 16,
+        "d": 13
+      },
+      "kind": "hall",
+      "tags": [
+        "water",
+        "camp-candidate",
+        "secret_route"
+      ],
+      "functions": [
+        "water-supply",
+        "recovery",
+        "floodgate-link"
+      ],
+      "propBundles": [
+        "residential.laundry.cistern"
+      ],
+      "stateVariants": [
+        "clear",
+        "polluted",
+        "bathhouse",
+        "kobold-drainworks"
+      ],
+      "danger": 1,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "small",
+        "capacity": 4
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.residential.tenement-court",
+      "code": "B09",
+      "zoneId": "zone.sleeping-citadel.residential",
+      "name": "Tenement Court",
+      "nameKo": "공동주택 안뜰",
+      "size": {
+        "w": 20,
+        "d": 17
+      },
+      "kind": "hall",
+      "tags": [
+        "plaza",
+        "contested"
+      ],
+      "functions": [
+        "settlement",
+        "market-expansion",
+        "training-ground"
+      ],
+      "propBundles": [
+        "residential.court.tenement"
+      ],
+      "stateVariants": [
+        "ruined",
+        "adventurer-quarter",
+        "goblin-market-annex",
+        "siege-rubble"
+      ],
+      "danger": 1,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 10
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.residential.household-chapel",
+      "code": "B10",
+      "zoneId": "zone.sleeping-citadel.residential",
+      "name": "Household Chapel",
+      "nameKo": "가정 예배실",
+      "size": {
+        "w": 11,
+        "d": 10
+      },
+      "kind": "shrine",
+      "tags": [
+        "sanctuary",
+        "holy"
+      ],
+      "functions": [
+        "stress-recovery",
+        "minor-sanctuary",
+        "revival-aftercare"
+      ],
+      "propBundles": [
+        "chapel.household.small"
+      ],
+      "stateVariants": [
+        "derelict",
+        "restored",
+        "desecrated",
+        "symbiotic-shrine"
+      ],
+      "danger": 1,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.flooded.shallow-reservoir",
+      "code": "C11",
+      "zoneId": "zone.sleeping-citadel.flooded",
+      "name": "Shallow Reservoir",
+      "nameKo": "얕은 저수조",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "lair",
+      "tags": [
+        "water",
+        "slime-habitat",
+        "hazard"
+      ],
+      "functions": [
+        "water-production",
+        "movement-penalty",
+        "hazard-events"
+      ],
+      "propBundles": [
+        "flooded.reservoir.shallow"
+      ],
+      "stateVariants": [
+        "clean",
+        "slime-fouled",
+        "drained",
+        "overflowing"
+      ],
+      "danger": 2,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.flooded.old-granary",
+      "code": "C12",
+      "zoneId": "zone.sleeping-citadel.flooded",
+      "name": "Old Granary",
+      "nameKo": "오래된 곡물창고",
+      "size": {
+        "w": 17,
+        "d": 13
+      },
+      "kind": "pantry",
+      "tags": [
+        "food",
+        "rat-habitat",
+        "logistics-target"
+      ],
+      "functions": [
+        "bulk-food",
+        "raid-target"
+      ],
+      "propBundles": [
+        "storage.granary.old"
+      ],
+      "stateVariants": [
+        "rat-infested",
+        "adventurer-store",
+        "goblin-tithe",
+        "burned"
+      ],
+      "danger": 2,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.flooded.flooded-wine-cellar",
+      "code": "C13",
+      "zoneId": "zone.sleeping-citadel.flooded",
+      "name": "Flooded Wine Cellar",
+      "nameKo": "침수된 와인 저장실",
+      "size": {
+        "w": 15,
+        "d": 11
+      },
+      "kind": "pantry",
+      "tags": [
+        "flooded",
+        "salvage"
+      ],
+      "functions": [
+        "inn-supply",
+        "stress-recovery",
+        "flammable-hazard"
+      ],
+      "propBundles": [
+        "storage.wine.flooded"
+      ],
+      "stateVariants": [
+        "flooded",
+        "drained",
+        "inn-cellar",
+        "fungal-brewery"
+      ],
+      "danger": 1,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.flooded.drainage-engine",
+      "code": "C14",
+      "zoneId": "zone.sleeping-citadel.flooded",
+      "name": "Drainage Engine",
+      "nameKo": "배수 기계실",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "hall",
+      "tags": [
+        "machinery",
+        "floodgate-control",
+        "secret_route"
+      ],
+      "functions": [
+        "water-control",
+        "route-opening",
+        "scrap"
+      ],
+      "propBundles": [
+        "industrial.drainage.engine"
+      ],
+      "stateVariants": [
+        "stalled",
+        "kobold-repair",
+        "overloaded",
+        "flooded-wreck"
+      ],
+      "danger": 2,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "small",
+        "capacity": 4
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.flooded.sluice-passage",
+      "code": "C15",
+      "zoneId": "zone.sleeping-citadel.flooded",
+      "name": "Sluice Passage",
+      "nameKo": "수문 통로",
+      "size": {
+        "w": 11,
+        "d": 19
+      },
+      "kind": "trap",
+      "tags": [
+        "corridor",
+        "chokepoint"
+      ],
+      "functions": [
+        "ambush",
+        "water-control",
+        "supply-blockade"
+      ],
+      "propBundles": [
+        "flooded.sluice.passage"
+      ],
+      "stateVariants": [
+        "open",
+        "closed",
+        "flooded",
+        "fortified-gate"
+      ],
+      "danger": 2,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.industrial.abandoned-workshop",
+      "code": "D16",
+      "zoneId": "zone.sleeping-citadel.industrial",
+      "name": "Abandoned Workshop",
+      "nameKo": "버려진 작업장",
+      "size": {
+        "w": 17,
+        "d": 13
+      },
+      "kind": "armory",
+      "tags": [
+        "workshop",
+        "contested"
+      ],
+      "functions": [
+        "repair",
+        "construction-bonus",
+        "material-processing"
+      ],
+      "propBundles": [
+        "industrial.workshop.abandoned"
+      ],
+      "stateVariants": [
+        "ruined",
+        "kobold-shop",
+        "adventurer-forge",
+        "demolished"
+      ],
+      "danger": 2,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "small",
+        "capacity": 4
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.industrial.iron-scrap-room",
+      "code": "D17",
+      "zoneId": "zone.sleeping-citadel.industrial",
+      "name": "Iron Scrap Room",
+      "nameKo": "철제 부품실",
+      "size": {
+        "w": 15,
+        "d": 12
+      },
+      "kind": "armory",
+      "tags": [
+        "scrap",
+        "logistics-target"
+      ],
+      "functions": [
+        "scrap-supply",
+        "cargo-origin"
+      ],
+      "propBundles": [
+        "industrial.scrap.store"
+      ],
+      "stateVariants": [
+        "rich",
+        "depleted",
+        "supply-store",
+        "orc-trophy-room"
+      ],
+      "danger": 2,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.industrial.copper-tail-trapworks",
+      "code": "D18",
+      "zoneId": "zone.sleeping-citadel.industrial",
+      "name": "Copper-Tail Trapworks",
+      "nameKo": "코볼트 함정 공방",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "trap",
+      "tags": [
+        "kobold-home",
+        "workshop",
+        "territory"
+      ],
+      "functions": [
+        "trap-production",
+        "secret-route-control",
+        "supply-safety"
+      ],
+      "propBundles": [
+        "kobold.trapworks.tier2"
+      ],
+      "stateVariants": [
+        "kobold-run",
+        "allied-shop",
+        "orc-occupied",
+        "blast-ruin"
+      ],
+      "danger": 2,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.industrial.brass-button-market",
+      "code": "D19",
+      "zoneId": "zone.sleeping-citadel.industrial",
+      "name": "Brass Button Market",
+      "nameKo": "황동 단추 시장",
+      "size": {
+        "w": 21,
+        "d": 17
+      },
+      "kind": "hall",
+      "tags": [
+        "goblin-home",
+        "market",
+        "territory"
+      ],
+      "functions": [
+        "trade",
+        "stolen-goods",
+        "rumor"
+      ],
+      "propBundles": [
+        "goblin.market.brass-button"
+      ],
+      "stateVariants": [
+        "thriving",
+        "war-market",
+        "adventurer-trade-post",
+        "sacked"
+      ],
+      "danger": 2,
+      "spawnWeight": 2,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 10
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.industrial.powder-magazine",
+      "code": "D20",
+      "zoneId": "zone.sleeping-citadel.industrial",
+      "name": "Powder Magazine",
+      "nameKo": "화약 창고",
+      "size": {
+        "w": 14,
+        "d": 11
+      },
+      "kind": "armory",
+      "tags": [
+        "explosives",
+        "hazard"
+      ],
+      "functions": [
+        "siege-supply",
+        "route-collapse-events"
+      ],
+      "propBundles": [
+        "industrial.powder.magazine"
+      ],
+      "stateVariants": [
+        "sealed",
+        "looted",
+        "siege-depot",
+        "detonated"
+      ],
+      "danger": 3,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.ossuary.bone-cloister",
+      "code": "E21",
+      "zoneId": "zone.sleeping-citadel.ossuary",
+      "name": "Bone Cloister",
+      "nameKo": "뼈 회랑",
+      "size": {
+        "w": 13,
+        "d": 18
+      },
+      "kind": "crypt",
+      "tags": [
+        "undead",
+        "corridor",
+        "chokepoint"
+      ],
+      "functions": [
+        "bone-supply",
+        "patrol-route",
+        "defense"
+      ],
+      "propBundles": [
+        "ossuary.cloister.bone"
+      ],
+      "stateVariants": [
+        "undead-walk",
+        "cleansed",
+        "barricaded",
+        "bone-depleted"
+      ],
+      "danger": 3,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.ossuary.funeral-chapel",
+      "code": "E22",
+      "zoneId": "zone.sleeping-citadel.ossuary",
+      "name": "Funeral Chapel",
+      "nameKo": "장례 예배당",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "shrine",
+      "tags": [
+        "undead-home",
+        "ritual",
+        "territory"
+      ],
+      "functions": [
+        "death-energy-store",
+        "purification-research"
+      ],
+      "propBundles": [
+        "ossuary.funeral.chapel"
+      ],
+      "stateVariants": [
+        "undead-sanctum",
+        "cleansed",
+        "fungal-grave-garden",
+        "shattered-altar"
+      ],
+      "danger": 3,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.ossuary.ossuary-shelves",
+      "code": "E23",
+      "zoneId": "zone.sleeping-citadel.ossuary",
+      "name": "Ossuary Shelves",
+      "nameKo": "납골 선반실",
+      "size": {
+        "w": 17,
+        "d": 14
+      },
+      "kind": "crypt",
+      "tags": [
+        "undead",
+        "bone-store"
+      ],
+      "functions": [
+        "skeleton-capacity",
+        "bone-supply"
+      ],
+      "propBundles": [
+        "ossuary.shelves.working"
+      ],
+      "stateVariants": [
+        "working",
+        "looted",
+        "memorial",
+        "collapsed"
+      ],
+      "danger": 3,
+      "spawnWeight": 2,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 8
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.ossuary.nameless-tomb",
+      "code": "E24",
+      "zoneId": "zone.sleeping-citadel.ossuary",
+      "name": "Nameless Tomb",
+      "nameKo": "이름 없는 무덤",
+      "size": {
+        "w": 14,
+        "d": 12
+      },
+      "kind": "crypt",
+      "tags": [
+        "boss",
+        "sealed"
+      ],
+      "functions": [
+        "rare-spawn",
+        "elite-loot",
+        "campaign-clue"
+      ],
+      "propBundles": [
+        "ossuary.tomb.nameless"
+      ],
+      "stateVariants": [
+        "sealed",
+        "opened",
+        "cleansed",
+        "boss-remains"
+      ],
+      "danger": 4,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.ossuary.well-of-last-breath",
+      "code": "E25",
+      "zoneId": "zone.sleeping-citadel.ossuary",
+      "name": "Well of Last Breath",
+      "nameKo": "마지막 숨의 우물",
+      "size": {
+        "w": 17,
+        "d": 13
+      },
+      "kind": "crypt",
+      "tags": [
+        "death-energy",
+        "well"
+      ],
+      "functions": [
+        "death-energy-production",
+        "wraith-spawn",
+        "cheap-revival"
+      ],
+      "propBundles": [
+        "ossuary.death-well"
+      ],
+      "stateVariants": [
+        "active",
+        "sealed",
+        "overloaded",
+        "purified"
+      ],
+      "danger": 4,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.fungal.blue-spore-field",
+      "code": "F26",
+      "zoneId": "zone.sleeping-citadel.fungal",
+      "name": "Blue Spore Field",
+      "nameKo": "푸른 포자 밭",
+      "size": {
+        "w": 20,
+        "d": 16
+      },
+      "kind": "pantry",
+      "tags": [
+        "fungal",
+        "food",
+        "spore-hazard"
+      ],
+      "functions": [
+        "biomass-production",
+        "sleep-spores",
+        "fungal-expansion"
+      ],
+      "propBundles": [
+        "fungal.field.blue-spore"
+      ],
+      "stateVariants": [
+        "flourishing",
+        "burned",
+        "cultivated",
+        "slime-eroded"
+      ],
+      "danger": 2,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.fungal.rotten-glasshouse",
+      "code": "F27",
+      "zoneId": "zone.sleeping-citadel.fungal",
+      "name": "Rotten Glasshouse",
+      "nameKo": "썩은 온실",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "pantry",
+      "tags": [
+        "fungal",
+        "herbs",
+        "secret_route"
+      ],
+      "functions": [
+        "food-production",
+        "medicine",
+        "humidity-control"
+      ],
+      "propBundles": [
+        "fungal.glasshouse.rotten"
+      ],
+      "stateVariants": [
+        "fungal-hothouse",
+        "restored-herbary",
+        "flooded",
+        "burned-out"
+      ],
+      "danger": 2,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.fungal.mushroom-pillars",
+      "code": "F28",
+      "zoneId": "zone.sleeping-citadel.fungal",
+      "name": "Mushroom Pillars",
+      "nameKo": "버섯 기둥숲",
+      "size": {
+        "w": 22,
+        "d": 17
+      },
+      "kind": "hall",
+      "tags": [
+        "fungal",
+        "cover",
+        "ambush"
+      ],
+      "functions": [
+        "fungal-stronghold",
+        "sightline-block",
+        "large-unit-limit"
+      ],
+      "propBundles": [
+        "fungal.pillars.colossal"
+      ],
+      "stateVariants": [
+        "flourishing",
+        "logged",
+        "burned",
+        "slime-tainted"
+      ],
+      "danger": 3,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.fungal.sleeping-gardeners-chamber",
+      "code": "F29",
+      "zoneId": "zone.sleeping-citadel.fungal",
+      "name": "Sleeping Gardener's Chamber",
+      "nameKo": "잠든 정원사의 방",
+      "size": {
+        "w": 14,
+        "d": 11
+      },
+      "kind": "hall",
+      "tags": [
+        "story",
+        "npc"
+      ],
+      "functions": [
+        "rare-herbs",
+        "diplomacy"
+      ],
+      "propBundles": [
+        "fungal.gardener.chamber"
+      ],
+      "stateVariants": [
+        "dormant",
+        "diplomatic-post",
+        "looted",
+        "infested"
+      ],
+      "danger": 2,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.fungal.mycelial-heart",
+      "code": "F30",
+      "zoneId": "zone.sleeping-citadel.fungal",
+      "name": "Mycelial Heart",
+      "nameKo": "균사 핵",
+      "size": {
+        "w": 18,
+        "d": 15
+      },
+      "kind": "lair",
+      "tags": [
+        "myconid-home",
+        "territory"
+      ],
+      "functions": [
+        "fungal-capacity",
+        "humidity-control",
+        "spore-control"
+      ],
+      "propBundles": [
+        "fungal.heart.core"
+      ],
+      "stateVariants": [
+        "stable",
+        "overgrown",
+        "sealed-pact",
+        "destroyed"
+      ],
+      "danger": 3,
+      "spawnWeight": 2,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 8
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.spider.silk-ramp",
+      "code": "G31",
+      "zoneId": "zone.sleeping-citadel.spider",
+      "name": "Silk Ramp",
+      "nameKo": "실크 경사로",
+      "size": {
+        "w": 12,
+        "d": 19
+      },
+      "kind": "trap",
+      "tags": [
+        "spider",
+        "webbing",
+        "chokepoint"
+      ],
+      "functions": [
+        "spider-transit",
+        "slow-field",
+        "ambush"
+      ],
+      "propBundles": [
+        "spider.silk-ramp"
+      ],
+      "stateVariants": [
+        "web-held",
+        "burned",
+        "rope-passage",
+        "collapsed"
+      ],
+      "danger": 3,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.spider.host-vault",
+      "code": "G32",
+      "zoneId": "zone.sleeping-citadel.spider",
+      "name": "Host Vault",
+      "nameKo": "숙주 저장실",
+      "size": {
+        "w": 17,
+        "d": 13
+      },
+      "kind": "pantry",
+      "tags": [
+        "spider",
+        "hosts"
+      ],
+      "functions": [
+        "host-storage",
+        "brood-resource",
+        "rescue-target"
+      ],
+      "propBundles": [
+        "spider.host-vault"
+      ],
+      "stateVariants": [
+        "full",
+        "rescued",
+        "burned",
+        "parasite-tainted"
+      ],
+      "danger": 4,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.spider.spawning-gallery",
+      "code": "G33",
+      "zoneId": "zone.sleeping-citadel.spider",
+      "name": "Spawning Gallery",
+      "nameKo": "산란실",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "hatchery",
+      "tags": [
+        "spider-home",
+        "territory"
+      ],
+      "functions": [
+        "spider-capacity",
+        "spawn-queue",
+        "host-consumption"
+      ],
+      "propBundles": [
+        "spider.spawning.gallery"
+      ],
+      "stateVariants": [
+        "spawning",
+        "dormant",
+        "torched",
+        "parasite-mixed"
+      ],
+      "danger": 4,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.spider.vertical-well",
+      "code": "G34",
+      "zoneId": "zone.sleeping-citadel.spider",
+      "name": "Vertical Well",
+      "nameKo": "수직 우물",
+      "size": {
+        "w": 16,
+        "d": 16
+      },
+      "kind": "trap",
+      "tags": [
+        "vertical",
+        "shortcut",
+        "secret_route"
+      ],
+      "functions": [
+        "secret-shortcut",
+        "fall-hazard",
+        "ambush"
+      ],
+      "propBundles": [
+        "spider.vertical-well"
+      ],
+      "stateVariants": [
+        "spider-way",
+        "rope-elevator",
+        "collapsed",
+        "sealed"
+      ],
+      "danger": 3,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.spider.empty-queens-nest",
+      "code": "G35",
+      "zoneId": "zone.sleeping-citadel.spider",
+      "name": "Empty Queen's Nest",
+      "nameKo": "비어 있는 여왕 둥지",
+      "size": {
+        "w": 21,
+        "d": 17
+      },
+      "kind": "lair",
+      "tags": [
+        "boss",
+        "spider"
+      ],
+      "functions": [
+        "queen-spawn",
+        "host-ritual"
+      ],
+      "propBundles": [
+        "spider.queen-nest.dormant"
+      ],
+      "stateVariants": [
+        "empty",
+        "queen-active",
+        "adventurer-outpost",
+        "torched"
+      ],
+      "danger": 5,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "medium",
+        "capacity": 6
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.inn.last-lantern-common-room",
+      "code": "H36",
+      "zoneId": "zone.sleeping-citadel.inn",
+      "name": "The Last Lantern Common Room",
+      "nameKo": "마지막 등불 접객실",
+      "size": {
+        "w": 22,
+        "d": 18
+      },
+      "kind": "hall",
+      "tags": [
+        "inn",
+        "settlement-core"
+      ],
+      "functions": [
+        "trade",
+        "party-refit",
+        "stress-recovery",
+        "rumor"
+      ],
+      "propBundles": [
+        "inn.common-room.ruined"
+      ],
+      "stateVariants": [
+        "ruined",
+        "camp",
+        "outpost",
+        "inn",
+        "fortified",
+        "sacked"
+      ],
+      "danger": 2,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 12
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.inn.blackened-kitchen",
+      "code": "H37",
+      "zoneId": "zone.sleeping-citadel.inn",
+      "name": "Blackened Kitchen",
+      "nameKo": "그을린 주방",
+      "size": {
+        "w": 17,
+        "d": 13
+      },
+      "kind": "pantry",
+      "tags": [
+        "inn",
+        "kitchen",
+        "food",
+        "rat-habitat"
+      ],
+      "functions": [
+        "cooking",
+        "camp-endurance",
+        "cook-professions"
+      ],
+      "propBundles": [
+        "inn.kitchen.ruined"
+      ],
+      "stateVariants": [
+        "ruined",
+        "field-stove",
+        "communal-kitchen",
+        "professional-kitchen",
+        "reinforced-pantry"
+      ],
+      "danger": 2,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.inn.guestroom-corridor",
+      "code": "H38",
+      "zoneId": "zone.sleeping-citadel.inn",
+      "name": "Guestroom Corridor",
+      "nameKo": "객실 복도",
+      "size": {
+        "w": 13,
+        "d": 20
+      },
+      "kind": "hall",
+      "tags": [
+        "inn",
+        "lodging"
+      ],
+      "functions": [
+        "rest-capacity",
+        "residents",
+        "intrusion-events"
+      ],
+      "propBundles": [
+        "inn.guestrooms.corridor"
+      ],
+      "stateVariants": [
+        "derelict",
+        "bunks",
+        "guestrooms",
+        "guarded-wards"
+      ],
+      "danger": 2,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.inn.ale-cellar",
+      "code": "H39",
+      "zoneId": "zone.sleeping-citadel.inn",
+      "name": "Ale Cellar",
+      "nameKo": "지하 술창고",
+      "size": {
+        "w": 15,
+        "d": 12
+      },
+      "kind": "pantry",
+      "tags": [
+        "inn",
+        "storage",
+        "secret_route"
+      ],
+      "functions": [
+        "stress-recovery",
+        "trade-goods",
+        "food-store"
+      ],
+      "propBundles": [
+        "inn.ale-cellar"
+      ],
+      "stateVariants": [
+        "flooded-ruin",
+        "cleared-cellar",
+        "brewery",
+        "smuggling-hub"
+      ],
+      "danger": 2,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.inn.innkeepers-secret",
+      "code": "H40",
+      "zoneId": "zone.sleeping-citadel.inn",
+      "name": "Innkeeper's Secret",
+      "nameKo": "여관 주인의 밀실",
+      "size": {
+        "w": 11,
+        "d": 10
+      },
+      "kind": "treasure",
+      "tags": [
+        "inn",
+        "secret",
+        "secret_route",
+        "story"
+      ],
+      "functions": [
+        "inn-upgrades",
+        "secret-route-discovery",
+        "intel-trade"
+      ],
+      "propBundles": [
+        "inn.secret-office"
+      ],
+      "stateVariants": [
+        "sealed",
+        "discovered",
+        "inn-office",
+        "looted-safe"
+      ],
+      "danger": 2,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.market.grand-crossroads",
+      "code": "I41",
+      "zoneId": "zone.sleeping-citadel.market",
+      "name": "Grand Crossroads",
+      "nameKo": "대형 교차홀",
+      "size": {
+        "w": 24,
+        "d": 19
+      },
+      "kind": "hall",
+      "tags": [
+        "hub",
+        "plaza",
+        "contested",
+        "territory"
+      ],
+      "functions": [
+        "traffic-hub",
+        "territory-war",
+        "supply-routes",
+        "neutral-market"
+      ],
+      "propBundles": [
+        "market.crossroads.grand"
+      ],
+      "stateVariants": [
+        "neutral-ruin",
+        "goblin-market",
+        "orc-gate",
+        "adventurer-town",
+        "warzone"
+      ],
+      "danger": 2,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 12
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.market.dead-customs-house",
+      "code": "I42",
+      "zoneId": "zone.sleeping-citadel.market",
+      "name": "Dead Customs House",
+      "nameKo": "폐세관",
+      "size": {
+        "w": 17,
+        "d": 12
+      },
+      "kind": "gate",
+      "tags": [
+        "checkpoint",
+        "logistics"
+      ],
+      "functions": [
+        "toll",
+        "blockade",
+        "storage",
+        "faction-checkpoint"
+      ],
+      "propBundles": [
+        "market.customs.dead"
+      ],
+      "stateVariants": [
+        "ruined",
+        "trade-customs",
+        "orc-tollhouse",
+        "siege-gate"
+      ],
+      "danger": 2,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.market.ruined-auction-hall",
+      "code": "I43",
+      "zoneId": "zone.sleeping-citadel.market",
+      "name": "Ruined Auction Hall",
+      "nameKo": "경매장 폐허",
+      "size": {
+        "w": 20,
+        "d": 16
+      },
+      "kind": "hall",
+      "tags": [
+        "market",
+        "events"
+      ],
+      "functions": [
+        "rare-trade",
+        "event-market",
+        "diplomacy"
+      ],
+      "propBundles": [
+        "market.auction.ruined"
+      ],
+      "stateVariants": [
+        "ruined",
+        "neutral-auction",
+        "host-black-market",
+        "sacked"
+      ],
+      "danger": 2,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.market.neutral-well",
+      "code": "I44",
+      "zoneId": "zone.sleeping-citadel.market",
+      "name": "Neutral Well",
+      "nameKo": "중립 우물",
+      "size": {
+        "w": 17,
+        "d": 14
+      },
+      "kind": "hall",
+      "tags": [
+        "water",
+        "neutral-ground"
+      ],
+      "functions": [
+        "water-supply",
+        "truce-ground"
+      ],
+      "propBundles": [
+        "market.well.neutral"
+      ],
+      "stateVariants": [
+        "neutral",
+        "monopolized",
+        "polluted",
+        "purified"
+      ],
+      "danger": 2,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "small",
+        "capacity": 4
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.market.smugglers-way",
+      "code": "I45",
+      "zoneId": "zone.sleeping-citadel.market",
+      "name": "Smuggler's Way",
+      "nameKo": "밀수 비밀통로",
+      "size": {
+        "w": 10,
+        "d": 18
+      },
+      "kind": "trap",
+      "tags": [
+        "secret",
+        "corridor",
+        "secret_route"
+      ],
+      "functions": [
+        "smuggling-route",
+        "raid-bypass",
+        "small-unit-route"
+      ],
+      "propBundles": [
+        "market.smuggler.way"
+      ],
+      "stateVariants": [
+        "undiscovered",
+        "smuggling-run",
+        "kobold-transit",
+        "collapsed"
+      ],
+      "danger": 3,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.orc.drill-yard",
+      "code": "J46",
+      "zoneId": "zone.sleeping-citadel.orc",
+      "name": "Drill Yard",
+      "nameKo": "훈련장",
+      "size": {
+        "w": 21,
+        "d": 17
+      },
+      "kind": "hall",
+      "tags": [
+        "orc",
+        "training-ground"
+      ],
+      "functions": [
+        "war-training",
+        "raid-assembly",
+        "convertible-training-ground"
+      ],
+      "propBundles": [
+        "orc.drill-yard"
+      ],
+      "stateVariants": [
+        "orc-drills",
+        "warzone",
+        "adventurer-training",
+        "blood-arena"
+      ],
+      "danger": 4,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.orc.war-armory",
+      "code": "J47",
+      "zoneId": "zone.sleeping-citadel.orc",
+      "name": "War Armory",
+      "nameKo": "전쟁 무기고",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "armory",
+      "tags": [
+        "orc",
+        "weapons"
+      ],
+      "functions": [
+        "orc-equipment",
+        "rare-heavy-gear",
+        "siege-workshop-bonus"
+      ],
+      "propBundles": [
+        "orc.armory.war"
+      ],
+      "stateVariants": [
+        "orc-armory",
+        "looted",
+        "adventurer-forge",
+        "exploded"
+      ],
+      "danger": 4,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.orc.meat-store",
+      "code": "J48",
+      "zoneId": "zone.sleeping-citadel.orc",
+      "name": "Meat Store",
+      "nameKo": "고기 저장고",
+      "size": {
+        "w": 15,
+        "d": 12
+      },
+      "kind": "pantry",
+      "tags": [
+        "orc",
+        "food",
+        "disease-risk"
+      ],
+      "functions": [
+        "meat-supply",
+        "expedition-rations"
+      ],
+      "propBundles": [
+        "orc.meat-store"
+      ],
+      "stateVariants": [
+        "stocked",
+        "starving",
+        "adventurer-larder",
+        "plague-tainted"
+      ],
+      "danger": 3,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.orc.arena-of-red-sand",
+      "code": "J49",
+      "zoneId": "zone.sleeping-citadel.orc",
+      "name": "Arena of Red Sand",
+      "nameKo": "붉은 모래 투기장",
+      "size": {
+        "w": 24,
+        "d": 19
+      },
+      "kind": "hall",
+      "tags": [
+        "orc",
+        "arena",
+        "boss"
+      ],
+      "functions": [
+        "orc-morale",
+        "boss-fights",
+        "prisoner-events",
+        "diplomacy"
+      ],
+      "propBundles": [
+        "orc.arena.red-sand"
+      ],
+      "stateVariants": [
+        "orc-arena",
+        "liberated",
+        "boss-breakout",
+        "neutral-games"
+      ],
+      "danger": 4,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.orc.chieftain-hall",
+      "code": "J50",
+      "zoneId": "zone.sleeping-citadel.orc",
+      "name": "Chieftain Hall",
+      "nameKo": "족장 막사",
+      "size": {
+        "w": 19,
+        "d": 15
+      },
+      "kind": "hall",
+      "tags": [
+        "orc-home",
+        "territory",
+        "leadership"
+      ],
+      "functions": [
+        "orc-capacity",
+        "leader-ai",
+        "tribe-splits"
+      ],
+      "propBundles": [
+        "orc.chieftain-hall"
+      ],
+      "stateVariants": [
+        "strong-tribe",
+        "leaderless",
+        "adventurer-keep",
+        "undead-throne"
+      ],
+      "danger": 4,
+      "spawnWeight": 2,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 10
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.laboratory.alchemical-laboratory",
+      "code": "K51",
+      "zoneId": "zone.sleeping-citadel.laboratory",
+      "name": "Alchemical Laboratory",
+      "nameKo": "연금 실험실",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "hall",
+      "tags": [
+        "laboratory",
+        "alchemy",
+        "hazard"
+      ],
+      "functions": [
+        "equipment-enhancement",
+        "potions",
+        "cure-research"
+      ],
+      "propBundles": [
+        "laboratory.alchemical.main"
+      ],
+      "stateVariants": [
+        "sealed",
+        "adventurer-lab",
+        "slime-colony",
+        "blast-ruin"
+      ],
+      "danger": 4,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.laboratory.parasite-vats",
+      "code": "K52",
+      "zoneId": "zone.sleeping-citadel.laboratory",
+      "name": "Parasite Vats",
+      "nameKo": "기생충 수조",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "hatchery",
+      "tags": [
+        "laboratory",
+        "parasite-habitat",
+        "infection"
+      ],
+      "functions": [
+        "parasite-capacity",
+        "infection",
+        "rare-materials"
+      ],
+      "propBundles": [
+        "laboratory.parasite-vats"
+      ],
+      "stateVariants": [
+        "sealed",
+        "outbreak",
+        "purged",
+        "contained-research"
+      ],
+      "danger": 5,
+      "spawnWeight": 2
+    },
+    {
+      "id": "room.sleeping-citadel.laboratory.sealed-observatory",
+      "code": "K53",
+      "zoneId": "zone.sleeping-citadel.laboratory",
+      "name": "Sealed Observatory",
+      "nameKo": "봉인 관측실",
+      "size": {
+        "w": 15,
+        "d": 12
+      },
+      "kind": "hall",
+      "tags": [
+        "laboratory",
+        "intel"
+      ],
+      "functions": [
+        "campaign-intel",
+        "overlay-unlock",
+        "boss-observation"
+      ],
+      "propBundles": [
+        "laboratory.observatory.sealed"
+      ],
+      "stateVariants": [
+        "sealed",
+        "operating",
+        "wraith-held",
+        "shattered-mirrors"
+      ],
+      "danger": 3,
+      "spawnWeight": 0,
+      "settlementCandidate": {
+        "scale": "small",
+        "capacity": 4
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.laboratory.failed-summoning-room",
+      "code": "K54",
+      "zoneId": "zone.sleeping-citadel.laboratory",
+      "name": "Failed Summoning Room",
+      "nameKo": "실패한 소환실",
+      "size": {
+        "w": 20,
+        "d": 16
+      },
+      "kind": "shrine",
+      "tags": [
+        "boss",
+        "rift",
+        "hazard"
+      ],
+      "functions": [
+        "rare-events",
+        "wraith-spawn",
+        "route-collapse"
+      ],
+      "propBundles": [
+        "laboratory.summoning.failed"
+      ],
+      "stateVariants": [
+        "dormant-rift",
+        "active-summoning",
+        "purified",
+        "total-collapse"
+      ],
+      "danger": 5,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.laboratory.emergency-way",
+      "code": "K55",
+      "zoneId": "zone.sleeping-citadel.laboratory",
+      "name": "Emergency Way",
+      "nameKo": "비상 탈출로",
+      "size": {
+        "w": 10,
+        "d": 19
+      },
+      "kind": "trap",
+      "tags": [
+        "corridor",
+        "secret_route",
+        "escape-route"
+      ],
+      "functions": [
+        "lab-bypass",
+        "pursuit-route",
+        "alternate-supply"
+      ],
+      "propBundles": [
+        "laboratory.emergency-way"
+      ],
+      "stateVariants": [
+        "sealed",
+        "opened",
+        "collapsed",
+        "trapped"
+      ],
+      "danger": 3,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.royal.royal-antechamber",
+      "code": "L56",
+      "zoneId": "zone.sleeping-citadel.royal",
+      "name": "Royal Antechamber",
+      "nameKo": "왕실 대기실",
+      "size": {
+        "w": 20,
+        "d": 15
+      },
+      "kind": "gate",
+      "tags": [
+        "royal",
+        "gateway",
+        "contested",
+        "secret_route"
+      ],
+      "functions": [
+        "royal-gate",
+        "set-piece-battle",
+        "spider-ingress"
+      ],
+      "propBundles": [
+        "royal.antechamber"
+      ],
+      "stateVariants": [
+        "derelict",
+        "orc-gate",
+        "adventurer-outpost",
+        "spider-ambush"
+      ],
+      "danger": 4,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.royal.crown-vault",
+      "code": "L57",
+      "zoneId": "zone.sleeping-citadel.royal",
+      "name": "Crown Vault",
+      "nameKo": "왕관 금고",
+      "size": {
+        "w": 17,
+        "d": 13
+      },
+      "kind": "treasure",
+      "tags": [
+        "royal",
+        "vault",
+        "mimic"
+      ],
+      "functions": [
+        "elite-loot",
+        "wealth",
+        "campaign-goal"
+      ],
+      "propBundles": [
+        "royal.crown-vault"
+      ],
+      "stateVariants": [
+        "sealed",
+        "plundered",
+        "mimic-colony",
+        "adventurer-vault"
+      ],
+      "danger": 4,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.royal.shattered-banquet-hall",
+      "code": "L58",
+      "zoneId": "zone.sleeping-citadel.royal",
+      "name": "Shattered Banquet Hall",
+      "nameKo": "파괴된 연회장",
+      "size": {
+        "w": 24,
+        "d": 18
+      },
+      "kind": "hall",
+      "tags": [
+        "royal",
+        "plaza",
+        "contested"
+      ],
+      "functions": [
+        "settlement-expansion",
+        "orc-feasts",
+        "mass-battle"
+      ],
+      "propBundles": [
+        "royal.banquet.shattered"
+      ],
+      "stateVariants": [
+        "ruined",
+        "orc-feast",
+        "grand-hall",
+        "undead-court"
+      ],
+      "danger": 4,
+      "spawnWeight": 1,
+      "settlementCandidate": {
+        "scale": "large",
+        "capacity": 12
+      }
+    },
+    {
+      "id": "room.sleeping-citadel.royal.black-throne",
+      "code": "L59",
+      "zoneId": "zone.sleeping-citadel.royal",
+      "name": "The Black Throne",
+      "nameKo": "검은 왕좌",
+      "size": {
+        "w": 21,
+        "d": 17
+      },
+      "kind": "shrine",
+      "tags": [
+        "royal",
+        "boss",
+        "death-energy"
+      ],
+      "functions": [
+        "leadership-boon",
+        "mid-boss",
+        "death-energy-amplifier"
+      ],
+      "propBundles": [
+        "royal.black-throne"
+      ],
+      "stateVariants": [
+        "empty-throne",
+        "orc-chieftain",
+        "undead-king",
+        "adventurer-rule",
+        "destroyed"
+      ],
+      "danger": 5,
+      "spawnWeight": 1
+    },
+    {
+      "id": "room.sleeping-citadel.royal.royal-bedchamber",
+      "code": "L60",
+      "zoneId": "zone.sleeping-citadel.royal",
+      "name": "Royal Bedchamber",
+      "nameKo": "왕의 침실",
+      "size": {
+        "w": 18,
+        "d": 14
+      },
+      "kind": "shrine",
+      "tags": [
+        "royal",
+        "story"
+      ],
+      "functions": [
+        "campaign-story",
+        "blessing-or-curse",
+        "dream-events"
+      ],
+      "propBundles": [
+        "royal.bedchamber"
+      ],
+      "stateVariants": [
+        "sealed",
+        "dream-chamber",
+        "purified",
+        "parasite-nest"
+      ],
+      "danger": 4,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.sanctum.seal-gate",
+      "code": "M61",
+      "zoneId": "zone.sleeping-citadel.sanctum",
+      "name": "Seal Gate",
+      "nameKo": "최종 봉인문",
+      "size": {
+        "w": 18,
+        "d": 12
+      },
+      "kind": "gate",
+      "tags": [
+        "sanctum",
+        "progression-gate"
+      ],
+      "functions": [
+        "progression-gate",
+        "zone-objectives-check",
+        "final-siege"
+      ],
+      "propBundles": [
+        "sanctum.seal-gate"
+      ],
+      "stateVariants": [
+        "sealed",
+        "partially-open",
+        "breached",
+        "unsealed"
+      ],
+      "danger": 5,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.sanctum.circular-sanctum",
+      "code": "M62",
+      "zoneId": "zone.sleeping-citadel.sanctum",
+      "name": "Circular Sanctum",
+      "nameKo": "원형 성소",
+      "size": {
+        "w": 24,
+        "d": 24
+      },
+      "kind": "shrine",
+      "tags": [
+        "sanctum",
+        "ritual",
+        "multi-faction"
+      ],
+      "functions": [
+        "final-diplomacy",
+        "faction-choice",
+        "ending-branch"
+      ],
+      "propBundles": [
+        "sanctum.circular"
+      ],
+      "stateVariants": [
+        "dormant",
+        "negotiation",
+        "all-out-war",
+        "purification-rite"
+      ],
+      "danger": 5,
+      "spawnWeight": 0
+    },
+    {
+      "id": "room.sleeping-citadel.sanctum.heart-chamber",
+      "code": "M63",
+      "zoneId": "zone.sleeping-citadel.sanctum",
+      "name": "Heart Chamber",
+      "nameKo": "심장실",
+      "size": {
+        "w": 26,
+        "d": 21
+      },
+      "kind": "lair",
+      "tags": [
+        "sanctum",
+        "final-boss"
+      ],
+      "functions": [
+        "final-boss",
+        "campaign-ending"
+      ],
+      "propBundles": [
+        "sanctum.heart-chamber"
+      ],
+      "stateVariants": [
+        "sealed",
+        "destroyed",
+        "purified",
+        "assimilated"
+      ],
+      "danger": 5,
+      "spawnWeight": 0
+    }
+  ],
+  "connections": [
+    {
+      "from": "room.sleeping-citadel.gate.lantern-plaza",
+      "to": "room.sleeping-citadel.gate.expedition-registry",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.gate.lantern-plaza",
+      "to": "room.sleeping-citadel.gate.sealed-gate",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.gate.expedition-registry",
+      "to": "room.sleeping-citadel.gate.baggage-vault",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.gate.sealed-gate",
+      "to": "room.sleeping-citadel.gate.descent-of-forty-lamps",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.gate.baggage-vault",
+      "to": "room.sleeping-citadel.gate.descent-of-forty-lamps",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.gate.descent-of-forty-lamps",
+      "to": "room.sleeping-citadel.residential.broken-dormitory",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.broken-dormitory",
+      "to": "room.sleeping-citadel.residential.communal-kitchen",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.broken-dormitory",
+      "to": "room.sleeping-citadel.residential.tenement-court",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.communal-kitchen",
+      "to": "room.sleeping-citadel.residential.laundry-cistern",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.communal-kitchen",
+      "to": "room.sleeping-citadel.flooded.old-granary",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.communal-kitchen",
+      "to": "room.sleeping-citadel.inn.blackened-kitchen",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.laundry-cistern",
+      "to": "room.sleeping-citadel.residential.household-chapel",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.laundry-cistern",
+      "to": "room.sleeping-citadel.flooded.shallow-reservoir",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.tenement-court",
+      "to": "room.sleeping-citadel.residential.household-chapel",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.tenement-court",
+      "to": "room.sleeping-citadel.market.grand-crossroads",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.household-chapel",
+      "to": "room.sleeping-citadel.ossuary.funeral-chapel",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.shallow-reservoir",
+      "to": "room.sleeping-citadel.flooded.flooded-wine-cellar",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.shallow-reservoir",
+      "to": "room.sleeping-citadel.flooded.drainage-engine",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.old-granary",
+      "to": "room.sleeping-citadel.flooded.flooded-wine-cellar",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.old-granary",
+      "to": "room.sleeping-citadel.industrial.iron-scrap-room",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.old-granary",
+      "to": "room.sleeping-citadel.orc.meat-store",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.flooded-wine-cellar",
+      "to": "room.sleeping-citadel.flooded.sluice-passage",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.flooded-wine-cellar",
+      "to": "room.sleeping-citadel.inn.ale-cellar",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.drainage-engine",
+      "to": "room.sleeping-citadel.flooded.sluice-passage",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.drainage-engine",
+      "to": "room.sleeping-citadel.industrial.copper-tail-trapworks",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.sluice-passage",
+      "to": "room.sleeping-citadel.market.dead-customs-house",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.abandoned-workshop",
+      "to": "room.sleeping-citadel.industrial.iron-scrap-room",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.abandoned-workshop",
+      "to": "room.sleeping-citadel.industrial.copper-tail-trapworks",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.abandoned-workshop",
+      "to": "room.sleeping-citadel.market.dead-customs-house",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.iron-scrap-room",
+      "to": "room.sleeping-citadel.industrial.brass-button-market",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.copper-tail-trapworks",
+      "to": "room.sleeping-citadel.industrial.brass-button-market",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.copper-tail-trapworks",
+      "to": "room.sleeping-citadel.market.smugglers-way",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.brass-button-market",
+      "to": "room.sleeping-citadel.industrial.powder-magazine",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.brass-button-market",
+      "to": "room.sleeping-citadel.market.grand-crossroads",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.powder-magazine",
+      "to": "room.sleeping-citadel.ossuary.bone-cloister",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.industrial.powder-magazine",
+      "to": "room.sleeping-citadel.laboratory.failed-summoning-room",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.ossuary.bone-cloister",
+      "to": "room.sleeping-citadel.ossuary.funeral-chapel",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.ossuary.bone-cloister",
+      "to": "room.sleeping-citadel.ossuary.ossuary-shelves",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.ossuary.funeral-chapel",
+      "to": "room.sleeping-citadel.ossuary.nameless-tomb",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.ossuary.ossuary-shelves",
+      "to": "room.sleeping-citadel.ossuary.nameless-tomb",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.ossuary.ossuary-shelves",
+      "to": "room.sleeping-citadel.ossuary.well-of-last-breath",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.ossuary.nameless-tomb",
+      "to": "room.sleeping-citadel.royal.royal-antechamber",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.ossuary.well-of-last-breath",
+      "to": "room.sleeping-citadel.fungal.blue-spore-field",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.ossuary.well-of-last-breath",
+      "to": "room.sleeping-citadel.laboratory.sealed-observatory",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.fungal.blue-spore-field",
+      "to": "room.sleeping-citadel.fungal.rotten-glasshouse",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.fungal.blue-spore-field",
+      "to": "room.sleeping-citadel.fungal.mushroom-pillars",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.fungal.rotten-glasshouse",
+      "to": "room.sleeping-citadel.fungal.sleeping-gardeners-chamber",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.fungal.mushroom-pillars",
+      "to": "room.sleeping-citadel.fungal.sleeping-gardeners-chamber",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.fungal.mushroom-pillars",
+      "to": "room.sleeping-citadel.fungal.mycelial-heart",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.fungal.mushroom-pillars",
+      "to": "room.sleeping-citadel.market.neutral-well",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.fungal.sleeping-gardeners-chamber",
+      "to": "room.sleeping-citadel.fungal.mycelial-heart",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.fungal.mycelial-heart",
+      "to": "room.sleeping-citadel.spider.silk-ramp",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.spider.silk-ramp",
+      "to": "room.sleeping-citadel.spider.host-vault",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.spider.silk-ramp",
+      "to": "room.sleeping-citadel.spider.vertical-well",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.spider.host-vault",
+      "to": "room.sleeping-citadel.spider.spawning-gallery",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.spider.host-vault",
+      "to": "room.sleeping-citadel.inn.guestroom-corridor",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.spider.spawning-gallery",
+      "to": "room.sleeping-citadel.spider.vertical-well",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.spider.spawning-gallery",
+      "to": "room.sleeping-citadel.spider.empty-queens-nest",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.spider.empty-queens-nest",
+      "to": "room.sleeping-citadel.inn.last-lantern-common-room",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.spider.empty-queens-nest",
+      "to": "room.sleeping-citadel.laboratory.parasite-vats",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.inn.last-lantern-common-room",
+      "to": "room.sleeping-citadel.inn.blackened-kitchen",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.inn.last-lantern-common-room",
+      "to": "room.sleeping-citadel.inn.guestroom-corridor",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.inn.last-lantern-common-room",
+      "to": "room.sleeping-citadel.market.grand-crossroads",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.inn.blackened-kitchen",
+      "to": "room.sleeping-citadel.inn.ale-cellar",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.inn.guestroom-corridor",
+      "to": "room.sleeping-citadel.inn.innkeepers-secret",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.inn.ale-cellar",
+      "to": "room.sleeping-citadel.inn.innkeepers-secret",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.market.grand-crossroads",
+      "to": "room.sleeping-citadel.market.dead-customs-house",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.market.grand-crossroads",
+      "to": "room.sleeping-citadel.market.ruined-auction-hall",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.market.grand-crossroads",
+      "to": "room.sleeping-citadel.market.neutral-well",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.market.grand-crossroads",
+      "to": "room.sleeping-citadel.orc.drill-yard",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.market.dead-customs-house",
+      "to": "room.sleeping-citadel.market.ruined-auction-hall",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.market.ruined-auction-hall",
+      "to": "room.sleeping-citadel.market.neutral-well",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.market.ruined-auction-hall",
+      "to": "room.sleeping-citadel.laboratory.alchemical-laboratory",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.market.neutral-well",
+      "to": "room.sleeping-citadel.market.smugglers-way",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.drill-yard",
+      "to": "room.sleeping-citadel.orc.war-armory",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.drill-yard",
+      "to": "room.sleeping-citadel.orc.arena-of-red-sand",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.war-armory",
+      "to": "room.sleeping-citadel.orc.meat-store",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.war-armory",
+      "to": "room.sleeping-citadel.orc.chieftain-hall",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.meat-store",
+      "to": "room.sleeping-citadel.orc.arena-of-red-sand",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.arena-of-red-sand",
+      "to": "room.sleeping-citadel.orc.chieftain-hall",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.arena-of-red-sand",
+      "to": "room.sleeping-citadel.laboratory.parasite-vats",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.chieftain-hall",
+      "to": "room.sleeping-citadel.laboratory.alchemical-laboratory",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.orc.chieftain-hall",
+      "to": "room.sleeping-citadel.royal.shattered-banquet-hall",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.alchemical-laboratory",
+      "to": "room.sleeping-citadel.laboratory.parasite-vats",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.alchemical-laboratory",
+      "to": "room.sleeping-citadel.laboratory.failed-summoning-room",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.parasite-vats",
+      "to": "room.sleeping-citadel.laboratory.sealed-observatory",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.sealed-observatory",
+      "to": "room.sleeping-citadel.laboratory.failed-summoning-room",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.sealed-observatory",
+      "to": "room.sleeping-citadel.royal.royal-antechamber",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.failed-summoning-room",
+      "to": "room.sleeping-citadel.laboratory.emergency-way",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.emergency-way",
+      "to": "room.sleeping-citadel.royal.crown-vault",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.emergency-way",
+      "to": "room.sleeping-citadel.sanctum.seal-gate",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.royal.royal-antechamber",
+      "to": "room.sleeping-citadel.royal.crown-vault",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.royal.royal-antechamber",
+      "to": "room.sleeping-citadel.royal.shattered-banquet-hall",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.royal.crown-vault",
+      "to": "room.sleeping-citadel.royal.black-throne",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.royal.shattered-banquet-hall",
+      "to": "room.sleeping-citadel.royal.black-throne",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.royal.shattered-banquet-hall",
+      "to": "room.sleeping-citadel.royal.royal-bedchamber",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.royal.black-throne",
+      "to": "room.sleeping-citadel.royal.royal-bedchamber",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.royal.black-throne",
+      "to": "room.sleeping-citadel.sanctum.seal-gate",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.royal.royal-bedchamber",
+      "to": "room.sleeping-citadel.sanctum.circular-sanctum",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.sanctum.seal-gate",
+      "to": "room.sleeping-citadel.sanctum.circular-sanctum",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.sanctum.circular-sanctum",
+      "to": "room.sleeping-citadel.sanctum.heart-chamber",
+      "kind": "normal"
+    },
+    {
+      "from": "room.sleeping-citadel.residential.laundry-cistern",
+      "to": "room.sleeping-citadel.inn.ale-cellar",
+      "kind": "secret",
+      "discovery": "hidden",
+      "note": "세탁실 바닥 배수구 아래로 이어지는 밀수 통로."
+    },
+    {
+      "from": "room.sleeping-citadel.flooded.drainage-engine",
+      "to": "room.sleeping-citadel.fungal.rotten-glasshouse",
+      "kind": "secret",
+      "discovery": "hidden",
+      "note": "배수 기계실과 썩은 온실을 잇는 비밀 수문 경로."
+    },
+    {
+      "from": "room.sleeping-citadel.spider.vertical-well",
+      "to": "room.sleeping-citadel.royal.royal-antechamber",
+      "kind": "secret",
+      "discovery": "hidden",
+      "note": "수직 우물 바닥이 왕실 대기실 천장으로 연결."
+    },
+    {
+      "from": "room.sleeping-citadel.inn.ale-cellar",
+      "to": "room.sleeping-citadel.market.smugglers-way",
+      "kind": "secret",
+      "discovery": "hidden",
+      "note": "술창고와 중앙시장을 잇는 밀수꾼 통로."
+    },
+    {
+      "from": "room.sleeping-citadel.inn.innkeepers-secret",
+      "to": "room.sleeping-citadel.market.smugglers-way",
+      "kind": "secret",
+      "discovery": "hidden",
+      "note": "여관 주인의 밀실에서 밀수 비밀통로로 이어지는 출구."
+    },
+    {
+      "from": "room.sleeping-citadel.laboratory.emergency-way",
+      "to": "room.sleeping-citadel.market.smugglers-way",
+      "kind": "secret",
+      "discovery": "hidden",
+      "note": "연구소 비상 탈출로와 밀수 통로의 은닉 분기."
+    }
+  ],
+  "factions": [
+    {
+      "id": "faction.sleeping-citadel.lantern-compact",
+      "name": "Lantern Compact",
+      "nameKo": "등불 서약단",
+      "kind": "party",
+      "legacyEcologyFaction": "adventurer-expedition",
+      "homeRoomId": "room.sleeping-citadel.gate.lantern-plaza",
+      "startingAgents": [
+        {
+          "id": "fighter",
+          "role": "fighter",
+          "name": "Rana"
+        },
+        {
+          "id": "rogue",
+          "role": "rogue",
+          "name": "Milo"
+        },
+        {
+          "id": "cleric",
+          "role": "cleric",
+          "name": "Sister Pell"
+        },
+        {
+          "id": "wizard",
+          "role": "wizard",
+          "name": "Orwin"
+        }
+      ]
+    },
+    {
+      "id": "faction.sleeping-citadel.brass-button-market",
+      "name": "Brass Button Market",
+      "nameKo": "황동 단추 시장",
+      "kind": "ecology",
+      "species": "goblin",
+      "legacyEcologyFaction": "goblin-clan",
+      "homeRoomId": "room.sleeping-citadel.industrial.brass-button-market",
+      "lair": {
+        "propType": "goblin_lair",
+        "assetBundle": "habitat.goblin-hearth",
+        "capacity": 5,
+        "stocks": {
+          "foodStock": 3
+        }
+      },
+      "startingAgents": [
+        {
+          "role": "goblin",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "id": "faction.sleeping-citadel.copper-tail-clutch",
+      "name": "Copper-Tail Clutch",
+      "nameKo": "구리꼬리 무리",
+      "kind": "ecology",
+      "species": "kobold",
+      "legacyEcologyFaction": "copper-tail-clutch",
+      "homeRoomId": "room.sleeping-citadel.industrial.copper-tail-trapworks",
+      "lair": {
+        "propType": "kobold_workshop",
+        "assetBundle": "habitat.kobold-trapworks",
+        "capacity": 5,
+        "stocks": {
+          "scrapStock": 3
+        }
+      },
+      "startingAgents": [
+        {
+          "role": "kobold",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "id": "faction.sleeping-citadel.red-tusk-host",
+      "name": "Red-Tusk Host",
+      "nameKo": "붉은엄니 군단",
+      "kind": "ecology",
+      "species": "orc",
+      "legacyEcologyFaction": "red-tusk-tribe",
+      "homeRoomId": "room.sleeping-citadel.orc.chieftain-hall",
+      "lair": {
+        "propType": "orc_tribe_camp",
+        "assetBundle": "habitat.orc-war-camp",
+        "capacity": 4,
+        "stocks": {
+          "meatStock": 3,
+          "trophyStock": 1
+        }
+      },
+      "startingAgents": [
+        {
+          "role": "orc",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "id": "faction.sleeping-citadel.choir-of-unfinished-names",
+      "name": "Choir of Unfinished Names",
+      "nameKo": "끝나지 않은 이름들의 성가대",
+      "kind": "ecology",
+      "species": "zombie",
+      "legacyEcologyFaction": "undead-host",
+      "homeRoomId": "room.sleeping-citadel.ossuary.funeral-chapel",
+      "lair": {
+        "propType": "plague_mortuary",
+        "assetBundle": "habitat.plague-mortuary",
+        "capacity": 5,
+        "stocks": {
+          "corpseStock": 1
+        }
+      },
+      "startingAgents": [
+        {
+          "role": "zombie",
+          "count": 2
+        },
+        {
+          "role": "skeleton",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "id": "faction.sleeping-citadel.bluecap-communion",
+      "name": "Bluecap Communion",
+      "nameKo": "푸른갓 군락",
+      "kind": "ecology",
+      "species": "myconid",
+      "legacyEcologyFaction": "bluecap-colony",
+      "homeRoomId": "room.sleeping-citadel.fungal.mycelial-heart",
+      "lair": {
+        "propType": "fungal_garden",
+        "assetBundle": "habitat.fungal-colony",
+        "capacity": 5,
+        "stocks": {
+          "sporeStock": 2
+        }
+      },
+      "startingAgents": [
+        {
+          "role": "myconid",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "id": "faction.sleeping-citadel.red-silk-brood",
+      "name": "Red-Silk Brood",
+      "nameKo": "붉은실 군체",
+      "kind": "ecology",
+      "species": "spider",
+      "legacyEcologyFaction": "red-wing-brood",
+      "homeRoomId": "room.sleeping-citadel.spider.spawning-gallery",
+      "lair": {
+        "propType": "spider_lair",
+        "assetBundle": "habitat.spider-brood",
+        "capacity": 5,
+        "stocks": {
+          "bloodStock": 1
+        }
+      },
+      "startingAgents": [
+        {
+          "role": "spider",
+          "count": 3
+        }
+      ]
+    }
+  ],
+  "wildlife": [
+    {
+      "species": "rat",
+      "lairRoomId": "room.sleeping-citadel.flooded.old-granary",
+      "propType": "rat_warren",
+      "count": 3,
+      "stocks": {
+        "grainStock": 5
+      }
+    },
+    {
+      "species": "rat",
+      "lairRoomId": "room.sleeping-citadel.residential.broken-dormitory",
+      "propType": "rat_warren",
+      "count": 2,
+      "stocks": {
+        "grainStock": 2
+      }
+    },
+    {
+      "species": "slime",
+      "lairRoomId": "room.sleeping-citadel.flooded.shallow-reservoir",
+      "propType": "slime_pool",
+      "count": 2,
+      "stocks": {
+        "biomass": 2
+      }
+    }
+  ]
+}

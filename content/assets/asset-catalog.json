@@ -1,0 +1,978 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "0.1.0",
+  "entries": [
+    {
+      "id": "kit.stone-common",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P0"
+    },
+    {
+      "id": "kit.residential",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kit.flooded",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kit.industrial",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kit.ossuary",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kit.fungal",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kit.spider",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kit.royal",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kit.laboratory",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kit.sanctum",
+      "kind": "kit",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "facility.expedition-gate",
+      "kind": "diorama",
+      "status": "UPGRADE",
+      "priority": "P0",
+      "proceduralFallback": {
+        "factory": "FacilityAssetFactory",
+        "recipe": "expedition-gate"
+      },
+      "footprint": {
+        "shape": "rect",
+        "width": 4,
+        "depth": 1.6
+      }
+    },
+    {
+      "id": "facility.water-fountain",
+      "kind": "diorama",
+      "status": "UPGRADE",
+      "priority": "P0",
+      "proceduralFallback": {
+        "factory": "FacilityAssetFactory",
+        "recipe": "water-fountain"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.4
+      }
+    },
+    {
+      "id": "facility.rest-site",
+      "kind": "diorama",
+      "status": "CONTENT",
+      "priority": "P0",
+      "proceduralFallback": {
+        "factory": "FacilityAssetFactory",
+        "recipe": "rest-site"
+      }
+    },
+    {
+      "id": "facility.field-camp",
+      "kind": "diorama",
+      "status": "REUSE",
+      "priority": "P0",
+      "proceduralFallback": {
+        "factory": "FacilityAssetFactory",
+        "recipe": "field-camp"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.8
+      }
+    },
+    {
+      "id": "facility.merchant-stall",
+      "kind": "diorama",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "FacilityAssetFactory",
+        "recipe": "merchant-stall"
+      },
+      "footprint": {
+        "shape": "rect",
+        "width": 2.2,
+        "depth": 1.4
+      }
+    },
+    {
+      "id": "facility.goddess-statue",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.2
+      }
+    },
+    {
+      "id": "facility.settlement-habitat",
+      "kind": "diorama",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "SettlementAssetFactory",
+        "recipe": "settlement-habitat"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.6
+      }
+    },
+    {
+      "id": "facility.supply-depot",
+      "kind": "diorama",
+      "status": "REUSE",
+      "priority": "P0",
+      "proceduralFallback": {
+        "factory": "LogisticsAssetFactory",
+        "recipe": "supply-depot"
+      },
+      "footprint": {
+        "shape": "rect",
+        "width": 2.4,
+        "depth": 1.8
+      }
+    },
+    {
+      "id": "facility.gatehouse",
+      "kind": "diorama",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "ConstructionAssetFactory",
+        "recipe": "gatehouse"
+      },
+      "footprint": {
+        "shape": "rect",
+        "width": 3.2,
+        "depth": 1.6
+      }
+    },
+    {
+      "id": "facility.siege-workshop",
+      "kind": "diorama",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "ConstructionAssetFactory",
+        "recipe": "siege-workshop"
+      },
+      "footprint": {
+        "shape": "rect",
+        "width": 2.8,
+        "depth": 2.2
+      }
+    },
+    {
+      "id": "facility.ambush-post",
+      "kind": "diorama",
+      "status": "REUSE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "ConstructionAssetFactory",
+        "recipe": "ambush-post"
+      }
+    },
+    {
+      "id": "habitat.goblin-hearth",
+      "kind": "habitat",
+      "status": "UPGRADE",
+      "priority": "P0",
+      "proceduralFallback": {
+        "factory": "EcologyAssetFactory",
+        "recipe": "goblin-lair"
+      },
+      "legacyProp": {
+        "type": "goblin_lair",
+        "label": "Goblin Hearth-Lair"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.6
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.ossuary",
+      "kind": "habitat",
+      "status": "UPGRADE",
+      "priority": "P0",
+      "proceduralFallback": {
+        "factory": "EcologyAssetFactory",
+        "recipe": "ossuary-lair"
+      },
+      "legacyProp": {
+        "type": "ossuary_lair",
+        "label": "Working Ossuary"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.6
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.spider-brood",
+      "kind": "habitat",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "EcologyAssetFactory",
+        "recipe": "spider-lair"
+      },
+      "legacyProp": {
+        "type": "spider_lair",
+        "label": "Silk Brood Chamber"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.8
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.slime-pool",
+      "kind": "habitat",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "EcologyAssetFactory",
+        "recipe": "slime-pool"
+      },
+      "legacyProp": {
+        "type": "slime_pool",
+        "label": "Digestive Spawning Pool"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.6
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.rat-warren",
+      "kind": "habitat",
+      "status": "REUSE",
+      "priority": "P0",
+      "proceduralFallback": {
+        "factory": "EcologyAssetFactory",
+        "recipe": "rat-warren"
+      },
+      "legacyProp": {
+        "type": "rat_warren",
+        "label": "Granary Rat Warren"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.2
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.ogre-butcher",
+      "kind": "habitat",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "EcologyAssetFactory",
+        "recipe": "ogre-lair"
+      },
+      "legacyProp": {
+        "type": "ogre_lair",
+        "label": "Ogre Butcher-Camp"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 2
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.plague-mortuary",
+      "kind": "habitat",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "AdvancedLairAssetFactory",
+        "recipe": "plague-mortuary"
+      },
+      "legacyProp": {
+        "type": "plague_mortuary",
+        "label": "Plague Mortuary"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.8
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.orc-war-camp",
+      "kind": "habitat",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "AdvancedLairAssetFactory",
+        "recipe": "orc-camp"
+      },
+      "legacyProp": {
+        "type": "orc_tribe_camp",
+        "label": "Red Tusk War Camp"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 2.2
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.fungal-colony",
+      "kind": "habitat",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "AdvancedLairAssetFactory",
+        "recipe": "fungal-garden"
+      },
+      "legacyProp": {
+        "type": "fungal_garden",
+        "label": "Bluecap Rot Garden"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.8
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.blood-roost",
+      "kind": "habitat",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "AdvancedLairAssetFactory",
+        "recipe": "blood-roost"
+      },
+      "legacyProp": {
+        "type": "blood_roost",
+        "label": "Red-Wing Blood Roost"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.4
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.carrion-pit",
+      "kind": "habitat",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "AdvancedLairAssetFactory",
+        "recipe": "carrion-pit"
+      },
+      "legacyProp": {
+        "type": "carrion_pit",
+        "label": "Carrion Nursery Pit"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.6
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.kobold-trapworks",
+      "kind": "habitat",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "AdvancedLairAssetFactory",
+        "recipe": "kobold-workshop"
+      },
+      "legacyProp": {
+        "type": "kobold_workshop",
+        "label": "Copper-Tail Trapworks"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.8
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.cursed-chapel",
+      "kind": "habitat",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "AdvancedLairAssetFactory",
+        "recipe": "cursed-chapel"
+      },
+      "legacyProp": {
+        "type": "cursed_chapel",
+        "label": "Chapel of Unfinished Names"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.6
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "habitat.parasite-cistern",
+      "kind": "habitat",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "AdvancedLairAssetFactory",
+        "recipe": "parasite-pool"
+      },
+      "legacyProp": {
+        "type": "parasite_pool",
+        "label": "Pale Larval Cistern"
+      },
+      "footprint": {
+        "shape": "circle",
+        "radius": 1.6
+      },
+      "clearance": {
+        "radius": 0.6
+      }
+    },
+    {
+      "id": "waystation.plaza.core",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P0"
+    },
+    {
+      "id": "waystation.registry.office",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "gate.citadel.outer",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P0",
+      "footprint": {
+        "shape": "rect",
+        "width": 8,
+        "depth": 2.5
+      },
+      "clearance": {
+        "radius": 1.5
+      }
+    },
+    {
+      "id": "waystation.baggage.store",
+      "kind": "diorama",
+      "status": "UPGRADE",
+      "priority": "P1",
+      "proceduralFallback": {
+        "factory": "LogisticsAssetFactory",
+        "recipe": "supply-depot"
+      }
+    },
+    {
+      "id": "stairs.citadel.descent",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "rect",
+        "width": 6,
+        "depth": 10
+      }
+    },
+    {
+      "id": "residential.dormitory.ruined",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "residential.kitchen.common",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "residential.laundry.cistern",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "residential.court.tenement",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "chapel.household.small",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "flooded.reservoir.shallow",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "storage.granary.old",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "storage.wine.flooded",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "industrial.drainage.engine",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "flooded.sluice.passage",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "industrial.workshop.abandoned",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "industrial.scrap.store",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "kobold.trapworks.tier2",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "goblin.market.brass-button",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P0"
+    },
+    {
+      "id": "industrial.powder.magazine",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "ossuary.cloister.bone",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "ossuary.funeral.chapel",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "ossuary.shelves.working",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P0"
+    },
+    {
+      "id": "ossuary.tomb.nameless",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "ossuary.death-well",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "circle",
+        "radius": 2.4
+      },
+      "clearance": {
+        "radius": 1
+      }
+    },
+    {
+      "id": "fungal.field.blue-spore",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "fungal.glasshouse.rotten",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "fungal.pillars.colossal",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "fungal.gardener.chamber",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "fungal.heart.core",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "circle",
+        "radius": 3
+      },
+      "clearance": {
+        "radius": 1
+      }
+    },
+    {
+      "id": "spider.silk-ramp",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "spider.host-vault",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "spider.spawning.gallery",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "spider.vertical-well",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "spider.queen-nest.dormant",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "circle",
+        "radius": 3.5
+      },
+      "clearance": {
+        "radius": 1
+      }
+    },
+    {
+      "id": "inn.common-room.ruined",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P0",
+      "sockets": [
+        "factionBanner",
+        "light",
+        "service",
+        "seating",
+        "damage"
+      ]
+    },
+    {
+      "id": "inn.kitchen.ruined",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P0"
+    },
+    {
+      "id": "inn.guestrooms.corridor",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "sockets": [
+        "sleeping",
+        "light",
+        "damage"
+      ]
+    },
+    {
+      "id": "inn.ale-cellar",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "sockets": [
+        "storage",
+        "secretDoor"
+      ]
+    },
+    {
+      "id": "inn.secret-office",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "sockets": [
+        "interaction",
+        "secretDoor"
+      ]
+    },
+    {
+      "id": "market.crossroads.grand",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P0"
+    },
+    {
+      "id": "market.customs.dead",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "market.auction.ruined",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "market.well.neutral",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "market.smuggler.way",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "orc.drill-yard",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "orc.armory.war",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "orc.meat-store",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "orc.arena.red-sand",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "orc.chieftain-hall",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "rect",
+        "width": 3,
+        "depth": 2.5
+      }
+    },
+    {
+      "id": "laboratory.alchemical.main",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "laboratory.parasite-vats",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "laboratory.observatory.sealed",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "laboratory.summoning.failed",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "circle",
+        "radius": 3
+      },
+      "clearance": {
+        "radius": 1.2
+      }
+    },
+    {
+      "id": "laboratory.emergency-way",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "royal.antechamber",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "royal.crown-vault",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "royal.banquet.shattered",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "royal.black-throne",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "rect",
+        "width": 3,
+        "depth": 3
+      },
+      "clearance": {
+        "radius": 1
+      }
+    },
+    {
+      "id": "royal.bedchamber",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "sanctum.seal-gate",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "rect",
+        "width": 9,
+        "depth": 2.5
+      },
+      "clearance": {
+        "radius": 1.5
+      }
+    },
+    {
+      "id": "sanctum.circular",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1"
+    },
+    {
+      "id": "sanctum.heart-chamber",
+      "kind": "diorama",
+      "status": "AUTHOR",
+      "priority": "P1",
+      "footprint": {
+        "shape": "circle",
+        "radius": 4.5
+      },
+      "clearance": {
+        "radius": 1.5
+      }
+    }
+  ]
+}
