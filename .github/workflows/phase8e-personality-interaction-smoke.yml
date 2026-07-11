@@ -1,0 +1,38 @@
+name: Phase 8E personality and interaction smoke
+
+on:
+  push:
+    paths:
+      - 'src/sim/AgentAI.js'
+      - 'src/sim/RoomOccupancySystem.js'
+      - 'src/sim/DungeonSimPhase1.js'
+      - 'src/sim/DungeonSimPhase2.js'
+      - 'src/sim/DungeonSimPhase3.js'
+      - 'src/sim/DungeonSimPhase8.js'
+      - 'src/sim/PersonalitySystem.js'
+      - 'src/screens/ObserveScreenPhase8.js'
+      - 'tests/phase8e-personality-interaction-smoke.mjs'
+      - 'package.json'
+      - '.github/workflows/phase8e-personality-interaction-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/sim/AgentAI.js'
+      - 'src/sim/RoomOccupancySystem.js'
+      - 'src/sim/DungeonSimPhase1.js'
+      - 'src/sim/DungeonSimPhase2.js'
+      - 'src/sim/DungeonSimPhase3.js'
+      - 'src/sim/DungeonSimPhase8.js'
+      - 'src/sim/PersonalitySystem.js'
+      - 'src/screens/ObserveScreenPhase8.js'
+      - 'tests/phase8e-personality-interaction-smoke.mjs'
+      - 'package.json'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:phase8e
