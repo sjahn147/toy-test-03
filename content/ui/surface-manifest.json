@@ -1,4 +1,5 @@
 {
+  "$schema": "../schemas/ui-surface.schema.json",
   "schemaVersion": 1,
   "contentVersion": "0.1.0",
   "id": "ui.strategy-observer.production",
