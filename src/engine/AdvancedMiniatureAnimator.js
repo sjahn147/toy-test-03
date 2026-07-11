@@ -1,21 +1,37 @@
 import { MiniatureAnimator } from './MiniatureAnimator.js';
 
+let installed = false;
+
+export function installAdvancedMiniatureAnimation() {
+  if (installed) return;
+  installed = true;
+  const baseUpdate = MiniatureAnimator.prototype.update;
+  MiniatureAnimator.prototype.update = function updateWithAdvancedLayer(mesh, agent, time, effects = []) {
+    baseUpdate.call(this, mesh, agent, time, effects);
+    applyAdvancedLayer(mesh, agent, time);
+  };
+}
+
 export class AdvancedMiniatureAnimator extends MiniatureAnimator {
   update(mesh, agent, time, effects = []) {
     super.update(mesh, agent, time, effects);
-    const alpha = 0.24;
-    const attack = attackTimeline(agent, time, mesh.userData.animationSeed ?? 0);
-    const rig = mesh.userData.rig;
-    const style = mesh.userData.weaponStyle ?? 'natural';
-    if (rig) animateWeaponStyle(rig, style, attack, alpha);
-    const model = mesh.getObjectByName('miniature-model');
-    const parts = model?.userData?.creatureParts;
-    if (!parts) return;
-    if (parts.type === 'arachnid') animateSpider(parts, agent, time, attack, alpha);
-    if (parts.type === 'spectral') animateWraith(parts, agent, time, attack, alpha);
-    if (parts.type === 'fungal') animateMyconid(parts, agent, time, attack, alpha);
-    if (parts.type === 'flying') animateStirge(parts, agent, time, attack, alpha);
+    applyAdvancedLayer(mesh, agent, time);
   }
+}
+
+function applyAdvancedLayer(mesh, agent, time) {
+  const alpha = 0.24;
+  const attack = attackTimeline(agent, time, mesh.userData.animationSeed ?? 0);
+  const rig = mesh.userData.rig;
+  const style = mesh.userData.weaponStyle ?? 'natural';
+  if (rig) animateWeaponStyle(rig, style, attack, alpha);
+  const model = mesh.getObjectByName('miniature-model');
+  const parts = model?.userData?.creatureParts;
+  if (!parts) return;
+  if (parts.type === 'arachnid') animateSpider(parts, agent, time, attack, alpha);
+  if (parts.type === 'spectral') animateWraith(parts, agent, time, attack, alpha);
+  if (parts.type === 'fungal') animateMyconid(parts, agent, time, attack, alpha);
+  if (parts.type === 'flying') animateStirge(parts, agent, time, attack, alpha);
 }
 
 function animateWeaponStyle(rig, style, attack, alpha) {
