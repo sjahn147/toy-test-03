@@ -1,0 +1,40 @@
+name: Fungal garden asset smoke
+
+on:
+  push:
+    paths:
+      - 'src/engine/FungalGarden*.js'
+      - 'tests/fungal-garden-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/fungal-garden-assets-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/engine/FungalGarden*.js'
+      - 'tests/fungal-garden-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/fungal-garden-assets-smoke.yml'
+
+jobs:
+  fungal-asset-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check isolated pack syntax
+        run: |
+          node --check src/engine/FungalGardenLandmarkRecipes.js
+          node --check src/engine/FungalGardenLandmarkAssetFactory.js
+          node --check src/engine/FungalGardenAssetPack.js
+          node --check src/engine/FungalGardenAssetAnimator.js
+          node --check tests/fungal-garden-assets-smoke.mjs
+      - name: Validate campaign content
+        run: npm run validate:production-content
+      - name: Test fungal asset contracts
+        run: node tests/fungal-garden-assets-smoke.mjs
+      - name: Run content compiler smoke
+        run: npm run test:content
