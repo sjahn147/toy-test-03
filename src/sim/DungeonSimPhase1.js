@@ -5,7 +5,7 @@ import { RoomOccupancySystem } from './RoomOccupancySystem.js';
 import { PartySystem } from './PartySystem.js';
 
 const PARTY_NAMES = ['Tamsin Reed', 'Berric Holt', 'Nella Ash', 'Lysa Merrow', 'Alda Rook', 'Iven Crow', 'Mara Dain', 'Edran Vale'];
-const PARTY_ROLES = ['fighter', 'rogue', 'cleric', 'wizard'];
+const PARTY_ROLES = ['fighter', 'rogue', 'cleric', 'wizard', 'archer'];
 
 export class DungeonSim extends BaseDungeonSim {
   constructor(scenario, options = {}) {
