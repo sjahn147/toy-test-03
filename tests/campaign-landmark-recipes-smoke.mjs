@@ -14,12 +14,16 @@ const catalog = JSON.parse(await readFile(
   new URL('../content/assets/asset-catalog.json', import.meta.url),
   'utf8'
 ));
+const annexFactorySource = await readFile(
+  new URL('../src/engine/OldLanternAnnexAssetFactory.js', import.meta.url),
+  'utf8'
+);
 
 const roomById = new Map(manifest.rooms.map(room => [room.id, room]));
 const catalogIds = new Set(catalog.entries.map(entry => entry.id));
 const recipes = listCampaignLandmarkRecipes();
 
-assert.equal(recipes.length, 4, 'P0 landmark slice must expose exactly four recipes');
+assert.equal(recipes.length, 7, 'landmark slice must expose the four P0 landmarks and three Old Lantern annex rooms');
 assert.equal(Object.keys(CAMPAIGN_LANDMARK_RECIPES).length, recipes.length, 'recipe listing is inconsistent');
 
 for (const recipe of recipes) {
@@ -37,15 +41,40 @@ for (const recipe of recipes) {
   assert.equal(getCampaignLandmarkRecipe(recipe.id), recipe, `${recipe.id} lookup is unstable`);
 }
 
-for (const requiredId of [
+const requiredIds = [
   'waystation.plaza.core',
   'gate.citadel.outer',
   'inn.old-lantern.common-room',
-  'inn.old-lantern.kitchen'
+  'inn.old-lantern.kitchen',
+  'inn.old-lantern.guest-wing',
+  'inn.old-lantern.cellar',
+  'inn.old-lantern.secret-office'
+];
+
+for (const requiredId of requiredIds) {
+  assert.ok(getCampaignLandmarkRecipe(requiredId), `missing required landmark ${requiredId}`);
+}
+
+for (const annexId of requiredIds.filter(id => id.includes('guest-wing') || id.includes('cellar') || id.includes('secret-office'))) {
+  assert.ok(annexFactorySource.includes(`'${annexId}'`), `annex factory does not claim ${annexId}`);
+}
+
+for (const semanticNode of [
+  'linen-service',
+  'resident-profession',
+  'web-infiltration',
+  'brewery-equipment',
+  'smuggling-door',
+  'rat-warren',
+  'route-map-wall',
+  'ledger-desk',
+  'hidden-safe',
+  'weapon-cache',
+  'surveillance-hole'
 ]) {
-  assert.ok(getCampaignLandmarkRecipe(requiredId), `missing required P0 landmark ${requiredId}`);
+  assert.ok(annexFactorySource.includes(`'${semanticNode}'`), `annex factory is missing semantic node ${semanticNode}`);
 }
 
 assert.equal(getCampaignLandmarkRecipe('missing.landmark'), null, 'unknown landmarks must fail softly');
 
-console.log(`campaign landmark recipe smoke passed with ${recipes.length} detailed P0 dioramas`);
+console.log(`campaign landmark recipe smoke passed with ${recipes.length} detailed dioramas across the complete Old Lantern family`);
