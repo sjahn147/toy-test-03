@@ -1,4 +1,4 @@
-import { nearestRoom, nextStep } from './Pathfinding.js';
+import { graphDistance, nearestRoom, nextStep } from './Pathfinding.js';
 
 const STATS = {
   fighter: { hp: 18, attack: 5, courage: 9 },
@@ -39,7 +39,10 @@ export function hydrateAgent(raw, i) {
     partyLeaderId: raw.partyLeaderId ?? null,
     partyState: raw.partyState ?? null,
     partyDistance: 0,
-    orphaned: false
+    orphaned: false,
+    blockedMoveRoomId: null,
+    blockedMoveUntilTurn: -1,
+    previousRoomId: null
   };
 }
 
@@ -82,10 +85,10 @@ export function decideAction(agent, sim) {
   }
 
   if (agent.role === 'cleric') {
-    const wounded = sim.agents.find(candidate => active(candidate) && candidate.faction === agent.faction && candidate.hp < candidate.maxHp * 0.55);
+    const wounded = nearestAgent(agent, sim, candidate => active(candidate) && candidate.faction === agent.faction && candidate.hp < candidate.maxHp * 0.55);
     if (wounded) {
       if (wounded.roomId === agent.roomId) return { type: 'heal', targetId: wounded.id };
-      return moveToward(agent, sim, wounded.roomId, `${agent.name} hurried toward the smell of regret.`);
+      return moveToward(agent, sim, wounded.roomId, `${agent.name} hurried toward the smell of regret.`, wounded.id, 'heal');
     }
   }
 
@@ -109,15 +112,17 @@ export function decideAction(agent, sim) {
   }
 
   if (agent.faction === 'dungeon') {
-    const partyRooms = sim.agents.filter(candidate => active(candidate) && candidate.faction === 'party').map(candidate => candidate.roomId);
-    const target = nearestRoom(sim.graph, agent.roomId, partyRooms);
-    if (target) return moveToward(agent, sim, target);
+    const target = nearestAgent(agent, sim, candidate => active(candidate) && candidate.faction === 'party' && !candidate.hidden);
+    if (target) return moveToward(agent, sim, target.roomId, null, target.id, 'attack');
   }
 
   const neighbors = sim.graph.get(agent.roomId) ?? [];
+  const available = neighbors.filter(roomId => !(agent.blockedMoveRoomId === roomId && (agent.blockedMoveUntilTurn ?? -1) >= sim.turn));
   const wanderChance = agent.role === 'ogre' ? 0.08 : 0.18;
-  if (neighbors.length && Math.random() < wanderChance) {
-    return { type: 'move', roomId: neighbors[Math.floor(Math.random() * neighbors.length)] };
+  if (available.length && Math.random() < wanderChance) {
+    const alternatives = available.filter(roomId => roomId !== agent.previousRoomId);
+    const pool = alternatives.length ? alternatives : available;
+    return { type: 'move', roomId: pool[Math.floor(Math.random() * pool.length)] };
   }
 
   return { type: 'idle' };
@@ -143,7 +148,7 @@ function partyDirective(agent, sim) {
   const text = agent.orphaned
     ? `${agent.name} abandoned every other plan and tried to find ${leader.name}.`
     : null;
-  return moveToward(agent, sim, targetRoom, text);
+  return moveToward(agent, sim, targetRoom, text, leader.id, 'join-party');
 }
 
 function active(agent) {
@@ -171,16 +176,26 @@ function weakest(agents) {
   return [...agents].sort((a, b) => a.hp - b.hp)[0];
 }
 
-function moveToward(agent, sim, targetRoom, text = null) {
+function nearestAgent(agent, sim, predicate) {
+  return sim.agents
+    .filter(candidate => candidate.id !== agent.id && predicate(candidate))
+    .map(candidate => ({ candidate, distance: graphDistance(sim.graph, agent.roomId, candidate.roomId) }))
+    .sort((a, b) => a.distance - b.distance || a.candidate.index - b.candidate.index)[0]?.candidate ?? null;
+}
+
+function moveToward(agent, sim, targetRoom, text = null, interactionTargetId = null, interactionType = null) {
   const step = nextStep(sim.graph, agent.roomId, targetRoom);
   if (!step || step === agent.roomId) return { type: 'idle' };
-  return { type: 'move', roomId: step, text };
+  if (agent.blockedMoveRoomId === step && (agent.blockedMoveUntilTurn ?? -1) >= sim.turn && !interactionTargetId) {
+    return { type: 'idle', text: `${agent.name} stopped repeating a blocked route.` };
+  }
+  return { type: 'move', roomId: step, text, interactionTargetId, interactionType };
 }
 
 function flee(agent, sim, text) {
   const enemies = sim.agents.filter(candidate => active(candidate) && candidate.faction !== agent.faction).map(candidate => candidate.roomId);
   const options = sim.graph.get(agent.roomId) ?? [];
-  const safer = options.find(room => !enemies.includes(room)) ?? options[0];
+  const safer = options.find(room => !enemies.includes(room) && room !== agent.previousRoomId) ?? options.find(room => !enemies.includes(room)) ?? options[0];
   if (!safer) return { type: 'idle' };
   return { type: 'move', roomId: safer, text };
 }
