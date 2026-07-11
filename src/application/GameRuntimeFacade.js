@@ -65,9 +65,9 @@ export class GameRuntimeFacade {
         factions: selectFactionList(state),
         parties: selectPartyList(state),
         settlements: selectSettlementList(state),
-        rooms: selectRoomList(state)
+        rooms: selectRoomList(state),
+        followRoster: selectFollowRoster(state)
       },
-      followRoster: selectFollowRoster(state),
       selection: selectSelection(state, context),
       timeline: selectTimelineEvents(state, {
         filter: context.timelineFilter ?? 'all',
