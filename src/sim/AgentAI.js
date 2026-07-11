@@ -27,10 +27,16 @@ export function hydrateAgent(raw, i) {
     alive: true,
     departed: false,
     travel: null,
+    roomCell: raw.roomCell ?? null,
     cooldown: 0,
     mood: raw.hidden ? 'waiting' : 'curious',
     gold: raw.gold ?? 0,
-    kills: raw.kills ?? 0
+    kills: raw.kills ?? 0,
+    partyId: raw.partyId ?? null,
+    partyLeaderId: raw.partyLeaderId ?? null,
+    partyState: raw.partyState ?? null,
+    partyDistance: 0,
+    orphaned: false
   };
 }
 
@@ -49,9 +55,9 @@ export function decideAction(agent, sim) {
     return { type: 'idle' };
   }
 
-  if (agent.faction === 'party' && shouldLeave(agent, sim)) {
-    if (agent.roomId === 'entry') return { type: 'exitDungeon' };
-    return moveToward(agent, sim, 'entry', `${agent.name} started thinking about retirement and reinforcements.`);
+  if (agent.faction === 'party' && agent.orphaned && enemiesHere.length) {
+    const retreatChance = clamp(0.45 + (7 - agent.courage) * 0.05 + (1 - agent.hp / agent.maxHp) * 0.35, 0.35, 0.9);
+    if (Math.random() < retreatChance) return flee(agent, sim, `${agent.name} realized the rest of the party was no longer behind them.`);
   }
 
   if (enemiesHere.length) {
@@ -59,6 +65,16 @@ export function decideAction(agent, sim) {
     if (agent.role === 'goblin' && alliesHere.length < 2) return flee(agent, sim, `${agent.name} remembered an urgent goblin appointment elsewhere.`);
     const target = weakest(enemiesHere);
     return { type: 'attack', targetId: target.id };
+  }
+
+  if (agent.faction === 'party') {
+    const directive = partyDirective(agent, sim);
+    if (directive) return directive;
+  }
+
+  if (agent.faction === 'party' && shouldLeave(agent, sim)) {
+    if (agent.roomId === 'entry') return { type: 'exitDungeon' };
+    return moveToward(agent, sim, 'entry', `${agent.name} started thinking about retirement and reinforcements.`);
   }
 
   if (agent.role === 'cleric') {
@@ -103,11 +119,35 @@ export function decideAction(agent, sim) {
   return { type: 'idle' };
 }
 
+function partyDirective(agent, sim) {
+  const partySystem = sim.partySystem;
+  if (!partySystem || !agent.partyId) return null;
+  const party = partySystem.getParty(agent);
+  const leader = partySystem.getLeader(agent, sim.agents);
+  if (!party || !leader) return null;
+
+  if (leader.id === agent.id) {
+    if (partySystem.leaderShouldWait(agent, sim.agents)) {
+      agent.mood = 'waiting-for-party';
+      return { type: 'idle' };
+    }
+    return null;
+  }
+
+  const targetRoom = partySystem.getFollowRoom(agent, sim.agents);
+  if (!targetRoom || targetRoom === agent.roomId) return null;
+  const text = agent.orphaned
+    ? `${agent.name} abandoned every other plan and tried to find ${leader.name}.`
+    : null;
+  return moveToward(agent, sim, targetRoom, text);
+}
+
 function active(agent) {
   return agent.alive && !agent.departed && !agent.travel;
 }
 
 function shouldLeave(agent, sim) {
+  if (agent.partyId && agent.partyLeaderId && agent.id !== agent.partyLeaderId) return false;
   if (agent.roomId !== 'entry' && sim.turn < 10) return false;
   const activeMonsters = sim.agents.filter(candidate => active(candidate) && candidate.faction === 'dungeon' && !candidate.hidden).length;
   if (activeMonsters === 0 && sim.turn > 8) return true;
@@ -134,4 +174,8 @@ function flee(agent, sim, text) {
   const safer = options.find(room => !enemies.includes(room)) ?? options[0];
   if (!safer) return { type: 'idle' };
   return { type: 'move', roomId: safer, text };
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
 }
