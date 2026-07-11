@@ -8,11 +8,45 @@ on:
       - 'src/compat/**'
       - 'src/application/**'
       - 'src/presentation/**'
+      - 'src/screens/**'
       - 'src/ui/**'
+      - 'src/app/**'
       - 'src/data/**'
       - 'src/sim/**'
+      - 'src/main.js'
       - 'content/**'
       - 'tests/content-pipeline-smoke.mjs'
       - 'tests/runtime-facade-smoke.mjs'
+      - 'tests/presentation-boundary-smoke.mjs'
       - 'package.json'
-      - '.github/workflows/
+      - '.github/workflows/production-architecture-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/domain/**'
+      - 'src/content/**'
+      - 'src/compat/**'
+      - 'src/application/**'
+      - 'src/presentation/**'
+      - 'src/screens/**'
+      - 'src/ui/**'
+      - 'src/app/**'
+      - 'src/data/**'
+      - 'src/sim/**'
+      - 'src/main.js'
+      - 'content/**'
+      - 'tests/content-pipeline-smoke.mjs'
+      - 'tests/runtime-facade-smoke.mjs'
+      - 'tests/presentation-boundary-smoke.mjs'
+      - 'package.json'
+      - '.github/workflows/production-architecture-smoke.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:production
