@@ -1,6 +1,6 @@
 import { TitleScreen } from '../screens/TitleScreen.js';
 import { BuildScreen } from '../screens/BuildScreen.js';
-import { ObserveScreen } from '../screens/ObserveScreen.js';
+import { ObserveScreen } from '../screens/ObserveScreenPhase7.js';
 import { SCENARIOS } from '../data/scenarios.js';
 
 export class App {
