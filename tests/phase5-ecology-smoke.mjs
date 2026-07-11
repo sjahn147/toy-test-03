@@ -57,6 +57,8 @@ assert.ok(sim.ecosystem.pendingSpawns.every(spawn => spawn.progress === 0 && spa
 const spider = sim.agents.find(agent => agent.role === 'spider' && agent.alive);
 const host = sim.agents.find(agent => agent.faction === 'party');
 assert.ok(spider && host, 'missing spider or adventurer host');
+const genericSpiderSpawn = sim.ecosystem.startSpawn('spider', spider.homeRoomId, 12);
+assert.ok(genericSpiderSpawn, 'generic spider birth could not be staged');
 host.queued = false;
 host.departed = false;
 host.alive = true;
@@ -76,7 +78,23 @@ spider.roomId = spider.homeRoomId;
 spider.travel = null;
 sim.ecosystem.updateCarriedHosts(sim);
 assert.equal(sim.ecosystem.hosts[0].deposited, true, 'host was not deposited at the spider lair');
-assert.ok(sim.ecosystem.pendingSpawns.some(spawn => spawn.sourceHostId === sim.ecosystem.hosts[0].id), 'deposited host did not begin spider development');
+assert.ok(sim.ecosystem.pendingSpawns.some(spawn => spawn.sourceHostId === sim.ecosystem.hosts[0].id), 'host-linked spider birth was blocked by a generic spider birth');
+
+const ratLair = sim.ecosystem.lairs.get('rat');
+const juvenile = sim.spawnEcologyMonster('rat', ratLair.roomId);
+assert.ok(juvenile, 'juvenile rat could not be spawned');
+assert.ok(juvenile.maturity < 1, 'new ecological birth was not juvenile');
+sim.advanceMaturity(24);
+assert.equal(juvenile.maturity, 1, 'juvenile did not mature into a reproductive adult');
+
+host.alive = true;
+host.mood = 'returned';
+host.ecologyConsumed = true;
+host.corpseCreated = true;
+host.hosted = false;
+sim.resetReturnedEcologyState();
+assert.equal(host.ecologyConsumed, false, 'resurrection did not reset consumed state');
+assert.equal(host.corpseCreated, false, 'resurrection did not reset corpse state');
 
 const snapshot = sim.snapshot();
 assert.ok(snapshot.ecology, 'ecology snapshot missing');
