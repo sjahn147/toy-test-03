@@ -68,6 +68,16 @@ export const CAMPAIGN_LANDMARK_RECIPES = Object.freeze({
     footprint: Object.freeze({ width: 7.8, depth: 6.6, height: 4.0 }),
     sockets: Object.freeze(['route-map-wall', 'ledger-desk', 'hidden-safe', 'weapon-cache', 'surveillance-hole']),
     detailBudget: 'hero'
+  }),
+  'market.crossroads.grand': Object.freeze({
+    id: 'market.crossroads.grand',
+    roomId: 'I41',
+    factory: 'central-market-crossroads',
+    defaultState: 'neutral-ruin',
+    placement: Object.freeze({ ox: 0, oz: 0, rotation: 0, scale: 0.82 }),
+    footprint: Object.freeze({ width: 21.4, depth: 16.8, height: 7.8 }),
+    sockets: Object.freeze(['central-wayfinder', 'district-mosaic', 'cargo-scale', 'market-notice-board', 'faction-banner']),
+    detailBudget: 'hero'
   })
 });
 
