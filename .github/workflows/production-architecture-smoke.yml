@@ -3,6 +3,8 @@ name: Production architecture smoke
 on:
   push:
     paths:
+      - 'index.html'
+      - 'src/**/*.css'
       - 'src/domain/**'
       - 'src/content/**'
       - 'src/compat/**'
@@ -22,6 +24,8 @@ on:
       - '.github/workflows/production-architecture-smoke.yml'
   pull_request:
     paths:
+      - 'index.html'
+      - 'src/**/*.css'
       - 'src/domain/**'
       - 'src/content/**'
       - 'src/compat/**'
