@@ -7,6 +7,8 @@ import { applyPhase8SpatialScale } from '../data/applyPhase8SpatialScale.js';
 import { applyPhase8PropLayout } from '../data/applyPhase8PropLayout.js';
 import { createLegacyGameRuntime } from '../application/GameRuntimeFactory.js';
 import { StrategyObserverShell } from '../ui/StrategyObserverShell.js';
+import { StrategyOverlayToolbar } from '../ui/StrategyOverlayToolbar.js';
+import { StrategicOverlayLayer } from '../ui/StrategicOverlayLayer.js';
 import { renderStrategyInspector } from '../ui/renderStrategyInspector.js';
 
 export class ObserveScreen extends Phase6ObserveScreen {
@@ -16,6 +18,9 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.runtime = null;
     this.runtimeUnsubscribe = null;
     this.shell = null;
+    this.overlayToolbar = null;
+    this.overlayLayer = null;
+    this.activeOverlay = 'normal';
     this.selection = null;
     this.observerFactionId = null;
     this.timelineFilter = 'all';
@@ -51,8 +56,19 @@ export class ObserveScreen extends Phase6ObserveScreen {
       onAlertOpen: () => this.shell?.announce('Showing major, critical and historic events.')
     });
     this.shell.mount({ screenEl: this.el, viewport: this.viewport, inspectEl: this.inspectEl });
+
+    this.overlayLayer = new StrategicOverlayLayer({ group: this.renderer.group, scenario: this.scenario });
+    this.overlayToolbar = new StrategyOverlayToolbar({ onChange: mode => this.setOverlayMode(mode) });
+    this.overlayToolbar.mount(this.viewport);
+
     window.addEventListener('keydown', this.onKeyDown);
     this.refreshViewModel(true);
+  }
+
+  setOverlayMode(mode) {
+    this.activeOverlay = mode;
+    this.refreshViewModel(true);
+    this.shell?.announce(`${mode === 'normal' ? 'World' : mode} overlay selected.`);
   }
 
   selectEntity({ type, id, roomId = null }) {
@@ -85,7 +101,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
       ...this.selectionContext(),
       observerFactionId: this.observerFactionId,
       timelineFilter: this.timelineFilter,
-      timelineLimit: 120
+      timelineLimit: 120,
+      overlayMode: this.activeOverlay
     });
     this.shell?.render(this.viewModel, {
       worldTitle: this.scenario.name,
@@ -94,6 +111,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
       cameraMode: this.cameraMode,
       pinnedEventIds: [...this.pinnedEventIds]
     });
+    this.overlayToolbar?.render(this.viewModel.overlays);
+    this.overlayLayer?.render(this.viewModel.overlays);
     renderStrategyInspector(this.inspectEl, this.viewModel.selection, {
       onClear: () => this.clearSelection(),
       onSelectAgent: id => this.selectEntity({ type: 'agent', id })
@@ -132,20 +151,13 @@ export class ObserveScreen extends Phase6ObserveScreen {
     }
   }
 
-  clearSelection() {
-    this.selection = null;
-    this.selectedAgentId = null;
-    this.refreshViewModel(true);
-  }
+  clearSelection() { this.selection = null; this.selectedAgentId = null; this.refreshViewModel(true); }
 
   setCameraMode(mode) {
     this.cameraMode = mode;
     this.shell?.setCameraMode(mode);
     if (mode === 'fixed') this.resetCamera(false);
-    if (mode === 'follow') {
-      this.ensureFollowTarget();
-      this.pushCameraToFollowTarget(true);
-    }
+    if (mode === 'follow') { this.ensureFollowTarget(); this.pushCameraToFollowTarget(true); }
   }
 
   handleCameraAction(action) {
@@ -160,11 +172,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const current = roster.find(agent => agent.id === this.selectedAgentId);
     if (current) return current;
     const fallback = roster.find(agent => agent.factionId === 'adventurer-expedition') ?? roster[0] ?? null;
-    if (fallback) {
-      this.selectedAgentId = fallback.id;
-      this.selection = { type: 'agent', id: fallback.id };
-      this.refreshViewModel(true);
-    }
+    if (fallback) { this.selectedAgentId = fallback.id; this.selection = { type: 'agent', id: fallback.id }; this.refreshViewModel(true); }
     return fallback;
   }
 
@@ -185,10 +193,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const agent = this.ensureFollowTarget();
     if (!agent) return;
     const world = this.renderer.getAgentWorldPosition(agent.id);
-    if (world) {
-      this.three.setCameraTarget(world.x, world.y + 1.7, world.z, immediate ? followDistance(agent.role) : null, immediate);
-      return;
-    }
+    if (world) { this.three.setCameraTarget(world.x, world.y + 1.7, world.z, immediate ? followDistance(agent.role) : null, immediate); return; }
     this.focusRoom(agent.roomId, immediate, immediate ? 26 : null);
   }
 
@@ -205,13 +210,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const inspector = selection.inspector;
     const roomId = selection.type === 'room' ? selection.id
       : selection.type === 'settlement' ? inspector.roomId
-        : selection.type === 'party' ? inspector.target?.roomId ?? inspector.base?.roomId
-          : null;
-    if (roomId) {
-      this.cameraMode = 'free';
-      this.shell?.setCameraMode('free');
-      this.focusRoom(roomId, immediate, 28);
-    }
+        : selection.type === 'party' ? inspector.target?.roomId ?? inspector.base?.roomId : null;
+    if (roomId) { this.cameraMode = 'free'; this.shell?.setCameraMode('free'); this.focusRoom(roomId, immediate, 28); }
   }
 
   focusRoom(roomId, immediate = false, distance = null) {
@@ -244,11 +244,13 @@ export class ObserveScreen extends Phase6ObserveScreen {
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', String(active));
       });
-    } else if (event.key === '/') {
-      event.preventDefault();
-      this.shell?.focusNavigatorSearch();
-    } else if (event.key.toLowerCase() === 'f') this.setCameraMode('follow');
+    } else if (event.key === '/') { event.preventDefault(); this.shell?.focusNavigatorSearch(); }
+    else if (event.key.toLowerCase() === 'f') this.setCameraMode('follow');
     else if (event.key.toLowerCase() === 'r') this.resetCamera(true);
+    else if (event.key.toLowerCase() === 't') this.setOverlayMode('territory');
+    else if (event.key.toLowerCase() === 's') this.setOverlayMode('supply');
+    else if (event.key.toLowerCase() === 'd') this.setOverlayMode('danger');
+    else if (event.key.toLowerCase() === 'w') this.setOverlayMode('normal');
     else if (event.key === '[') this.cycleFollowTarget(-1);
     else if (event.key === ']') this.cycleFollowTarget(1);
     else if (event.key === 'Escape') this.clearSelection();
@@ -280,6 +282,10 @@ export class ObserveScreen extends Phase6ObserveScreen {
 
   destroy() {
     window.removeEventListener('keydown', this.onKeyDown);
+    this.overlayToolbar?.destroy();
+    this.overlayToolbar = null;
+    this.overlayLayer?.destroy();
+    this.overlayLayer = null;
     this.shell?.destroy();
     this.shell = null;
     this.pinnedEventIds.clear();
