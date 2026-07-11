@@ -74,13 +74,14 @@ function testPersonalityMemory() {
   const expanded = base.useGeneratedMap ? expandScenario(base) : base;
   const scenario = applyPhase7Territories(applyPhase8SpatialScale(applyPhase6Ecology(applyPhase5Ecology(applyPhase2Facilities(expanded)))));
   const sim = new Phase8Sim(scenario, { onEvent: () => {} });
-  const actor = sim.agents.find(agent => agent.alive && agent.faction === 'party' && !agent.queued);
-    ?? sim.agents.find(agent => agent.alive && agent.faction === 'party');
+  const actor = sim.agents.find(agent => agent.alive && agent.faction === 'party');
   const enemy = sim.agents.find(agent => agent.alive && agent.faction === 'dungeon' && !agent.hidden);
   assert.ok(actor && enemy, 'personality actors were unavailable');
 
-  const neighbor = (sim.graph.get(actor.roomId) ?? [])[0];
+  const actorRoom = sim.rooms.find(room => (sim.graph.get(room.id) ?? []).length > 0 && !room.tags?.includes('safe_zone')) ?? sim.rooms[0];
+  const neighbor = (sim.graph.get(actorRoom.id) ?? [])[0];
   assert.ok(neighbor, 'personality actor had no adjacent room');
+  placeInRoom(sim, actor, actorRoom.id);
   placeInRoom(sim, enemy, neighbor);
   actor.personality.aggression = 0.95;
   actor.personality.bravery = 0.95;
