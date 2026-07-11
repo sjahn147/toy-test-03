@@ -1,6 +1,6 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
 import { DungeonRendererPhase3 } from '../engine/DungeonRendererPhase3.js';
-import { AssetRegistryPhase2 } from '../engine/AssetRegistryPhase2.js';
+import { AssetRegistryPhase3 } from '../engine/AssetRegistryPhase3.js';
 import { DungeonSim } from '../sim/DungeonSimPhase3.js';
 import { expandScenario } from '../data/generateDungeon.js';
 import { applyPhase2Facilities } from '../data/applyPhase2Facilities.js';
@@ -69,16 +69,14 @@ export class ObserveScreen {
     this.logEl = el.querySelector('[data-log]');
     this.inspectEl = el.querySelector('[data-inspect]');
 
-    this.assets = new AssetRegistryPhase2();
+    this.assets = new AssetRegistryPhase3();
     this.assets.loadManifest();
     this.three = new ThreeScene(this.viewport);
     this.fitCameraToScenario();
     this.renderer = new DungeonRendererPhase3(this.three, this.scenario, this.assets);
     this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
 
-    el.querySelectorAll('[data-camera-mode]').forEach(button => {
-      button.addEventListener('click', () => this.setCameraMode(button.dataset.cameraMode));
-    });
+    el.querySelectorAll('[data-camera-mode]').forEach(button => button.addEventListener('click', () => this.setCameraMode(button.dataset.cameraMode)));
     el.querySelector('[data-action="pause"]').addEventListener('click', event => {
       this.running = !this.running;
       event.currentTarget.textContent = this.running ? '일시정지' : '재생';
@@ -176,28 +174,14 @@ export class ObserveScreen {
       this.inspectEl.innerHTML = '<div class="inspect-empty">Tap a creature in the dungeon to inspect its tiny bad decisions.</div>';
       return;
     }
-
     const room = this.sim.rooms.find(candidate => candidate.id === agent.roomId);
     const destination = agent.travel ? this.sim.rooms.find(candidate => candidate.id === agent.travel.toRoomId) : null;
     const related = this.events.filter(event => event.includes(agent.name)).slice(0, 3);
-    const status = agent.queued ? 'waiting outside'
-      : agent.downed ? `downed ${Math.ceil(agent.bleedout)}s`
-        : agent.departed ? 'departed'
-          : !agent.alive ? 'fallen'
-            : agent.combat ? agent.combat.phase
-              : agent.travel ? agent.travel.phase
-                : agent.partyState ?? 'active';
-    const location = agent.queued
-      ? 'Outside the expedition gate'
-      : agent.travel
-        ? `${agent.travel.phase === 'entering' ? 'Entering' : 'Corridor'}: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}`
-        : `Room: ${room?.name ?? agent.roomId}`;
+    const status = agent.queued ? 'waiting outside' : agent.downed ? `downed ${Math.ceil(agent.bleedout)}s` : agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.combat ? agent.combat.phase : agent.travel ? agent.travel.phase : agent.partyState ?? 'active';
+    const location = agent.queued ? 'Outside the expedition gate' : agent.travel ? `${agent.travel.phase === 'entering' ? 'Entering' : 'Corridor'}: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}` : `Room: ${room?.name ?? agent.roomId}`;
 
     this.inspectEl.innerHTML = `
-      <div class="inspect-head">
-        <div><strong>${escapeHtml(agent.name)}</strong><span>${escapeHtml(agent.role)} · ${escapeHtml(agent.faction)} · ${escapeHtml(status)}</span></div>
-        <button class="mini-btn" data-clear-inspect>×</button>
-      </div>
+      <div class="inspect-head"><div><strong>${escapeHtml(agent.name)}</strong><span>${escapeHtml(agent.role)} · ${escapeHtml(agent.faction)} · ${escapeHtml(status)}</span></div><button class="mini-btn" data-clear-inspect>×</button></div>
       <div class="inspect-grid">
         <div><b>${Math.max(0, agent.hp)}/${agent.maxHp}</b><span>HP</span></div>
         <div><b>${Math.round(agent.fatigue ?? 0)}</b><span>fatigue</span></div>
@@ -259,10 +243,5 @@ function currentThought(agent, sim) {
 }
 
 function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
+  return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 }
