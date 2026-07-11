@@ -21,9 +21,10 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.renderer = new DungeonRendererPhase8(this.three, this.scenario, this.assets);
     this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
     this.addSettlementMetrics();
+    this.addExpeditionMetrics();
 
     const legend = this.el.querySelector('.legend span');
-    if (legend) legend.textContent = 'Habitat capacity, home return, overcrowding, displacement and settlement collapse are active.';
+    if (legend) legend.textContent = 'Habitat capacity, expedition provisions, endurance, retreat decisions and destructible field camps are active.';
   }
 
   addSettlementMetrics() {
@@ -35,6 +36,17 @@ export class ObserveScreen extends Phase6ObserveScreen {
       <div class="metric"><b data-metric="threatenedSettlements">0</b><span>threatened habitats</span></div>
       <div class="metric"><b data-metric="overcrowdedSettlements">0</b><span>overcrowded habitats</span></div>
       <div class="metric"><b data-metric="displaced">0</b><span>displaced monsters</span></div>
+    `);
+  }
+
+  addExpeditionMetrics() {
+    const metrics = this.el.querySelector('.metrics');
+    if (!metrics || metrics.querySelector('[data-metric="fieldCamps"]')) return;
+    metrics.insertAdjacentHTML('afterbegin', `
+      <div class="metric"><b data-metric="fieldCamps">0</b><span>field camps</span></div>
+      <div class="metric"><b data-metric="retreatingParties">0</b><span>retreating parties</span></div>
+      <div class="metric"><b data-metric="lowSupplyParties">0</b><span>low supply parties</span></div>
+      <div class="metric"><b data-metric="expeditionEndurance">0</b><span>avg endurance</span></div>
     `);
   }
 
@@ -78,7 +90,30 @@ export class ObserveScreen extends Phase6ObserveScreen {
         <div class="equipment-row"><span>attachment</span><b>${Math.round((agent.homeAttachment ?? 0) * 100)}%</b><em>range ${agent.roamingRange ?? '—'} rooms</em></div>
       </section>
     `);
+
+    if (agent.faction === 'party') this.renderExpeditionPanel(agent, insertionPoint);
   }
+
+  renderExpeditionPanel(agent, insertionPoint) {
+    const party = this.sim.partySystem.getParty(agent);
+    if (!party) return;
+    const base = this.sim.settlementSystem.settlements.get(party.baseSettlementId);
+    const baseName = base ? this.sim.settlementSystem.label(base) : 'No active base';
+    const endurance = `${Math.round(party.endurance ?? 0)}/${party.maxExpeditionTime ?? 0}`;
+    insertionPoint.insertAdjacentHTML('beforebegin', `
+      <section class="equipment-panel expedition-panel">
+        <strong>Expedition Supply</strong>
+        <div class="equipment-row"><span>state</span><b>${escapeHtml(party.expeditionState ?? 'exploring')}</b><em>${escapeHtml(baseName)}</em></div>
+        <div class="equipment-row"><span>provisions</span><b>${formatSupply(party.provisions)}/${party.maxProvisions}</b><em>water ${formatSupply(party.water)}/${party.maxWater}</em></div>
+        <div class="equipment-row"><span>medicine</span><b>${formatSupply(party.medicine)}/${party.maxMedicine}</b><em>materials ${formatSupply(party.materials)}/${party.maxMaterials}</em></div>
+        <div class="equipment-row"><span>endurance</span><b>${endurance}</b><em>${Math.round(party.expeditionTime ?? 0)} elapsed</em></div>
+      </section>
+    `);
+  }
+}
+
+function formatSupply(value) {
+  return Math.round((value ?? 0) * 10) / 10;
 }
 
 function escapeHtml(value) {
