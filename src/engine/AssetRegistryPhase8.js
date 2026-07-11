@@ -4,12 +4,14 @@ import { SettlementAssetFactory } from './SettlementAssetFactory.js';
 import { ExpeditionAssetFactory } from './ExpeditionAssetFactory.js';
 import { LogisticsAssetFactory } from './LogisticsAssetFactory.js';
 import { ConstructionAssetFactory } from './ConstructionAssetFactory.js';
+import { PolishedMiniatureFactory } from './PolishedMiniatureFactory.js';
 
 export const PHASE8D_STRUCTURE_TYPES = new Set(['supply_depot', 'gatehouse', 'siege_workshop', 'ambush_post']);
 
 export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
   constructor() {
     super();
+    this.miniatures = new PolishedMiniatureFactory();
     this.settlement = new SettlementAssetFactory();
     this.expedition = new ExpeditionAssetFactory();
     this.logistics = new LogisticsAssetFactory();
