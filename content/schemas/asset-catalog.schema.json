@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "asset-catalog",
+  "description": "content/assets/asset-catalog.json 구조. status/priority 어휘는 docs/assets/content-asset-inventory.md를 따릅니다. src/content/ContentValidator.js가 소비하므로 type/required/properties/items/enum 키워드만 사용합니다.",
+  "type": "object",
+  "required": ["schemaVersion", "contentVersion", "entries"],
+  "properties": {
+    "schemaVersion": { "type": "integer" },
+    "contentVersion": { "type": "string" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "status", "priority"],
+        "properties": {
+          "id": { "type": "string", "description": "안정적인 bundle ID (kit.stone-common, habitat.goblin.market 등)" },
+          "kind": {
+            "type": "string",
+            "enum": ["diorama", "kit", "habitat", "equipment", "ui"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["REUSE", "UPGRADE", "AUTHOR", "FALLBACK", "CONTENT"]
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["P0", "P1", "P2", "P3"]
+          },
+          "authored": {
+            "type": "object",
+            "properties": {
+              "model": { "type": "string", "description": "assets/ 기준 GLB 경로" },
+              "texture": { "type": "string" }
+            },
+            "description": "authored 파일이 준비된 경우만 기록"
+          },
+          "proceduralFallback": {
+            "type": "object",
+            "required": ["factory", "recipe"],
+            "properties": {
+              "factory": { "type": "string", "description": "procedural AssetFactory 클래스 이름" },
+              "recipe": { "type": "string" }
+            }
+          },
+          "legacyProp": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "type": { "type": "string", "description": "레거시 시나리오 prop type" },
+              "label": { "type": "string" }
+            },
+            "description": "있으면 ScenarioCompiler가 레거시 prop으로 방출, 없으면 meta에만 기록"
+          },
+          "footprint": {
+            "type": "object",
+            "required": ["shape"],
+            "properties": {
+              "shape": { "type": "string", "enum": ["circle", "rect"] },
+              "radius": { "type": "number" },
+              "width": { "type": "number" },
+              "depth": { "type": "number" }
+            }
+          },
+          "clearance": {
+            "type": "object",
+            "properties": {
+              "radius": { "type": "number" },
+              "height": { "type": "number" }
+            },
+            "description": "footprint 바깥에 추가로 비워둘 공간"
+          },
+          "sockets": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
