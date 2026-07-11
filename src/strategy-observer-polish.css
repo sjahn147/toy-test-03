@@ -1,0 +1,140 @@
+.strategy-camera-divider {
+  width: 1px;
+  height: 22px;
+  margin: 0 2px;
+  background: rgba(255,255,255,.13);
+}
+
+.strategy-shortcut-hint {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 8;
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px;
+  background: rgba(7,10,17,.58);
+  color: rgba(247,242,232,.55);
+  font-size: 9px;
+  letter-spacing: .04em;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+}
+
+.strategy-camera-controls button {
+  transition: background .16s ease, border-color .16s ease, color .16s ease, transform .12s ease;
+}
+.strategy-camera-controls button:hover { border-color: rgba(232,196,106,.42); color: #fff1bd; }
+.strategy-camera-controls button:active { transform: translateY(1px); }
+.strategy-camera-controls [data-shell-camera-action="previous"],
+.strategy-camera-controls [data-shell-camera-action="next"] { min-width: 30px; padding-inline: 8px; font-size: 16px; }
+
+.strategy-nav-row,
+.strategy-event,
+.strategy-related-row {
+  transition: background .14s ease, border-color .14s ease, transform .12s ease;
+}
+.strategy-nav-row:focus-visible,
+.strategy-event:focus-visible,
+.strategy-related-row:focus-visible,
+.strategy-camera-controls button:focus-visible,
+.strategy-mobile-nav button:focus-visible {
+  outline: 2px solid rgba(232,196,106,.9);
+  outline-offset: 2px;
+}
+
+.strategy-nav-row:active,
+.strategy-event:active,
+.strategy-related-row:active { transform: translateY(1px); }
+
+.strategy-event[data-room-id] { cursor: pointer; }
+.strategy-event:not([data-room-id]) { cursor: default; }
+.strategy-event:hover { background: rgba(255,255,255,.075); }
+
+.strategy-inspector-scroll,
+.strategy-nav-list,
+.strategy-timeline-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(232,196,106,.38) rgba(255,255,255,.04);
+}
+
+.strategy-mobile-nav { display: none; }
+
+@media (max-width: 780px) {
+  .strategy-observer {
+    grid-template-columns: 1fr;
+    grid-template-rows: 52px minmax(0, 1fr) 54px;
+    grid-template-areas: "top" "mobile" "mobile-nav";
+  }
+
+  .strategy-observer [data-mobile-surface] {
+    grid-area: mobile;
+    display: none;
+    min-height: 0;
+  }
+  .strategy-observer[data-mobile-surface="world"] [data-mobile-surface="world"],
+  .strategy-observer[data-mobile-surface="navigator"] [data-mobile-surface="navigator"],
+  .strategy-observer[data-mobile-surface="inspector"] [data-mobile-surface="inspector"],
+  .strategy-observer[data-mobile-surface="timeline"] [data-mobile-surface="timeline"] {
+    display: block;
+  }
+
+  .strategy-observer[data-mobile-surface="timeline"] [data-mobile-surface="timeline"] {
+    display: grid;
+    grid-template-rows: 42px minmax(0, 1fr);
+  }
+
+  .strategy-mobile-nav {
+    grid-area: mobile-nav;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    padding: 6px max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    border-top: 1px solid var(--line);
+    background: rgba(7,10,17,.98);
+    z-index: 30;
+  }
+  .strategy-mobile-nav button {
+    appearance: none;
+    min-height: 40px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 850;
+  }
+  .strategy-mobile-nav button.is-active {
+    border-color: rgba(232,196,106,.45);
+    background: rgba(232,196,106,.14);
+    color: #ffe6a0;
+  }
+
+  .strategy-navigator,
+  .strategy-inspector { border: 0; }
+  .strategy-nav-list { height: calc(100% - 98px); }
+  .strategy-inspector-scroll { height: calc(100% - 46px); }
+  .strategy-timeline-list {
+    display: grid;
+    align-content: start;
+    overflow: auto;
+  }
+  .strategy-event { min-width: 0; max-width: none; width: 100%; }
+  .strategy-camera-controls {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+  .strategy-camera-controls button { flex: 0 0 auto; min-height: 40px; }
+  .strategy-shortcut-hint { display: none; }
+  .strategy-world-title { top: 9px; left: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strategy-camera-controls button,
+  .strategy-nav-row,
+  .strategy-event,
+  .strategy-related-row { transition: none; }
+}
