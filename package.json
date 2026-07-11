@@ -6,7 +6,8 @@
   "description": "A tiny Three.js dungeon-observer web app with simple rule-driven agents.",
   "scripts": {
     "start": "python -m http.server 8000",
-    "test:phase1": "node tests/phase1-smoke.mjs"
+    "test:phase1": "node tests/phase1-smoke.mjs",
+    "test:phase2": "node tests/phase2-smoke.mjs"
   },
   "keywords": [
     "threejs",
