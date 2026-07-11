@@ -103,7 +103,8 @@ export function selectAgentInspector(state, agentId) {
       id: agentId,
       name: firstString(agent.name) ?? agentId,
       role: firstString(agent.role, agent.kind) ?? null,
-      faction: firstString(agent.factionId, agent.ecologyFaction, agent.faction) ?? null,
+      faction: firstString(agent.faction, agent.factionId, agent.ecologyFaction) ?? null,
+      ecologyFaction: firstString(agent.ecologyFaction, agent.factionId) ?? null,
       level: firstNumber(agent.level) ?? 1
     },
     vitals: {
