@@ -2,6 +2,15 @@ import { DungeonSim as Phase1DungeonSim } from './DungeonSimPhase1.js';
 import { EntranceQueueSystem } from './EntranceQueueSystem.js';
 import { RecoverySystem } from './RecoverySystem.js';
 
+const FACILITY_RADII = {
+  dungeon_entrance: 1.25,
+  water_fountain: 0.85,
+  rest_site: 1.15,
+  camp_site: 1.05,
+  merchant_stall: 1.2,
+  goddess_statue: 1.0
+};
+
 export class DungeonSim extends Phase1DungeonSim {
   constructor(scenario, options = {}) {
     super(scenario, options);
@@ -20,6 +29,7 @@ export class DungeonSim extends Phase1DungeonSim {
     });
     this.recoverySystem.initializeAgents(this.agents);
     this.queueInitialParties();
+    this.blockFacilityFootprints();
   }
 
   queueInitialParties() {
@@ -30,6 +40,23 @@ export class DungeonSim extends Phase1DungeonSim {
       if (!members.length) continue;
       for (const member of members) this.occupancy.release(member.id);
       this.entranceQueue.enqueue(members, { delay: 2.6, label: party.name });
+    }
+  }
+
+  blockFacilityFootprints() {
+    for (const prop of this.props) {
+      const radius = FACILITY_RADII[prop.type];
+      if (!radius) continue;
+      const room = this.rooms.find(candidate => candidate.id === prop.roomId);
+      if (!room) continue;
+      const placement = prop.placement ?? {};
+      this.occupancy.blockArea(
+        room.id,
+        room.x + (placement.ox ?? 0),
+        room.z + (placement.oz ?? 0),
+        radius * (placement.scale ?? 1),
+        prop.id
+      );
     }
   }
 
