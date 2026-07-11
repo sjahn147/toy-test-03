@@ -6,8 +6,10 @@ import { applyPhase5Ecology } from '../src/data/applyPhase5Ecology.js';
 import { applyPhase6Ecology } from '../src/data/applyPhase6Ecology.js';
 import { applyPhase7Territories } from '../src/data/applyPhase7Territories.js';
 import { applyPhase8SpatialScale } from '../src/data/applyPhase8SpatialScale.js';
+import { applyPhase8PropLayout } from '../src/data/applyPhase8PropLayout.js';
 import { LegacyPhaseRuntimeAdapter } from '../src/compat/LegacyPhaseRuntimeAdapter.js';
 import { GameRuntimeFacade } from '../src/application/GameRuntimeFacade.js';
+import { WorldEventBus } from '../src/application/WorldEventBus.js';
 import { assertWorldSnapshot } from '../src/domain/snapshotContract.js';
 import { EVENT_SEVERITIES } from '../src/domain/eventContract.js';
 import {
@@ -30,19 +32,37 @@ function isPlainObject(value) {
 }
 
 try {
+  // --- 이벤트 버스: bounded history + idempotent unsubscribe/destroy ---
+  const bus = new WorldEventBus({ limit: 2 });
+  const busReceived = [];
+  const stopBus = bus.subscribe(event => busReceived.push(event.id));
+  bus.publish({ id: 'event-1' });
+  bus.publish({ id: 'event-2' });
+  bus.publish({ id: 'event-3' });
+  assert.deepEqual(bus.history().map(event => event.id), ['event-2', 'event-3'], 'event bus did not enforce history limit');
+  assert.deepEqual(busReceived, ['event-1', 'event-2', 'event-3'], 'event bus subscriber missed events');
+  assert.equal(stopBus(), true, 'first unsubscribe should remove listener');
+  assert.equal(stopBus(), false, 'second unsubscribe should be idempotent');
+  bus.destroy();
+  assert.equal(bus.publish({ id: 'event-4' }), false, 'destroyed event bus accepted an event');
+  console.log('world event bus lifecycle ok');
+
   // --- 어댑터: cellar 시나리오를 라이브 apply 체인으로 준비 ---
   const base = SCENARIOS.find(scenario => scenario.id === 'cellar');
   assert.ok(base, 'cellar scenario is missing');
   const expanded = base.useGeneratedMap ? expandScenario(base) : base;
-  const scenario = applyPhase7Territories(
-    applyPhase8SpatialScale(
-      applyPhase6Ecology(
-        applyPhase5Ecology(
-          applyPhase2Facilities(expanded)
+  const scenario = applyPhase8PropLayout(
+    applyPhase7Territories(
+      applyPhase8SpatialScale(
+        applyPhase6Ecology(
+          applyPhase5Ecology(
+            applyPhase2Facilities(expanded)
+          )
         )
       )
     )
   );
+  assert.equal(scenario.phase8PropLayoutApplied, true, 'Phase 8 prop layout was not applied');
 
   const adapter = new LegacyPhaseRuntimeAdapter({ scenario });
   const received = [];
@@ -95,21 +115,49 @@ try {
   assert.equal(received.length, deliveredBefore, 'unsubscribe did not stop event delivery');
   console.log('subscribe/unsubscribe ok');
 
-  // --- dispatch: 알려진 커맨드 성공, 미지 커맨드는 throw 없이 {ok:false} ---
+  // --- dispatch: 커맨드, pause/resume, unknown command ---
   const noiseResult = adapter.dispatch({ type: 'sim.make-noise', roomId });
   assert.equal(noiseResult.ok, true, `sim.make-noise dispatch failed: ${noiseResult.error ?? ''}`);
+  const timeBeforePause = adapter.sim.time;
+  assert.equal(adapter.dispatch({ type: 'clock.pause' }).ok, true, 'clock.pause failed');
+  adapter.update(1);
+  assert.equal(adapter.sim.time, timeBeforePause, 'paused adapter advanced simulation time');
+  assert.equal(adapter.dispatch({ type: 'clock.resume' }).ok, true, 'clock.resume failed');
+  adapter.update(0.2);
+  assert.ok(adapter.sim.time > timeBeforePause, 'resumed adapter did not advance simulation time');
   const unknownResult = adapter.dispatch({ type: 'totally.unknown-command' });
   assert.equal(unknownResult.ok, false, 'unknown command did not return {ok:false}');
-  console.log('dispatch ok');
+  console.log('dispatch and clock control ok');
 
-  // --- 파사드 뷰모델 ---
+  // --- 파사드 뷰모델 + lifecycle ---
   const facade = new GameRuntimeFacade({ runtime: adapter });
   const viewModel = facade.getViewModel({ agentId, timelineFilter: 'all', timelineLimit: 20 });
   assert.deepEqual(Object.keys(viewModel).sort(), ['alerts', 'selection', 'timeline', 'topBar'], 'view model shape mismatch');
   assert.ok(isPlainObject(viewModel.topBar), 'viewModel.topBar is not a plain object');
   assert.equal(viewModel.selection?.type, 'agent', 'viewModel selection did not prioritize agentId');
   assert.ok(Array.isArray(viewModel.alerts), 'viewModel.alerts is not an array');
-  console.log('facade view model ok');
+  facade.destroy();
+  facade.destroy();
+  assert.equal(adapter.destroyed, true, 'facade did not destroy its runtime adapter');
+  assert.equal(facade.dispatch({ type: 'clock.resume' }).ok, false, 'destroyed facade accepted a command');
+  assert.throws(() => facade.getSnapshot(), /destroyed/, 'destroyed facade returned a snapshot');
+  console.log('facade view model and lifecycle ok');
+
+  // --- fromSim teardown restores the previous onEvent hook ---
+  const previousOnEvent = () => {};
+  const fakeSim = {
+    onEvent: previousOnEvent,
+    update() {},
+    snapshot() { return {}; },
+    metrics() { return {}; },
+    makeNoise() {},
+    dropCoin() {}
+  };
+  const attachedAdapter = LegacyPhaseRuntimeAdapter.fromSim(fakeSim);
+  assert.notEqual(fakeSim.onEvent, previousOnEvent, 'fromSim did not attach event bridge');
+  attachedAdapter.destroy();
+  assert.equal(fakeSim.onEvent, previousOnEvent, 'destroy did not restore previous onEvent hook');
+  console.log('existing sim event hook restoration ok');
 
   console.log(`runtime facade smoke passed with ${Object.keys(snapshot.entities.agents).length} agents, ${received.length} events and ${Object.keys(snapshot.entities.settlements).length} settlements`);
 } finally {
