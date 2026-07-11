@@ -4,6 +4,7 @@
 // 빈 테이블을 방출하므로 base DungeonSim에도 그대로 사용할 수 있습니다.
 
 import { assertWorldSnapshot } from '../domain/snapshotContract.js';
+import { enrichLegacyParties } from './enrichLegacyParties.js';
 
 const ADVENTURER_FACTION = 'adventurer-expedition';
 
@@ -134,7 +135,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const effects = tableOf(raw.effects, 'effect');
   const connections = connectionTable(raw.links);
   const settlements = tableOf(raw.settlement?.settlements, 'settlement');
-  const parties = tableOf(raw.expedition?.parties, 'party');
+  const parties = enrichLegacyParties(tableOf(raw.expedition?.parties, 'party'), agents);
   const cargo = tableOf(raw.logistics?.cargo, 'cargo');
   const structures = tableOf(raw.construction?.structures, 'structure');
   const factions = factionTable(agents, settlements);
