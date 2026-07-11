@@ -1,30 +1,36 @@
 // timeline selector (surface.timeline).
-// filter는 이벤트 type의 namespace prefix와 매칭 ('combat' → 'combat.*').
+// Namespace filters match event type prefixes; `major` matches severe events.
+
+const MAJOR_SEVERITIES = new Set(['major', 'critical', 'historic']);
 
 function matchesFilter(event, filter) {
   if (filter === 'all') return true;
+  if (filter === 'major') return MAJOR_SEVERITIES.has(event.severity);
   const type = typeof event.type === 'string' ? event.type : '';
   return type === filter || type.startsWith(`${filter}.`);
 }
 
 export function selectTimelineEvents(state, { filter = 'all', limit = 50 } = {}) {
   const events = Array.isArray(state?.events) ? state.events : [];
-
   const filtered = [];
+
   for (const event of events) {
-    if (!event || typeof event !== 'object') continue;
-    if (!matchesFilter(event, filter)) continue;
+    if (!event || typeof event !== 'object' || !matchesFilter(event, filter)) continue;
     filtered.push({
-      id: event.id ?? null,
+      id: event.id ?? `${event.type ?? 'event'}:${event.time ?? 0}:${filtered.length}`,
       time: typeof event.time === 'number' ? event.time : 0,
       type: event.type ?? null,
       severity: event.severity ?? 'ambient',
       text: event.fallbackText ?? event.text ?? '',
-      roomId: event.roomId ?? null
+      roomId: event.roomId ?? event.locationRoomId ?? null,
+      actorId: event.actorId ?? event.sourceId ?? event.agentId ?? null,
+      targetId: event.targetId ?? event.subjectId ?? null,
+      factionId: event.factionId ?? null
     });
   }
 
-  // 입력이 시간순(append order)이라는 계약을 따르므로 최근 limit개만 남긴다 (newest-last).
+  // Input is append ordered, so retain the newest `limit` events while keeping
+  // chronological order for the presentation layer.
   const max = typeof limit === 'number' && limit >= 0 ? limit : 50;
   return filtered.length > max ? filtered.slice(filtered.length - max) : filtered;
 }
