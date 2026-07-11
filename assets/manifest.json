@@ -1,7 +1,7 @@
 {
-  "version": 5,
-  "mode": "procedural-modular-dungeon-ecology",
-  "notes": "Rooms, ports, facilities, combat, equipment and monster ecology are generated from shared runtime contracts. Species lairs, corpses, living hosts and staged births remain visible world entities.",
+  "version": 6,
+  "mode": "procedural-modular-dungeon-faction-ecology",
+  "notes": "Rooms, facilities, combat, equipment, species ecology, infections and territorial factions are generated from shared runtime contracts. Lairs, corpses, hosts, traps, attachments, infections, spawn omens and room ownership remain visible world entities.",
   "topology": {
     "builder": "src/engine/DungeonTopology.js",
     "connectionModel": "room-port to room-port",
@@ -31,6 +31,7 @@
     "partCatalog": "src/miniatures/partCatalog.js",
     "factory": "src/engine/MiniatureFactory.js",
     "ecologyFactory": "src/engine/EcologyAssetFactory.js",
+    "advancedEcologyFactory": "src/engine/AdvancedCreatureAssetFactory.js",
     "roles": [
       "fighter",
       "rogue",
@@ -43,7 +44,15 @@
       "rat",
       "ogre",
       "slime",
-      "mimic"
+      "mimic",
+      "zombie",
+      "orc",
+      "myconid",
+      "stirge",
+      "carrion",
+      "kobold",
+      "wraith",
+      "parasite"
     ],
     "sharedSockets": [
       "root",
@@ -103,6 +112,32 @@
       "lair footprint occupancy blocking"
     ]
   },
+  "advancedEcology": {
+    "scenarioDecorator": "src/data/applyPhase6Ecology.js",
+    "config": "src/sim/advancedEcologyConfig.js",
+    "system": "src/sim/AdvancedEcologySystem.js",
+    "simulation": "src/sim/DungeonSimPhase6.js",
+    "creatureFactory": "src/engine/AdvancedCreatureAssetFactory.js",
+    "lairFactory": "src/engine/AdvancedLairAssetFactory.js",
+    "registry": "src/engine/AssetRegistryPhase6.js",
+    "renderer": "src/engine/DungeonRendererPhase6.js",
+    "species": ["zombie", "orc", "myconid", "stirge", "carrion", "kobold", "wraith", "parasite"],
+    "lairs": ["plague_mortuary", "orc_tribe_camp", "fungal_garden", "blood_roost", "carrion_pit", "kobold_workshop", "cursed_chapel", "parasite_pool"],
+    "factions": ["undead-host", "red-tusk-tribe", "goblin-clan", "copper-tail-clutch", "bluecap-colony", "red-wing-brood", "carrion-brood", "pale-brood", "slime-bloom", "ogre-solitary", "warren-vermin"],
+    "worldEntities": ["territory", "faction_trap", "stirge_attachment", "parasite_infection", "advanced_pending_spawn"],
+    "features": [
+      "cross-species corpse competition",
+      "zombie corpse recruitment",
+      "myconid decomposition and sleep spores",
+      "stirge blood attachment",
+      "parasite infection and larval emergence",
+      "kobold manufactured traps",
+      "wraith death-energy harvesting",
+      "orc predation and territorial expansion",
+      "cross-faction room combat",
+      "visible room capture and contested borders"
+    ]
+  },
   "effects": {
     "active": [
       "attack",
@@ -117,7 +152,15 @@
       "equipment-break",
       "feeding",
       "birth",
-      "cocoon"
+      "cocoon",
+      "plague",
+      "spore",
+      "blood-attach",
+      "soul-drain",
+      "infection",
+      "infection-burst",
+      "trap-spring",
+      "advanced-birth"
     ],
     "source": "DungeonSim.effects",
     "renderer": "DungeonRenderer.renderEffects"
@@ -131,18 +174,18 @@
       "target": "src/engine/"
     },
     {
-      "id": "custom-miniatures-v5",
-      "name": "Procedural modular miniatures equipment and ecology species",
+      "id": "custom-miniatures-v6",
+      "name": "Procedural modular miniatures equipment and faction ecology species",
       "status": "active",
       "license": "Original project code and generated geometry",
       "target": "src/miniatures/"
     },
     {
-      "id": "custom-ecology-v1",
-      "name": "Procedural species lairs corpses cocoons and spawn omens",
+      "id": "custom-ecology-v2",
+      "name": "Procedural lairs corpses infections traps territories and spawn omens",
       "status": "active",
       "license": "Original project code and generated geometry",
-      "target": "src/engine/EcologyAssetFactory.js"
+      "target": "src/engine/"
     },
     {
       "id": "custom-glb-parts",
@@ -170,7 +213,15 @@
       "spider_lair": "procedural:silk-brood-chamber",
       "slime_pool": "procedural:digestive-spawning-pool",
       "rat_warren": "procedural:granary-rat-warren",
-      "ogre_lair": "procedural:ogre-butcher-camp"
+      "ogre_lair": "procedural:ogre-butcher-camp",
+      "plague_mortuary": "procedural:plague-mortuary",
+      "orc_tribe_camp": "procedural:red-tusk-war-camp",
+      "fungal_garden": "procedural:bluecap-rot-garden",
+      "blood_roost": "procedural:red-wing-blood-roost",
+      "carrion_pit": "procedural:carrion-nursery-pit",
+      "kobold_workshop": "procedural:copper-tail-trapworks",
+      "cursed_chapel": "procedural:chapel-of-unfinished-names",
+      "parasite_pool": "procedural:pale-larval-cistern"
     },
     "agents": {
       "fighter": "recipe:fighter_rana_v1",
@@ -184,7 +235,15 @@
       "rat": "procedural:ecology-rat",
       "ogre": "recipe:ogre_large_v1",
       "slime": "recipe:slime_common_v1",
-      "mimic": "recipe:mimic_common_v1"
+      "mimic": "recipe:mimic_common_v1",
+      "zombie": "procedural:advanced-zombie",
+      "orc": "procedural:advanced-orc",
+      "myconid": "procedural:advanced-myconid",
+      "stirge": "procedural:advanced-stirge",
+      "carrion": "procedural:advanced-carrion-crawler",
+      "kobold": "procedural:advanced-kobold",
+      "wraith": "procedural:advanced-wraith",
+      "parasite": "procedural:advanced-parasite"
     }
   }
 }
