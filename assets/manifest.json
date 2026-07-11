@@ -1,11 +1,11 @@
 {
-  "version": 3,
+  "version": 4,
   "mode": "procedural-modular-dungeon",
-  "notes": "Rooms, ports, doors, corridors, miniatures and effects are generated from shared runtime contracts. Future GLB parts can replace procedural builders without changing recipes or simulation code.",
+  "notes": "Rooms, ports, doors, corridors, miniatures, facilities, projectiles, equipment and effects are generated from shared runtime contracts. Future GLB parts can replace procedural builders without changing simulation or role recipes.",
   "topology": {
     "builder": "src/engine/DungeonTopology.js",
     "connectionModel": "room-port to room-port",
-    "movement": "continuous corridor travel",
+    "movement": "continuous corridor and reserved-cell travel",
     "surfaceRule": "room floors and corridor floors share the same top-surface elevation"
   },
   "environment": {
@@ -17,7 +17,13 @@
       "door-frame",
       "door-threshold",
       "corridor-floor",
-      "corridor-curbs"
+      "corridor-curbs",
+      "entrance-waystation",
+      "water-fountain",
+      "rest-site",
+      "camp-site",
+      "merchant-stall",
+      "goddess-statue"
     ]
   },
   "miniatures": {
@@ -29,6 +35,7 @@
       "rogue",
       "cleric",
       "wizard",
+      "archer",
       "goblin",
       "skeleton",
       "ogre",
@@ -51,12 +58,41 @@
       "baseFx"
     ]
   },
+  "combat": {
+    "simulation": "src/sim/DungeonSimPhase3.js",
+    "projectiles": "src/sim/ProjectileSystem.js",
+    "renderer": "src/engine/DungeonRendererPhase3.js",
+    "activeProjectiles": ["arrow", "magic", "heal", "web"]
+  },
+  "equipment": {
+    "catalog": "src/data/itemCatalog.js",
+    "system": "src/sim/EquipmentSystem.js",
+    "simulation": "src/sim/DungeonSimPhase4.js",
+    "assetFactory": "src/engine/EquipmentAssetFactory.js",
+    "renderer": "src/engine/DungeonRendererPhase4.js",
+    "slots": ["mainHand", "offHand", "head", "body", "accessory"],
+    "features": [
+      "role-aware automatic equipment comparison",
+      "monster and treasure loot tables",
+      "floor loot dioramas",
+      "weapon and armor durability",
+      "equipment break and repair",
+      "merchant buy sell and repair",
+      "live miniature socket replacement"
+    ]
+  },
   "effects": {
     "active": [
       "attack",
       "death",
       "gold",
-      "heal"
+      "heal",
+      "arrow-impact",
+      "magic-impact",
+      "web-impact",
+      "downed",
+      "equipment-upgrade",
+      "equipment-break"
     ],
     "source": "DungeonSim.effects",
     "renderer": "DungeonRenderer.renderEffects"
@@ -70,15 +106,15 @@
       "target": "src/engine/"
     },
     {
-      "id": "custom-miniatures-v2",
-      "name": "Procedural modular dungeon miniatures including a large ogre",
+      "id": "custom-miniatures-v4",
+      "name": "Procedural modular dungeon miniatures and socket-swappable equipment",
       "status": "active",
       "license": "Original project code and generated geometry",
       "target": "src/miniatures/"
     },
     {
       "id": "custom-glb-parts",
-      "name": "Future authored environment and miniature GLB parts",
+      "name": "Future authored environment miniature and equipment GLB parts",
       "status": "planned",
       "license": "Project-owned or explicitly licensed assets only",
       "target": "assets/models/"
@@ -95,13 +131,15 @@
       "chest": "procedural:chest",
       "trap": "procedural:trap",
       "armory": "procedural:armory",
-      "shrine": "procedural:shrine"
+      "shrine": "procedural:shrine",
+      "loot": "procedural:equipment-loot-pile"
     },
     "agents": {
       "fighter": "recipe:fighter_rana_v1",
       "rogue": "recipe:rogue_milo_v1",
       "cleric": "recipe:cleric_pell_v1",
       "wizard": "recipe:wizard_orwin_v1",
+      "archer": "recipe:archer_alda_v1",
       "goblin": "recipe:goblin_common_v1",
       "skeleton": "recipe:skeleton_common_v1",
       "ogre": "recipe:ogre_large_v1",
