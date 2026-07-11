@@ -44,12 +44,39 @@ export class DungeonSim extends Phase5DungeonSim {
     }
 
     for (const agent of this.agents) {
-      if (!agent.alive || agent.departed || agent.hidden || agent.travel || !agent.roomCell) continue;
-      const blocked = agent.roomCell.footprint?.some(cellId => this.occupancy.blockedCells.has(cellId));
+      if (!agent.alive || agent.departed || agent.hidden || agent.travel || agent.queued) continue;
+      const blocked = !agent.roomCell || agent.roomCell.footprint?.some(cellId => this.occupancy.blockedCells.has(cellId));
       if (!blocked) continue;
-      this.occupancy.release(agent.id);
-      this.occupancy.placeAgent(agent, agent.roomId);
+      this.relocateAfterAdvancedBlocking(agent);
     }
+  }
+
+  relocateAfterAdvancedBlocking(agent) {
+    this.occupancy.release(agent.id);
+    this.occupancy.cancelReservation(agent.id);
+    agent.roomCell = null;
+    const neighbors = this.graph.get(agent.roomId) ?? [];
+    const candidates = [
+      agent.roomId,
+      ...neighbors,
+      ...this.rooms.map(room => room.id)
+    ].filter((roomId, index, values) => values.indexOf(roomId) === index)
+      .filter(roomId => {
+        const room = this.rooms.find(candidate => candidate.id === roomId);
+        return room && !room.tags?.includes('safe_zone') && !room.tags?.includes('entrance_threshold') && room.kind !== 'start';
+      });
+
+    for (const roomId of candidates) {
+      agent.roomId = roomId;
+      if (this.occupancy.placeAgent(agent, roomId)) {
+        agent.mood = roomId === agent.homeRoomId ? 'at-lair-edge' : 'displaced-by-lair';
+        return true;
+      }
+    }
+
+    agent.hidden = true;
+    agent.mood = 'lair-overcrowded';
+    return false;
   }
 
   update(dt) {
