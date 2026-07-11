@@ -1,13 +1,15 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
-import { DungeonRenderer } from '../engine/DungeonRenderer.js';
-import { AssetRegistry } from '../engine/AssetRegistry.js';
-import { DungeonSim } from '../sim/DungeonSimPhase1.js';
+import { DungeonRendererPhase2 } from '../engine/DungeonRendererPhase2.js';
+import { AssetRegistryPhase2 } from '../engine/AssetRegistryPhase2.js';
+import { DungeonSim } from '../sim/DungeonSimPhase2.js';
 import { expandScenario } from '../data/generateDungeon.js';
+import { applyPhase2Facilities } from '../data/applyPhase2Facilities.js';
 
 export class ObserveScreen {
   constructor({ scenario, state, onBack }) {
     this.baseScenario = scenario;
-    this.scenario = scenario.useGeneratedMap ? expandScenario(scenario) : scenario;
+    const expanded = scenario.useGeneratedMap ? expandScenario(scenario) : scenario;
+    this.scenario = applyPhase2Facilities(expanded);
     this.state = state;
     this.onBack = onBack;
     this.running = true;
@@ -26,7 +28,7 @@ export class ObserveScreen {
       <div class="viewport">
         <div class="legend">
           <strong>${this.scenario.name}</strong>
-          <span>Fixed / Follow / Free camera. Tap a creature to inspect or follow it.</span>
+          <span>Fixed / Follow / Free camera. Parties recover at the licensed waystation.</span>
         </div>
         <div class="camera-strip" data-camera-strip>
           <button class="camera-btn is-active" data-camera-mode="fixed">고정</button>
@@ -40,9 +42,11 @@ export class ObserveScreen {
         <div class="metrics">
           <div class="metric"><b data-metric="party">0</b><span>party inside</span></div>
           <div class="metric"><b data-metric="dungeon">0</b><span>dungeon awake</span></div>
+          <div class="metric"><b data-metric="waiting">0</b><span>waiting outside</span></div>
+          <div class="metric"><b data-metric="orphaned">0</b><span>orphan members</span></div>
+          <div class="metric"><b data-metric="resurrectable">0</b><span>awaiting return</span></div>
           <div class="metric"><b data-metric="cycles">1</b><span>return cycle</span></div>
           <div class="metric"><b data-metric="fallen">0</b><span>fallen mice</span></div>
-          <div class="metric"><b data-metric="orphaned">0</b><span>orphan members</span></div>
         </div>
         <section class="inspect-card" data-inspect>
           <div class="inspect-empty">Tap a creature in the dungeon to inspect its tiny bad decisions.</div>
@@ -63,35 +67,32 @@ export class ObserveScreen {
     this.logEl = el.querySelector('[data-log]');
     this.inspectEl = el.querySelector('[data-inspect]');
 
-    this.assets = new AssetRegistry();
+    this.assets = new AssetRegistryPhase2();
     this.assets.loadManifest();
     this.three = new ThreeScene(this.viewport);
     this.fitCameraToScenario();
-    this.renderer = new DungeonRenderer(this.three, this.scenario, this.assets);
+    this.renderer = new DungeonRendererPhase2(this.three, this.scenario, this.assets);
     this.sim = new DungeonSim(this.scenario, {
-      onEvent: (event) => this.pushEvent(event.text)
+      onEvent: event => this.pushEvent(event.text)
     });
 
     el.querySelectorAll('[data-camera-mode]').forEach(button => {
       button.addEventListener('click', () => this.setCameraMode(button.dataset.cameraMode));
     });
-
-    el.querySelector('[data-action="pause"]').addEventListener('click', (e) => {
+    el.querySelector('[data-action="pause"]').addEventListener('click', event => {
       this.running = !this.running;
-      e.currentTarget.textContent = this.running ? '일시정지' : '재생';
+      event.currentTarget.textContent = this.running ? '일시정지' : '재생';
     });
     el.querySelector('[data-action="noise"]').addEventListener('click', () => this.sim.makeNoise(this.pickRoom(['hall', 'crypt', 'lair', 'hatchery'])));
     el.querySelector('[data-action="coin"]').addEventListener('click', () => this.sim.dropCoin(this.pickRoom(['treasure', 'hall', 'lair', 'gate'])));
     el.querySelector('[data-action="back"]').addEventListener('click', this.onBack);
 
-    this.viewport.addEventListener('pointerdown', (event) => {
+    this.viewport.addEventListener('pointerdown', event => {
       this.pointerDown = { x: event.clientX, y: event.clientY, t: performance.now() };
     });
-    this.viewport.addEventListener('pointerup', (event) => {
+    this.viewport.addEventListener('pointerup', event => {
       if (!this.pointerDown) return;
-      const dx = event.clientX - this.pointerDown.x;
-      const dy = event.clientY - this.pointerDown.y;
-      const moved = Math.hypot(dx, dy);
+      const moved = Math.hypot(event.clientX - this.pointerDown.x, event.clientY - this.pointerDown.y);
       const elapsed = performance.now() - this.pointerDown.t;
       this.pointerDown = null;
       if (moved > 10 || elapsed > 450) return;
@@ -109,9 +110,7 @@ export class ObserveScreen {
     this.el.querySelectorAll('[data-camera-mode]').forEach(button => {
       button.classList.toggle('is-active', button.dataset.cameraMode === mode);
     });
-    if (mode === 'fixed') {
-      this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, false);
-    }
+    if (mode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, false);
     if (mode === 'follow') {
       this.ensureFollowTarget();
       this.pushCameraToFollowTarget(true);
@@ -121,10 +120,10 @@ export class ObserveScreen {
   fitCameraToScenario() {
     const rooms = this.scenario.rooms;
     if (!rooms.length) return;
-    const minX = Math.min(...rooms.map(r => r.x - r.w / 2));
-    const maxX = Math.max(...rooms.map(r => r.x + r.w / 2));
-    const minZ = Math.min(...rooms.map(r => r.z - r.d / 2));
-    const maxZ = Math.max(...rooms.map(r => r.z + r.d / 2));
+    const minX = Math.min(...rooms.map(room => room.x - room.w / 2));
+    const maxX = Math.max(...rooms.map(room => room.x + room.w / 2));
+    const minZ = Math.min(...rooms.map(room => room.z - room.d / 2));
+    const maxZ = Math.max(...rooms.map(room => room.z + room.d / 2));
     const cx = (minX + maxX) / 2;
     const cz = (minZ + maxZ) / 2;
     const span = Math.max(maxX - minX, maxZ - minZ);
@@ -134,10 +133,10 @@ export class ObserveScreen {
   }
 
   ensureFollowTarget() {
-    const current = this.sim.agents.find(a => a.id === this.selectedAgentId && a.alive && !a.departed && !a.hidden);
+    const current = this.sim.agents.find(agent => agent.id === this.selectedAgentId && agent.alive && !agent.departed && !agent.hidden);
     if (current) return current;
-    const fallback = this.sim.agents.find(a => a.alive && !a.departed && a.faction === 'party')
-      ?? this.sim.agents.find(a => a.alive && !a.departed && !a.hidden);
+    const fallback = this.sim.agents.find(agent => agent.alive && !agent.departed && agent.faction === 'party')
+      ?? this.sim.agents.find(agent => agent.alive && !agent.departed && !agent.hidden);
     this.selectedAgentId = fallback?.id ?? null;
     if (this.selectedAgentId) this.renderInspectPanel();
     return fallback;
@@ -148,74 +147,63 @@ export class ObserveScreen {
     if (!agent) return;
     const world = this.renderer.getAgentWorldPosition(agent.id);
     if (world) {
-      const distance = agent.role === 'ogre' ? 30 : 25;
-      this.three.setCameraTarget(world.x, world.y + 1.7, world.z, distance, immediate);
+      this.three.setCameraTarget(world.x, world.y + 1.7, world.z, agent.role === 'ogre' ? 30 : 25, immediate);
       return;
     }
-
-    const room = this.scenario.rooms.find(r => r.id === agent.roomId);
-    if (!room) return;
-    const y = (room.floor ?? 0) * 2.85 + 3.0;
-    this.three.setCameraTarget(room.x, y, room.z, 26, immediate);
+    const room = this.scenario.rooms.find(candidate => candidate.id === agent.roomId);
+    if (room) this.three.setCameraTarget(room.x, (room.floor ?? 0) * 2.85 + 3, room.z, 26, immediate);
   }
 
   pickRoom(kinds) {
-    return this.scenario.rooms.find(r => kinds.includes(r.kind))?.id ?? this.scenario.rooms[0].id;
+    return this.scenario.rooms.find(room => kinds.includes(room.kind))?.id ?? this.scenario.rooms[0].id;
   }
 
   pushEvent(text) {
     this.events.unshift(text);
     this.events = this.events.slice(0, 18);
-    this.logEl.innerHTML = this.events.slice(0, 14).map(e => `<div class="log-entry">${escapeHtml(e)}</div>`).join('');
+    this.logEl.innerHTML = this.events.slice(0, 14).map(event => `<div class="log-entry">${escapeHtml(event)}</div>`).join('');
   }
 
   updateMetrics() {
-    const m = this.sim.metrics();
-    for (const [key, value] of Object.entries(m)) {
-      const el = this.el.querySelector(`[data-metric="${key}"]`);
-      if (el) el.textContent = value;
+    const metrics = this.sim.metrics();
+    for (const [key, value] of Object.entries(metrics)) {
+      const target = this.el.querySelector(`[data-metric="${key}"]`);
+      if (target) target.textContent = value;
     }
   }
 
   renderInspectPanel() {
-    const agent = this.sim.agents.find(a => a.id === this.selectedAgentId);
+    const agent = this.sim.agents.find(candidate => candidate.id === this.selectedAgentId);
     if (!agent) {
       this.inspectEl.innerHTML = '<div class="inspect-empty">Tap a creature in the dungeon to inspect its tiny bad decisions.</div>';
       return;
     }
 
-    const room = this.sim.rooms.find(r => r.id === agent.roomId);
-    const destination = agent.travel ? this.sim.rooms.find(r => r.id === agent.travel.toRoomId) : null;
-    const related = this.events.filter(e => e.includes(agent.name)).slice(0, 3);
-    const hp = `${Math.max(0, agent.hp)}/${agent.maxHp}`;
-    const status = agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.travel?.phase === 'entering' ? 'entering' : agent.travel ? 'travelling' : 'active';
-    const partyState = agent.partyId ? ` · ${agent.partyState ?? 'assembled'}` : '';
-    const thought = currentThought(agent, this.sim);
-    const location = agent.travel
-      ? `${agent.travel.phase === 'entering' ? 'Entering' : 'Corridor'}: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}`
-      : `Room: ${room?.name ?? agent.roomId}`;
+    const room = this.sim.rooms.find(candidate => candidate.id === agent.roomId);
+    const destination = agent.travel ? this.sim.rooms.find(candidate => candidate.id === agent.travel.toRoomId) : null;
+    const related = this.events.filter(event => event.includes(agent.name)).slice(0, 3);
+    const status = agent.queued ? 'waiting outside' : agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.travel ? agent.travel.phase : agent.partyState ?? 'active';
+    const location = agent.queued
+      ? 'Outside the expedition gate'
+      : agent.travel
+        ? `${agent.travel.phase === 'entering' ? 'Entering' : 'Corridor'}: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}`
+        : `Room: ${room?.name ?? agent.roomId}`;
 
     this.inspectEl.innerHTML = `
       <div class="inspect-head">
-        <div>
-          <strong>${escapeHtml(agent.name)}</strong>
-          <span>${escapeHtml(agent.role)} · ${escapeHtml(agent.faction)} · ${status}${escapeHtml(partyState)}</span>
-        </div>
+        <div><strong>${escapeHtml(agent.name)}</strong><span>${escapeHtml(agent.role)} · ${escapeHtml(agent.faction)} · ${escapeHtml(status)}</span></div>
         <button class="mini-btn" data-clear-inspect>×</button>
       </div>
       <div class="inspect-grid">
-        <div><b>${hp}</b><span>HP</span></div>
-        <div><b>${agent.level ?? 1}</b><span>level</span></div>
+        <div><b>${Math.max(0, agent.hp)}/${agent.maxHp}</b><span>HP</span></div>
+        <div><b>${Math.round(agent.fatigue ?? 0)}</b><span>fatigue</span></div>
         <div><b>${agent.gold ?? 0}</b><span>gold</span></div>
         <div><b>${agent.kills ?? 0}</b><span>kills</span></div>
       </div>
-      <div class="thought">“${escapeHtml(thought)}”</div>
+      <div class="thought">“${escapeHtml(currentThought(agent, this.sim))}”</div>
       <div class="inspect-room">${escapeHtml(location)}</div>
-      <div class="memory-list">
-        ${related.length ? related.map(e => `<div>${escapeHtml(e)}</div>`).join('') : '<div>No recent memorable mistakes.</div>'}
-      </div>
+      <div class="memory-list">${related.length ? related.map(event => `<div>${escapeHtml(event)}</div>`).join('') : '<div>No recent memorable mistakes.</div>'}</div>
     `;
-
     this.inspectEl.querySelector('[data-clear-inspect]').addEventListener('click', () => {
       this.selectedAgentId = null;
       this.renderInspectPanel();
@@ -244,17 +232,16 @@ export class ObserveScreen {
 }
 
 function currentThought(agent, sim) {
+  if (agent.queued) return 'Everyone is here. Someone is still checking the rope.';
+  if (!agent.alive && agent.resurrectable) return 'The statue has not forgotten my name yet.';
   if (!agent.alive) return 'I have become useful documentation.';
-  if (agent.departed) return 'The tavern version of this story will be much better.';
-  if (agent.orphaned) return `I need to find ${sim.partySystem?.getLeader(agent, sim.agents)?.name ?? 'the others'} before something finds me.`;
-  if (agent.travel?.phase === 'entering') return `There had better be room on the other side of this door.`;
+  if (agent.resurrectionSickness > 0) return 'Being alive again is more tiring than advertised.';
   if (agent.travel) return `The corridor to ${sim.roomName(agent.travel.toRoomId)} is taking this personally.`;
+  if ((agent.fatigue ?? 0) > 75) return 'A bench, a fountain, or a small administrative miracle would help.';
+  if (agent.orphaned) return `I should be able to hear ${sim.agents.find(candidate => candidate.id === agent.partyLeaderId)?.name ?? 'the others'}.`;
   if (agent.role === 'rogue') return 'That chest is probably fine.';
-  if (agent.role === 'cleric') {
-    const wounded = sim.agents.find(a => a.alive && a.faction === agent.faction && a.hp < a.maxHp * 0.55);
-    return wounded ? `${wounded.name} is leaking again.` : 'Everyone is temporarily acceptable.';
-  }
-  if (agent.role === 'wizard') return agent.hp < agent.maxHp * 0.45 ? 'Distance is a form of wisdom.' : 'This is academically survivable.';
+  if (agent.role === 'cleric') return 'Everyone is temporarily acceptable.';
+  if (agent.role === 'wizard') return 'This is academically survivable.';
   if (agent.role === 'fighter') return 'If it moves, it may be a problem I can solve loudly.';
   if (agent.role === 'goblin') return 'I am brave in the plural.';
   if (agent.role === 'skeleton') return sim.lastNoiseRoom ? 'Something made a noise, which is legally my business.' : 'Waiting is also a profession.';
