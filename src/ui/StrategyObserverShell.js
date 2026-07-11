@@ -7,13 +7,14 @@ export class StrategyObserverShell {
     onSpeedChange = () => {},
     onBack = () => {},
     onSelect = () => {},
-    onFollow = () => {},
     onCameraMode = () => {},
+    onCameraAction = () => {},
     onTimelineFilter = () => {}
   } = {}) {
-    this.callbacks = { onPauseToggle, onSpeedChange, onBack, onSelect, onFollow, onCameraMode, onTimelineFilter };
+    this.callbacks = { onPauseToggle, onSpeedChange, onBack, onSelect, onCameraMode, onCameraAction, onTimelineFilter };
     this.activeTab = 'factions';
     this.timelineFilter = 'all';
+    this.mobileSurface = 'world';
     this.paused = false;
     this.speed = 1;
     this.mounted = false;
@@ -47,19 +48,19 @@ export class StrategyObserverShell {
           <button class="strategy-icon-btn" data-shell-action="back" aria-label="Exit observation">×</button>
         </div>
       </header>
-      <aside class="strategy-navigator">
+      <aside class="strategy-navigator" data-mobile-surface="navigator">
         <div class="strategy-panel-title"><span>World index</span><small>observer</small></div>
         <nav class="strategy-tabs">
           ${NAV_TABS.map(tab => `<button data-shell-tab="${tab}" class="${tab === this.activeTab ? 'is-active' : ''}">${tab}</button>`).join('')}
         </nav>
         <div class="strategy-nav-list" data-shell-nav-list></div>
       </aside>
-      <main class="strategy-viewport" data-shell-viewport></main>
-      <aside class="strategy-inspector">
+      <main class="strategy-viewport" data-shell-viewport data-mobile-surface="world"></main>
+      <aside class="strategy-inspector" data-mobile-surface="inspector">
         <div class="strategy-panel-title"><span>Context inspector</span><small data-shell-selection-type>none</small></div>
         <div class="strategy-inspector-scroll" data-shell-inspector></div>
       </aside>
-      <footer class="strategy-timeline">
+      <footer class="strategy-timeline" data-mobile-surface="timeline">
         <div class="strategy-timeline-tools">
           <strong>Chronicle</strong>
           <div class="strategy-timeline-filters">
@@ -68,6 +69,12 @@ export class StrategyObserverShell {
         </div>
         <div class="strategy-timeline-list" data-shell-timeline></div>
       </footer>
+      <nav class="strategy-mobile-nav" aria-label="Observer panels">
+        <button data-mobile-target="navigator">Index</button>
+        <button data-mobile-target="world" class="is-active">World</button>
+        <button data-mobile-target="inspector">Inspect</button>
+        <button data-mobile-target="timeline">Events</button>
+      </nav>
     `);
 
     this.viewportHost = screenEl.querySelector('[data-shell-viewport]');
@@ -76,17 +83,23 @@ export class StrategyObserverShell {
     this.inspectorHost.appendChild(inspectEl);
     this.installViewportControls();
     this.bindEvents();
+    this.setMobileSurface('world');
     this.mounted = true;
   }
 
   installViewportControls() {
     this.viewport.insertAdjacentHTML('beforeend', `
-      <div class="strategy-camera-controls">
-        <button data-shell-camera="fixed" class="is-active">Overview</button>
-        <button data-shell-camera="follow">Follow</button>
-        <button data-shell-camera="free">Free</button>
+      <div class="strategy-camera-controls" aria-label="Camera controls">
+        <button data-shell-camera="fixed" class="is-active" title="Overview camera (R)">Overview</button>
+        <button data-shell-camera="follow" title="Follow selected (F)">Follow</button>
+        <button data-shell-camera="free" title="Keep current target">Free</button>
+        <span class="strategy-camera-divider"></span>
+        <button data-shell-camera-action="previous" aria-label="Previous follow target">‹</button>
+        <button data-shell-camera-action="focus" title="Focus selection">Focus</button>
+        <button data-shell-camera-action="next" aria-label="Next follow target">›</button>
       </div>
-      <div class="strategy-world-title"><b data-shell-world-title>Dungeon ecosystem</b><span>live simulation</span></div>
+      <div class="strategy-world-title"><b data-shell-world-title>Dungeon ecosystem</b><span data-shell-camera-status>overview · scroll to zoom</span></div>
+      <div class="strategy-shortcut-hint">F follow · R overview · [ ] cycle · Esc clear</div>
     `);
   }
 
@@ -113,21 +126,42 @@ export class StrategyObserverShell {
       this.callbacks.onTimelineFilter(this.timelineFilter);
     }));
     this.screenEl.querySelectorAll('[data-shell-camera]').forEach(button => button.addEventListener('click', () => {
-      this.screenEl.querySelectorAll('[data-shell-camera]').forEach(item => item.classList.toggle('is-active', item === button));
+      this.setCameraMode(button.dataset.shellCamera);
       this.callbacks.onCameraMode(button.dataset.shellCamera);
+    }));
+    this.screenEl.querySelectorAll('[data-shell-camera-action]').forEach(button => button.addEventListener('click', () => {
+      this.callbacks.onCameraAction(button.dataset.shellCameraAction);
+    }));
+    this.screenEl.querySelectorAll('[data-mobile-target]').forEach(button => button.addEventListener('click', () => {
+      this.setMobileSurface(button.dataset.mobileTarget);
     }));
     this.screenEl.querySelector('[data-shell-nav-list]')?.addEventListener('click', event => {
       const row = event.target.closest('[data-entity-id]');
       if (!row) return;
       this.callbacks.onSelect({ type: row.dataset.entityType, id: row.dataset.entityId, roomId: row.dataset.roomId || null });
+      this.setMobileSurface('inspector');
     });
     this.screenEl.querySelector('[data-shell-timeline]')?.addEventListener('click', event => {
       const row = event.target.closest('[data-room-id]');
-      if (row?.dataset.roomId) this.callbacks.onSelect({ type: 'room', id: row.dataset.roomId, roomId: row.dataset.roomId });
+      if (row?.dataset.roomId) {
+        this.callbacks.onSelect({ type: 'room', id: row.dataset.roomId, roomId: row.dataset.roomId });
+        this.setMobileSurface('world');
+      }
     });
   }
 
-  render(viewModel, { worldTitle = null, selectionType = 'none' } = {}) {
+  setCameraMode(mode) {
+    this.screenEl?.querySelectorAll('[data-shell-camera]').forEach(item => item.classList.toggle('is-active', item.dataset.shellCamera === mode));
+    setText(this.screenEl, '[data-shell-camera-status]', `${mode} · scroll to zoom`);
+  }
+
+  setMobileSurface(surface) {
+    this.mobileSurface = surface;
+    this.screenEl?.dataset.mobileSurface = surface;
+    this.screenEl?.querySelectorAll('[data-mobile-target]').forEach(button => button.classList.toggle('is-active', button.dataset.mobileTarget === surface));
+  }
+
+  render(viewModel, { worldTitle = null, selectionType = 'none', cameraMode = null } = {}) {
     if (!this.mounted || !viewModel) return;
     this.lastViewModel = viewModel;
     const top = viewModel.topBar ?? {};
@@ -139,6 +173,7 @@ export class StrategyObserverShell {
     setText(this.screenEl, '[data-shell-alerts]', `${viewModel.alerts?.length ?? 0} alerts`);
     setText(this.screenEl, '[data-shell-selection-type]', selectionType);
     if (worldTitle) setText(this.screenEl, '[data-shell-world-title]', worldTitle);
+    if (cameraMode) this.setCameraMode(cameraMode);
     this.renderFaction(viewModel.observerFaction);
     this.renderNavigator(viewModel.navigator ?? {});
     this.renderTimeline(viewModel.timeline ?? []);
@@ -193,7 +228,7 @@ function rowMarkup(type, id, title, detail, meta, roomId = null) {
 }
 
 function setText(root, selector, value) {
-  const target = root.querySelector(selector);
+  const target = root?.querySelector(selector);
   if (target) target.textContent = value;
 }
 
