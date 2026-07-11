@@ -105,6 +105,14 @@ export class LegacyPhaseRuntimeAdapter {
     this.sim.update(scaled);
   }
 
+  // Temporary renderer compatibility boundary. Presentation code receives the
+  // normalized snapshot through getSnapshot(); the legacy Three.js renderer
+  // receives its original raw shape without the screen owning the simulation.
+  getRenderSnapshot() {
+    if (this.destroyed) throw new Error('LegacyPhaseRuntimeAdapter is destroyed');
+    return this.sim.snapshot();
+  }
+
   getSnapshot() {
     if (this.destroyed) throw new Error('LegacyPhaseRuntimeAdapter is destroyed');
     let metrics = null;
@@ -113,7 +121,7 @@ export class LegacyPhaseRuntimeAdapter {
     } catch {
       metrics = null;
     }
-    return normalizeLegacySnapshot(this.sim.snapshot(), {
+    return normalizeLegacySnapshot(this.getRenderSnapshot(), {
       events: this.eventBus.history(),
       metrics,
       turn: Number.isFinite(this.sim.turn) ? this.sim.turn : null
