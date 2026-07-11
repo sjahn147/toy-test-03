@@ -174,12 +174,14 @@ export class DungeonRenderer {
       if (!agent.alive || agent.hidden || agent.departed) continue;
 
       let mesh = this.agentMeshes.get(agent.id);
+      let created = false;
       if (!mesh) {
         mesh = this.assets.makeAgent(agent);
         mesh.userData.agentId = agent.id;
         mesh.traverse(child => { child.userData.agentId = agent.id; });
         this.agentMeshes.set(agent.id, mesh);
         this.group.add(mesh);
+        created = true;
       }
 
       const target = agent.travel
@@ -188,8 +190,12 @@ export class DungeonRenderer {
       if (!target) continue;
 
       const bob = agent.role === 'slime' ? Math.sin(time * 5 + agent.index) * 0.05 : Math.sin(time * 4 + agent.index) * 0.025;
-      const interpolation = agent.travel?.phase === 'entering' ? 0.42 : agent.travel ? 0.3 : 0.2;
-      mesh.position.lerp(new THREE.Vector3(target.x, target.y + bob, target.z), interpolation);
+      const targetPosition = new THREE.Vector3(target.x, target.y + bob, target.z);
+      if (created) mesh.position.copy(targetPosition);
+      else {
+        const interpolation = agent.travel?.phase === 'entering' ? 0.42 : agent.travel ? 0.3 : 0.2;
+        mesh.position.lerp(targetPosition, interpolation);
+      }
       if (target.rotation !== undefined) mesh.rotation.y = target.rotation;
       mesh.visible = true;
 
