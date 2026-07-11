@@ -8,6 +8,12 @@ export { selectSettlementInspector } from './selectSettlementInspector.js';
 export { selectPartyInspector } from './selectPartyInspector.js';
 export { selectTimelineEvents } from './selectTimelineEvents.js';
 export {
+  selectOverlayAvailability,
+  selectTerritoryOverlay,
+  selectSupplyOverlay,
+  selectDangerOverlay
+} from './selectStrategicOverlays.js';
+export {
   selectFactionList,
   selectPartyList,
   selectSettlementList,
