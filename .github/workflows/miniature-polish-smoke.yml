@@ -9,4 +9,71 @@ on:
       - 'src/engine/SkeletonMiniatureRig.js'
       - 'src/engine/CreatureMiniatureBuilders.js'
       - 'src/engine/ExoticMiniatureBuilders.js'
-      - 'src/engine/Mini
+      - 'src/engine/MiniatureWeaponBuilders.js'
+      - 'src/engine/MiniatureAnimator.js'
+      - 'src/engine/AdvancedMiniatureAnimator.js'
+      - 'src/engine/OrcMiniaturePolish.js'
+      - 'src/engine/MiniaturePhase3Equipment.js'
+      - 'src/engine/MiniaturePresentationPolish.js'
+      - 'src/engine/AssetRegistryPhase8.js'
+      - 'src/engine/DungeonRendererPhase8.js'
+      - 'src/miniatures/recipes.js'
+      - 'src/miniatures/partCatalog.js'
+      - 'src/ui/StrategyObserverShell.js'
+      - 'tests/miniature-polish-smoke.mjs'
+      - 'package.json'
+      - '.github/workflows/miniature-polish-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/engine/PolishedMiniatureFactory.js'
+      - 'src/engine/MiniatureBodyProfiles.js'
+      - 'src/engine/HumanoidMiniatureRig.js'
+      - 'src/engine/SkeletonMiniatureRig.js'
+      - 'src/engine/CreatureMiniatureBuilders.js'
+      - 'src/engine/ExoticMiniatureBuilders.js'
+      - 'src/engine/MiniatureWeaponBuilders.js'
+      - 'src/engine/MiniatureAnimator.js'
+      - 'src/engine/AdvancedMiniatureAnimator.js'
+      - 'src/engine/OrcMiniaturePolish.js'
+      - 'src/engine/MiniaturePhase3Equipment.js'
+      - 'src/engine/MiniaturePresentationPolish.js'
+      - 'src/engine/AssetRegistryPhase8.js'
+      - 'src/engine/DungeonRendererPhase8.js'
+      - 'src/miniatures/recipes.js'
+      - 'src/miniatures/partCatalog.js'
+      - 'src/ui/StrategyObserverShell.js'
+      - 'tests/miniature-polish-smoke.mjs'
+      - 'package.json'
+      - '.github/workflows/miniature-polish-smoke.yml'
+
+jobs:
+  miniature-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/engine/PolishedMiniatureFactory.js
+          node --check src/engine/MiniatureBodyProfiles.js
+          node --check src/engine/HumanoidMiniatureRig.js
+          node --check src/engine/SkeletonMiniatureRig.js
+          node --check src/engine/CreatureMiniatureBuilders.js
+          node --check src/engine/ExoticMiniatureBuilders.js
+          node --check src/engine/MiniatureWeaponBuilders.js
+          node --check src/engine/MiniatureAnimator.js
+          node --check src/engine/AdvancedMiniatureAnimator.js
+          node --check src/engine/OrcMiniaturePolish.js
+          node --check src/engine/MiniaturePhase3Equipment.js
+          node --check src/engine/MiniaturePresentationPolish.js
+          node --check src/engine/AssetRegistryPhase8.js
+          node --check src/engine/DungeonRendererPhase8.js
+          node --check src/miniatures/recipes.js
+          node --check src/miniatures/partCatalog.js
+          node --check src/ui/StrategyObserverShell.js
+          node --check tests/miniature-polish-smoke.mjs
+      - name: Test miniature contracts
+        run: npm run test:miniatures
