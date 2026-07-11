@@ -22,6 +22,7 @@
     "test:content": "node tests/content-pipeline-smoke.mjs",
     "test:facade": "node tests/runtime-facade-smoke.mjs",
     "test:presentation": "node tests/presentation-boundary-smoke.mjs",
+    "test:overlays": "node tests/strategy-overlays-smoke.mjs",
     "test:miniatures": "node tests/miniature-polish-smoke.mjs",
     "test:fungal": "node tests/fungal-garden-assets-smoke.mjs",
     "test:spider": "node tests/spider-colony-assets-smoke.mjs",
@@ -31,7 +32,7 @@
     "test:old-lantern": "node tests/old-lantern-resolver-smoke.mjs",
     "test:asset-integration": "node tests/phase8-asset-resolver-smoke.mjs",
     "test:assets": "npm run test:miniatures && npm run test:fungal && npm run test:spider && npm run test:flooded && npm run test:laboratory && npm run test:royal && npm run test:old-lantern && npm run test:asset-integration",
-    "test:production": "npm run validate:production-content && npm run test:content && npm run test:facade && npm run test:presentation && npm run test:assets"
+    "test:production": "npm run validate:production-content && npm run test:content && npm run test:facade && npm run test:presentation && npm run test:overlays && npm run test:assets"
   },
   "keywords": ["threejs", "dungeon", "simulation", "agent-ai", "toy-game"]
 }
