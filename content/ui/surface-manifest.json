@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "0.1.0",
+  "id": "ui.strategy-observer.production",
+  "description": "Production strategy-simulation shell for the dungeon ecosystem observer.",
+  "layout": {
+    "desktop": {
+      "regions": ["topBar", "leftNavigator", "viewport", "rightInspector", "bottomTimeline"],
+      "collapsible": ["leftNavigator", "rightInspector", "bottomTimeline"]
+    },
+    "mobile": {
+      "regions": ["compactTopBar", "viewport", "floatingControls", "bottomSheet", "navigatorDrawer"],
+      "minimumViewportHeightRatio": 0.55
+    }
+  },
+  "surfaces": [
+    {
+      "id": "surface.global-bar",
+      "region": "topBar",
+      "selectors": ["selectGlobalBar", "selectObserverFactionSummary", "selectAlerts"],
+      "commands": ["clock.pause", "clock.set-speed", "observer.select-faction", "alert.open"],
+      "priority": "persistent"
+    },
+    {
+      "id": "surface.navigator.factions",
+      "region": "leftNavigator",
+      "selectors": ["selectFactionList"],
+      "commands": ["selection.select-faction", "camera.focus-faction"],
+      "priority": "primary"
+    },
+    {
+      "id": "surface.navigator.parties",
+      "region": "leftNavigator",
+      "selectors": ["selectPartyList"],
+      "commands": ["selection.select-party", "camera.focus-party", "camera.follow-agent"],
+      "priority": "primary"
+    },
+    {
+      "id": "surface.navigator.settlements",
+      "region": "leftNavigator",
+      "selectors": ["selectSettlementList"],
+      "commands": ["selection.select-settlement", "camera.focus-room"],
+      "priority": "primary"
+    },
+    {
+      "id": "surface.navigator.rooms",
+      "region": "leftNavigator",
+      "selectors": ["selectRoomList"],
+      "commands": ["selection.select-room", "camera.focus-room"],
+      "priority": "secondary"
+    },
+    {
+      "id": "surface.inspector.agent",
+      "region": "rightInspector",
+      "entityType": "agent",
+      "selectors": ["selectAgentInspector"],
+      "commands": ["camera.follow-agent", "selection.select-related-entity"],
+      "cards": ["identity", "vitals", "intent", "social", "equipment", "home"]
+    },
+    {
+      "id": "surface.inspector.room",
+      "region": "rightInspector",
+      "entityType": "room",
+      "selectors": ["selectRoomInspector"],
+      "commands": ["camera.focus-room", "overlay.show-room-paths"],
+      "cards": ["identity", "ownership", "resources", "occupants", "structures", "connections", "story"]
+    },
+    {
+      "id": "surface.inspector.settlement",
+      "region": "rightInspector",
+      "entityType": "settlement",
+      "selectors": ["selectSettlementInspector"],
+      "commands": ["camera.focus-room", "overlay.show-supply-route"],
+      "cards": ["identity", "population", "stocks", "stability", "buildings", "construction", "supply", "history"]
+    },
+    {
+      "id": "surface.inspector.party",
+      "region": "rightInspector",
+      "entityType": "party",
+      "selectors": ["selectPartyInspector"],
+      "commands": ["camera.follow-agent", "camera.focus-party"],
+      "cards": ["identity", "roster", "cohesion", "objective", "expedition", "inventory", "base"]
+    },
+    {
+      "id": "surface.inspector.cargo",
+      "region": "rightInspector",
+      "entityType": "cargo",
+      "selectors": ["selectCargoInspector"],
+      "commands": ["camera.follow-agent", "overlay.show-supply-route"],
+      "cards": ["resource", "ownership", "carrier", "route", "risk", "history"]
+    },
+    {
+      "id": "surface.inspector.structure",
+      "region": "rightInspector",
+      "entityType": "structure",
+      "selectors": ["selectStructureInspector"],
+      "commands": ["camera.focus-room"],
+      "cards": ["identity", "integrity", "construction", "bonuses", "siege"]
+    },
+    {
+      "id": "surface.timeline",
+      "region": "bottomTimeline",
+      "selectors": ["selectTimelineEvents"],
+      "commands": ["timeline.set-filter", "timeline.pin-event", "camera.focus-event", "selection.select-event-entity"],
+      "filters": ["all", "combat", "ecology", "party", "settlement", "logistics", "discovery", "relationship", "major"]
+    },
+    {
+      "id": "surface.overlay-toolbar",
+      "region": "viewport",
+      "selectors": ["selectOverlayAvailability"],
+      "commands": ["overlay.select"],
+      "overlays": ["normal", "territory", "supply", "danger", "population", "resources", "infection", "noise", "secrets", "path-intent"]
+    },
+    {
+      "id": "surface.camera-controls",
+      "region": "viewport",
+      "selectors": ["selectCameraRoster", "selectCameraState"],
+      "commands": ["camera.set-mode", "camera.follow-agent", "camera.clear-follow", "camera.reset", "camera.focus-selection"],
+      "modes": ["overview", "free", "follow", "cinematic-event"]
+    }
+  ],
+  "selectionTypes": ["agent", "room", "settlement", "party", "cargo", "structure", "faction", "event"],
+  "overlaySelectors": {
+    "territory": "selectTerritoryOverlay",
+    "supply": "selectSupplyOverlay",
+    "danger": "selectDangerOverlay",
+    "population": "selectPopulationOverlay",
+    "resources": "selectResourceOverlay",
+    "infection": "selectInfectionOverlay",
+    "noise": "selectNoiseOverlay",
+    "secrets": "selectDiscoveredSecretOverlay",
+    "path-intent": "selectPathIntentOverlay"
+  },
+  "eventSeverities": ["ambient", "minor", "major", "critical", "historic"],
+  "accessibility": {
+    "minimumTouchTargetPx": 44,
+    "uiScaleRange": [0.8, 1.4],
+    "supportsReducedMotion": true,
+    "requiresTextLabelsForIcons": true,
+    "requiresNonColorStateEncoding": true
+  }
+}
