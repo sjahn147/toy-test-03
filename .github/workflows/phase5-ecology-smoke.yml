@@ -1,0 +1,26 @@
+name: Phase 5 Ecology Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/data/applyPhase5Ecology.js'
+      - 'src/sim/EcosystemSystem.js'
+      - 'src/sim/DungeonSimPhase5.js'
+      - 'src/engine/EcologyAssetFactory.js'
+      - 'src/engine/AssetRegistryPhase5.js'
+      - 'src/engine/DungeonRendererPhase5.js'
+      - 'tests/phase5-ecology-smoke.mjs'
+      - 'package.json'
+      - '.github/workflows/phase5-ecology-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  ecology-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run test:phase5
