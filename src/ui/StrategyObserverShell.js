@@ -26,9 +26,9 @@ export class StrategyObserverShell {
     this.inspectEl = inspectEl;
 
     const legacyHud = screenEl.querySelector('.hud');
-    const legacyLegend = viewport.querySelector('.legend');
+    viewport.querySelector('.legend')?.remove();
+    viewport.querySelector('[data-camera-strip]')?.remove();
     legacyHud?.remove();
-    legacyLegend?.remove();
 
     screenEl.classList.add('strategy-observer');
     screenEl.innerHTML = '';
