@@ -29,8 +29,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.assets.loadManifest();
     this.renderer = new DungeonRendererPhase8(this.three, this.scenario, this.assets);
 
-    // The renderer still consumes the legacy render snapshot during migration,
-    // while update/commands/events/lifecycle now pass through the facade.
+    // The Three.js renderer still consumes the legacy render snapshot during migration.
+    // UI state, commands, events and lifecycle pass through the facade.
     this.sim = new DungeonSim(this.scenario);
     this.runtime = createLegacyGameRuntime({ sim: this.sim });
     this.runtimeUnsubscribe = this.runtime.subscribe(event => {
@@ -106,7 +106,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
   }
 
   updateMetrics() {
-    const metrics = this.runtime?.getSnapshot().metrics ?? this.sim?.metrics?.() ?? {};
+    const metrics = this.runtime?.getSnapshot().metrics ?? {};
     for (const [key, value] of Object.entries(metrics)) {
       const target = this.el?.querySelector(`[data-metric="${key}"]`);
       if (target) target.textContent = value;
@@ -116,62 +116,46 @@ export class ObserveScreen extends Phase6ObserveScreen {
   }
 
   renderInspectPanel() {
-    super.renderInspectPanel();
-    const agent = this.sim?.agents?.find(candidate => candidate.id === this.selectedAgentId);
-    if (!agent || !this.inspectEl || !this.sim?.settlementSystem) return;
-    const home = agent.homeSettlementId ? this.sim.settlementSystem.settlements.get(agent.homeSettlementId) : null;
-    const anchor = home?.anchorPropId ? this.sim.props.find(prop => prop.id === home.anchorPropId) : null;
-    const insertionPoint = this.inspectEl.querySelector('.memory-list');
-    if (!insertionPoint) return;
-    const homeName = home ? anchor?.label ?? home.type.replaceAll('-', ' ') : agent.displaced ? 'No viable habitat' : 'Unassigned';
-    const cargo = agent.cargoId ? this.sim.logisticsSystem.cargo.find(item => item.id === agent.cargoId) : null;
-    insertionPoint.insertAdjacentHTML('beforebegin', `
-      <section class="equipment-panel settlement-panel">
-        <strong>Home, Siege & Logistics</strong>
-        <div class="equipment-row"><span>home</span><b>${escapeHtml(homeName)}</b><em>${escapeHtml(home?.state ?? (agent.displaced ? 'displaced' : 'none'))}</em></div>
-        <div class="equipment-row"><span>supply</span><b>${escapeHtml(home?.supplyStatus ?? 'open')}</b><em>${Math.round((home?.supplyEfficiency ?? 1) * 100)}% efficiency</em></div>
-        <div class="equipment-row"><span>integrity</span><b>${home?.indestructible ? 'protected' : home ? `${Math.round(home.structuralIntegrity)}%` : '—'}</b><em>${home ? `${home.population}/${home.capacity} residents` : 'no habitat'}</em></div>
-        <div class="equipment-row"><span>cargo</span><b>${cargo ? escapeHtml(cargo.resourceType) : 'none'}</b><em>${cargo ? `${Math.round((cargo.routeRisk ?? 0) * 100)}% risk · ${cargo.escortId ? 'escorted' : 'unguarded'}` : agent.siegeCooldown > 0 ? 'siege recovery' : 'available'}</em></div>
-      </section>
-    `);
-    this.renderPersonalityPanel(agent, insertionPoint);
-    if (agent.faction === 'party') this.renderExpeditionPanel(agent, insertionPoint);
-  }
+    if (!this.inspectEl) return;
+    const viewModel = this.runtime?.getViewModel({ agentId: this.selectedAgentId });
+    const inspector = viewModel?.selection?.type === 'agent' ? viewModel.selection.inspector : null;
+    if (!inspector) {
+      this.inspectEl.innerHTML = '<div class="inspect-empty">Tap a creature in the dungeon to inspect its tiny bad decisions.</div>';
+      return;
+    }
 
-  renderPersonalityPanel(agent, insertionPoint) {
-    const traits = agent.personality ?? {};
-    const strongest = Object.entries(traits).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    const strongestText = strongest.length
-      ? strongest.map(([name, value]) => `${name} ${Math.round(value * 100)}`).join(' · ')
-      : 'unformed';
-    const memories = (agent.memories ?? []).slice(0, 3);
-    const bonds = Object.values(agent.relationships ?? {}).filter(value => value >= 0.45).length;
-    const grudges = Object.values(agent.relationships ?? {}).filter(value => value <= -0.35).length;
-    insertionPoint.insertAdjacentHTML('beforebegin', `
-      <section class="equipment-panel personality-panel">
-        <strong>Personality & Memory</strong>
-        <div class="equipment-row"><span>state</span><b>${escapeHtml(agent.personalityState ?? 'steady')}</b><em>${escapeHtml(strongestText)}</em></div>
-        <div class="equipment-row"><span>relationships</span><b>${bonds} bonds</b><em>${grudges} grudges</em></div>
-        <div class="equipment-row"><span>movement</span><b>${agent.roomCell?.overflow ? 'targeted landing' : 'normal placement'}</b><em>${agent.blockedMoveCount ?? 0} blocked retries</em></div>
-        <div class="memory-list compact-memory-list">
-          ${memories.length ? memories.map(memory => `<div>${escapeHtml(memory.type.replaceAll('-', ' '))} · ${Math.round((memory.currentIntensity ?? memory.intensity ?? 0) * 100)}%</div>`).join('') : '<div>No persistent memories yet.</div>'}
-        </div>
-      </section>
-    `);
-  }
+    const identity = inspector.identity;
+    const vitals = inspector.vitals;
+    const intent = inspector.intent;
+    const resource = identity.faction === 'dungeon' ? vitals.hunger : vitals.gold;
+    const resourceLabel = identity.faction === 'dungeon' ? 'hunger' : 'gold';
+    const location = intent.travelPhase && intent.destinationRoomName
+      ? `${intent.travelPhase === 'entering' ? 'Entering' : 'Corridor'}: ${intent.roomName ?? intent.roomId ?? 'unknown'} → ${intent.destinationRoomName}`
+      : `Room: ${intent.roomName ?? intent.roomId ?? 'unknown'}`;
 
-  renderExpeditionPanel(agent, insertionPoint) {
-    const party = this.sim.partySystem.getParty(agent);
-    if (!party) return;
-    const base = this.sim.settlementSystem.settlements.get(party.baseSettlementId);
-    insertionPoint.insertAdjacentHTML('beforebegin', `
-      <section class="equipment-panel expedition-panel">
-        <strong>Expedition Supply</strong>
-        <div class="equipment-row"><span>state</span><b>${escapeHtml(party.expeditionState ?? 'exploring')}</b><em>${escapeHtml(base ? this.sim.settlementSystem.label(base) : 'No active base')}</em></div>
-        <div class="equipment-row"><span>provisions</span><b>${formatSupply(party.provisions)}/${party.maxProvisions}</b><em>water ${formatSupply(party.water)}/${party.maxWater}</em></div>
-        <div class="equipment-row"><span>endurance</span><b>${Math.round(party.endurance ?? 0)}/${party.maxExpeditionTime ?? 0}</b><em>${Math.round(party.expeditionTime ?? 0)} elapsed</em></div>
-      </section>
-    `);
+    this.inspectEl.innerHTML = `
+      <div class="inspect-head"><div><strong>${escapeHtml(identity.name)}</strong><span>${escapeHtml(identity.role ?? 'unknown')} · ${escapeHtml(identity.faction ?? 'unaffiliated')} · ${escapeHtml(intent.status)}</span></div><button class="mini-btn" data-clear-inspect>×</button></div>
+      <div class="inspect-grid">
+        <div><b>${Math.max(0, vitals.hp)}/${vitals.maxHp}</b><span>HP</span></div>
+        <div><b>${vitals.attack}</b><span>attack</span></div>
+        <div><b>${vitals.defense}</b><span>defense</span></div>
+        <div><b>${Math.round(resource)}</b><span>${resourceLabel}</span></div>
+        <div><b>${Math.round(vitals.fatigue)}</b><span>fatigue</span></div>
+        <div><b>${inspector.inventory.length}</b><span>inventory</span></div>
+      </div>
+      <div class="thought">“${escapeHtml(intent.thought)}”</div>
+      <div class="inspect-room">${escapeHtml(location)}</div>
+      ${renderHomeAndCargo(inspector)}
+      ${renderPersonality(inspector)}
+      ${renderParty(inspector)}
+      ${renderEquipment(inspector)}
+      ${renderMemories(inspector)}
+    `;
+
+    this.inspectEl.querySelector('[data-clear-inspect]')?.addEventListener('click', () => {
+      this.selectedAgentId = null;
+      this.renderInspectPanel();
+    });
   }
 
   loop() {
@@ -179,6 +163,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const dt = Math.min(this.three.clock.getDelta(), 0.045);
     if (this.runtime) this.runtime.update(dt * 0.62);
     else if (this.running) this.sim.update(dt * 0.62);
+    // Explicit migration exception: the current renderer still requires the legacy snapshot.
     this.renderer.renderState(this.sim.snapshot());
     this.updateMetrics();
     if (this.selectedAgentId) this.renderInspectPanel();
@@ -198,7 +183,80 @@ export class ObserveScreen extends Phase6ObserveScreen {
   }
 }
 
-function formatSupply(value) { return Math.round((value ?? 0) * 10) / 10; }
+function renderHomeAndCargo(inspector) {
+  const home = inspector.home;
+  const cargo = inspector.cargo;
+  const homeName = home?.name ?? (inspector.flags.displaced ? 'No viable habitat' : 'Unassigned');
+  const homeState = home?.state ?? (inspector.flags.displaced ? 'displaced' : 'none');
+  const integrity = home?.indestructible ? 'protected' : home?.structuralIntegrity == null ? '—' : `${Math.round(home.structuralIntegrity)}%`;
+  const cargoState = cargo
+    ? `${Math.round(cargo.routeRisk * 100)}% risk · ${cargo.escorted ? 'escorted' : 'unguarded'}`
+    : 'available';
+  return `
+    <section class="equipment-panel settlement-panel">
+      <strong>Home, Siege & Logistics</strong>
+      <div class="equipment-row"><span>home</span><b>${escapeHtml(homeName)}</b><em>${escapeHtml(homeState)}</em></div>
+      <div class="equipment-row"><span>supply</span><b>${escapeHtml(home?.supplyStatus ?? 'open')}</b><em>${Math.round((home?.supplyEfficiency ?? 1) * 100)}% efficiency</em></div>
+      <div class="equipment-row"><span>integrity</span><b>${integrity}</b><em>${home ? `${home.population}/${home.capacity} residents` : 'no habitat'}</em></div>
+      <div class="equipment-row"><span>cargo</span><b>${escapeHtml(cargo?.resourceType ?? 'none')}</b><em>${escapeHtml(cargoState)}</em></div>
+    </section>`;
+}
+
+function renderPersonality(inspector) {
+  const personality = inspector.personality;
+  const strongest = personality.strongestTraits.length
+    ? personality.strongestTraits.map(trait => `${trait.name} ${Math.round(trait.value * 100)}`).join(' · ')
+    : 'unformed';
+  return `
+    <section class="equipment-panel personality-panel">
+      <strong>Personality & Memory</strong>
+      <div class="equipment-row"><span>state</span><b>${escapeHtml(personality.state)}</b><em>${escapeHtml(strongest)}</em></div>
+      <div class="equipment-row"><span>relationships</span><b>${personality.bonds} bonds</b><em>${personality.grudges} grudges</em></div>
+      <div class="equipment-row"><span>movement</span><b>${inspector.flags.overflowLanding ? 'targeted landing' : 'normal placement'}</b><em>${inspector.flags.blockedMoveCount} blocked retries</em></div>
+    </section>`;
+}
+
+function renderParty(inspector) {
+  const party = inspector.party;
+  if (!party) return '';
+  return `
+    <section class="equipment-panel expedition-panel">
+      <strong>Expedition Supply</strong>
+      <div class="equipment-row"><span>state</span><b>${escapeHtml(party.state)}</b><em>${escapeHtml(party.baseName ?? 'No active base')}</em></div>
+      <div class="equipment-row"><span>provisions</span><b>${formatSupply(party.provisions)}/${party.maxProvisions}</b><em>water ${formatSupply(party.water)}/${party.maxWater}</em></div>
+      <div class="equipment-row"><span>endurance</span><b>${Math.round(party.endurance)}/${party.maxExpeditionTime}</b><em>${Math.round(party.expeditionTime)} elapsed</em></div>
+    </section>`;
+}
+
+function renderEquipment(inspector) {
+  if (!inspector.equipment.length && !inspector.inventory.length) return '';
+  const equipmentRows = inspector.equipment.map(item => {
+    const slot = item?.slot ?? 'item';
+    const name = item?.name ?? item?.value ?? 'empty';
+    const detail = item?.broken
+      ? `${item.rarity ?? 'common'} · broken`
+      : item?.maxDurability != null
+        ? `${item.rarity ?? 'common'} · ${Math.ceil(item.durability ?? 0)}/${item.maxDurability}`
+        : item?.rarity ?? '';
+    return `<div class="equipment-row"><span>${escapeHtml(slot)}</span><b>${escapeHtml(name)}</b><em>${escapeHtml(detail)}</em></div>`;
+  }).join('');
+  const inventory = inspector.inventory.length
+    ? inspector.inventory.map(item => `<span class="inventory-chip">${escapeHtml(item?.name ?? item)}</span>`).join('')
+    : '<span class="inventory-chip is-empty">empty pack</span>';
+  return `<section class="equipment-panel"><strong>Loadout</strong>${equipmentRows}<div class="inventory-line">${inventory}</div></section>`;
+}
+
+function renderMemories(inspector) {
+  const memories = inspector.memories.slice(0, 3);
+  return `<div class="memory-list">${memories.length
+    ? memories.map(memory => `<div>${escapeHtml((memory?.type ?? 'memory').replaceAll('-', ' '))} · ${Math.round((memory?.currentIntensity ?? memory?.intensity ?? 0) * 100)}%</div>`).join('')
+    : '<div>No recent memorable mistakes.</div>'}</div>`;
+}
+
+function formatSupply(value) {
+  return Math.round((value ?? 0) * 10) / 10;
+}
+
 function escapeHtml(value) {
   return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 }
