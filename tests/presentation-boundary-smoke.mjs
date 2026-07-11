@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { StrategyObserverShell } from '../src/ui/StrategyObserverShell.js';
+import { renderStrategyInspector } from '../src/ui/renderStrategyInspector.js';
+import { normalizeLegacySnapshot } from '../src/compat/normalizeLegacySnapshot.js';
 import {
   selectAgentInspector,
   selectPartyInspector,
@@ -9,6 +12,9 @@ import {
   selectRoomList,
   selectFollowRoster
 } from '../src/presentation/selectors/index.js';
+
+assert.equal(typeof StrategyObserverShell, 'function');
+assert.equal(typeof renderStrategyInspector, 'function');
 
 const snapshot = {
   clock: { time: 12, turn: 4, ended: false },
@@ -73,12 +79,23 @@ assert.equal(selectSettlementList(snapshot)[0].name, 'Mouse Camp');
 assert.equal(selectRoomList(snapshot)[0].occupantCount, 1);
 assert.equal(selectFollowRoster(snapshot)[0].id, 'hero');
 
+const normalized = normalizeLegacySnapshot({
+  time: 3,
+  agents: [{ id: 'hero', faction: 'party', partyId: 'party-1', roomId: 'hall', alive: true }],
+  rooms: [{ id: 'hall' }],
+  expedition: { parties: [{ id: 'party-1', leaderId: 'hero', memberIds: ['hero'], cohesion: 0.8 }] }
+});
+assert.ok(normalized.entities.factions['adventurer-expedition']);
+assert.deepEqual(normalized.entities.parties['party-1'].memberIds, ['hero']);
+assert.equal(normalized.entities.parties['party-1'].leaderId, 'hero');
+
 const screenSource = await readFile(new URL('../src/screens/ObserveScreenPhase8.js', import.meta.url), 'utf8');
 for (const forbidden of ['super.renderInspectPanel()', 'settlementSystem', 'logisticsSystem', 'partySystem', 'this.sim.agents']) {
   assert.equal(screenSource.includes(forbidden), false, `Phase 8 screen crossed the presentation boundary via ${forbidden}`);
 }
 assert.match(screenSource, /StrategyObserverShell/, 'production strategy shell is not mounted');
 assert.match(screenSource, /getViewModel/, 'Phase 8 screen does not consume the facade view model');
+assert.match(screenSource, /this\.selection = \{ type: 'agent', id: this\.selectedAgentId \}/, 'canvas picks are not synchronized to shell selection');
 assert.match(screenSource, /renderer\.renderState\(this\.sim\.snapshot\(\)\)/, 'legacy renderer migration exception disappeared unexpectedly');
 
 const shellSource = await readFile(new URL('../src/ui/StrategyObserverShell.js', import.meta.url), 'utf8');
@@ -87,5 +104,6 @@ assert.match(shellSource, /strategy-topbar/);
 assert.match(shellSource, /strategy-navigator/);
 assert.match(shellSource, /strategy-inspector/);
 assert.match(shellSource, /strategy-timeline/);
+assert.match(shellSource, /data-camera-strip/, 'legacy camera controls are not removed during shell mount');
 
 console.log('presentation boundary and production shell smoke passed');
