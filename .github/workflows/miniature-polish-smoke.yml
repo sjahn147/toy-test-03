@@ -8,10 +8,14 @@ on:
       - 'src/engine/HumanoidMiniatureRig.js'
       - 'src/engine/SkeletonMiniatureRig.js'
       - 'src/engine/CreatureMiniatureBuilders.js'
+      - 'src/engine/ExoticMiniatureBuilders.js'
+      - 'src/engine/MiniatureWeaponBuilders.js'
       - 'src/engine/MiniatureAnimator.js'
+      - 'src/engine/AdvancedMiniatureAnimator.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
       - 'src/miniatures/recipes.js'
+      - 'src/miniatures/partCatalog.js'
       - 'tests/miniature-polish-smoke.mjs'
       - 'package.json'
       - '.github/workflows/miniature-polish-smoke.yml'
@@ -22,10 +26,14 @@ on:
       - 'src/engine/HumanoidMiniatureRig.js'
       - 'src/engine/SkeletonMiniatureRig.js'
       - 'src/engine/CreatureMiniatureBuilders.js'
+      - 'src/engine/ExoticMiniatureBuilders.js'
+      - 'src/engine/MiniatureWeaponBuilders.js'
       - 'src/engine/MiniatureAnimator.js'
+      - 'src/engine/AdvancedMiniatureAnimator.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
       - 'src/miniatures/recipes.js'
+      - 'src/miniatures/partCatalog.js'
       - 'tests/miniature-polish-smoke.mjs'
       - 'package.json'
       - '.github/workflows/miniature-polish-smoke.yml'
@@ -46,10 +54,14 @@ jobs:
           node --check src/engine/HumanoidMiniatureRig.js
           node --check src/engine/SkeletonMiniatureRig.js
           node --check src/engine/CreatureMiniatureBuilders.js
+          node --check src/engine/ExoticMiniatureBuilders.js
+          node --check src/engine/MiniatureWeaponBuilders.js
           node --check src/engine/MiniatureAnimator.js
+          node --check src/engine/AdvancedMiniatureAnimator.js
           node --check src/engine/AssetRegistryPhase8.js
           node --check src/engine/DungeonRendererPhase8.js
           node --check src/miniatures/recipes.js
+          node --check src/miniatures/partCatalog.js
           node --check tests/miniature-polish-smoke.mjs
       - name: Test miniature contracts
         run: npm run test:miniatures
