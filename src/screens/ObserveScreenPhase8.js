@@ -21,6 +21,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.timelineFilter = 'all';
     this.viewModel = null;
     this.viewModelClock = 0;
+    this.onKeyDown = event => this.handleShortcut(event);
   }
 
   mount(root) {
@@ -42,16 +43,22 @@ export class ObserveScreen extends Phase6ObserveScreen {
       onBack: this.onBack,
       onSelect: payload => this.selectEntity(payload),
       onCameraMode: mode => this.setCameraMode(mode),
+      onCameraAction: action => this.handleCameraAction(action),
       onTimelineFilter: filter => { this.timelineFilter = filter; this.refreshViewModel(true); }
     });
     this.shell.mount({ screenEl: this.el, viewport: this.viewport, inspectEl: this.inspectEl });
+    window.addEventListener('keydown', this.onKeyDown);
     this.refreshViewModel(true);
   }
 
   selectEntity({ type, id, roomId = null }) {
     this.selection = { type, id };
     this.selectedAgentId = type === 'agent' ? id : null;
-    if (roomId) this.focusRoom(roomId, true);
+    if (type === 'faction') {
+      this.observerFactionId = id;
+      this.selection = null;
+    }
+    if (roomId) this.focusRoom(roomId, true, 28);
     this.refreshViewModel(true);
   }
 
@@ -77,21 +84,36 @@ export class ObserveScreen extends Phase6ObserveScreen {
     });
     this.shell?.render(this.viewModel, {
       worldTitle: this.scenario.name,
-      selectionType: this.viewModel.selection?.type ?? 'none'
+      selectionType: this.viewModel.selection?.type ?? 'none',
+      cameraMode: this.cameraMode
     });
     renderStrategyInspector(this.inspectEl, this.viewModel.selection, {
-      onClear: () => { this.selection = null; this.selectedAgentId = null; this.refreshViewModel(true); },
+      onClear: () => this.clearSelection(),
       onSelectAgent: id => this.selectEntity({ type: 'agent', id })
     });
   }
 
+  clearSelection() {
+    this.selection = null;
+    this.selectedAgentId = null;
+    this.refreshViewModel(true);
+  }
+
   setCameraMode(mode) {
     this.cameraMode = mode;
-    if (mode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, false);
+    this.shell?.setCameraMode(mode);
+    if (mode === 'fixed') this.resetCamera(false);
     if (mode === 'follow') {
       this.ensureFollowTarget();
       this.pushCameraToFollowTarget(true);
     }
+  }
+
+  handleCameraAction(action) {
+    if (action === 'previous') this.cycleFollowTarget(-1);
+    if (action === 'next') this.cycleFollowTarget(1);
+    if (action === 'focus') this.focusSelection(true);
+    if (action === 'reset') this.resetCamera(true);
   }
 
   ensureFollowTarget() {
@@ -107,20 +129,95 @@ export class ObserveScreen extends Phase6ObserveScreen {
     return fallback;
   }
 
+  cycleFollowTarget(direction) {
+    const roster = this.viewModel?.followRoster ?? [];
+    if (!roster.length) return;
+    const currentIndex = Math.max(0, roster.findIndex(agent => agent.id === this.selectedAgentId));
+    const nextIndex = (currentIndex + direction + roster.length) % roster.length;
+    const target = roster[nextIndex];
+    this.selection = { type: 'agent', id: target.id };
+    this.selectedAgentId = target.id;
+    this.cameraMode = 'follow';
+    this.shell?.setCameraMode('follow');
+    this.refreshViewModel(true);
+    this.pushCameraToFollowTarget(true);
+  }
+
   pushCameraToFollowTarget(immediate = false) {
     const agent = this.ensureFollowTarget();
     if (!agent) return;
     const world = this.renderer.getAgentWorldPosition(agent.id);
     if (world) {
-      this.three.setCameraTarget(world.x, world.y + 1.7, world.z, agent.role === 'ogre' ? 30 : 25, immediate);
+      this.three.setCameraTarget(world.x, world.y + 1.7, world.z, immediate ? followDistance(agent.role) : null, immediate);
       return;
     }
-    this.focusRoom(agent.roomId, immediate);
+    this.focusRoom(agent.roomId, immediate, immediate ? 26 : null);
   }
 
-  focusRoom(roomId, immediate = false) {
+  focusSelection(immediate = false) {
+    const selection = this.viewModel?.selection;
+    if (!selection?.inspector) return;
+    if (selection.type === 'agent') {
+      this.selectedAgentId = selection.id;
+      this.cameraMode = 'follow';
+      this.shell?.setCameraMode('follow');
+      this.pushCameraToFollowTarget(immediate);
+      return;
+    }
+    const inspector = selection.inspector;
+    const roomId = selection.type === 'room'
+      ? selection.id
+      : selection.type === 'settlement'
+        ? inspector.roomId
+        : selection.type === 'party'
+          ? inspector.target?.roomId ?? inspector.base?.roomId
+          : null;
+    if (roomId) {
+      this.cameraMode = 'free';
+      this.shell?.setCameraMode('free');
+      this.focusRoom(roomId, immediate, 28);
+    }
+  }
+
+  focusRoom(roomId, immediate = false, distance = null) {
     const room = this.scenario.rooms.find(candidate => candidate.id === roomId);
-    if (room) this.three.setCameraTarget(room.x, (room.floor ?? 0) * 2.85 + 3, room.z, 26, immediate);
+    if (room) this.three.setCameraTarget(room.x, (room.floor ?? 0) * 2.85 + 3, room.z, distance, immediate);
+  }
+
+  resetCamera(immediate = false) {
+    this.cameraMode = 'fixed';
+    this.shell?.setCameraMode('fixed');
+    this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, immediate);
+  }
+
+  handleShortcut(event) {
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+    const target = event.target;
+    if (target?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
+    if (event.code === 'Space') {
+      event.preventDefault();
+      const paused = this.shell ? !this.shell.paused : false;
+      this.shell.paused = paused;
+      this.runtime.dispatch({ type: paused ? 'clock.pause' : 'clock.resume' });
+      const button = this.el?.querySelector('[data-shell-action="pause"]');
+      if (button) button.textContent = paused ? '▶' : 'Ⅱ';
+    } else if (['Digit1', 'Digit2', 'Digit4'].includes(event.code)) {
+      const speed = Number(event.code.replace('Digit', ''));
+      this.runtime.dispatch({ type: 'clock.set-speed', speed });
+      this.el?.querySelectorAll('[data-shell-speed]').forEach(button => button.classList.toggle('is-active', Number(button.dataset.shellSpeed) === speed));
+    } else if (event.key.toLowerCase() === 'f') {
+      this.setCameraMode('follow');
+    } else if (event.key.toLowerCase() === 'r') {
+      this.resetCamera(true);
+    } else if (event.key === '[') {
+      this.cycleFollowTarget(-1);
+    } else if (event.key === ']') {
+      this.cycleFollowTarget(1);
+    } else if (event.key === 'Escape') {
+      this.clearSelection();
+    } else if (event.key === 'Enter') {
+      this.focusSelection(true);
+    }
   }
 
   renderInspectPanel() {
@@ -145,13 +242,14 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.renderer.renderState(this.sim.snapshot());
     this.refreshViewModel(false);
     if (this.cameraMode === 'follow') this.pushCameraToFollowTarget(false);
-    if (this.cameraMode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, false);
+    if (this.cameraMode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, null, false);
     this.three.updateCamera();
     this.three.render();
     this.raf = requestAnimationFrame(() => this.loop());
   }
 
   destroy() {
+    window.removeEventListener('keydown', this.onKeyDown);
     this.shell?.destroy();
     this.shell = null;
     this.runtimeUnsubscribe?.();
@@ -160,4 +258,10 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.runtime = null;
     super.destroy();
   }
+}
+
+function followDistance(role) {
+  if (role === 'ogre') return 30;
+  if (['stirge', 'rat', 'parasite'].includes(role)) return 22;
+  return 25;
 }
