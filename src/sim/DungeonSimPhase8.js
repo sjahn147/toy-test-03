@@ -3,6 +3,7 @@ import { SettlementSystem } from './SettlementSystem.js';
 import { ExpeditionSystem } from './ExpeditionSystem.js';
 import { LogisticsSystem } from './LogisticsSystem.js';
 import { ConstructionSiegeSystem } from './ConstructionSiegeSystem.js';
+import { PersonalitySystem } from './PersonalitySystem.js';
 import { factionFor } from '../data/applyPhase6Ecology.js';
 
 const ADVENTURER_FACTION = 'adventurer-expedition';
@@ -56,6 +57,16 @@ export class DungeonSim extends Phase7DungeonSim {
     });
     this.logisticsSystem.constructionSystem = this.constructionSystem;
 
+    this.personalitySystem = new PersonalitySystem({
+      graph: this.graph,
+      rooms: this.rooms,
+      partySystem: this.partySystem,
+      settlementSystem: this.settlementSystem,
+      logisticsSystem: this.logisticsSystem,
+      onEvent: text => this.event(text)
+    });
+    this.personalitySystem.initialize(this.agents);
+
     this.territorySystem.harvestResources = sim => this.harvestPhysicalResources(sim);
     if (this.entranceQueue) this.entranceQueue.capacityProvider = (count, sim) => this.settlementSystem.canAdmitParty(count, sim);
   }
@@ -65,6 +76,7 @@ export class DungeonSim extends Phase7DungeonSim {
     this.settlementSystem.update(dt, this);
     this.expeditionSystem.update(dt, this);
     this.logisticsSystem.update(dt, this);
+    this.personalitySystem.update(dt, this);
     super.update(dt);
   }
 
@@ -98,6 +110,15 @@ export class DungeonSim extends Phase7DungeonSim {
         if (this.settlementSystem.resolve(agent, settlementAction, this)) return;
       }
     }
+
+    if (this.isActive(agent) && !agent.travel && !agent.combat) {
+      const personalityAction = this.personalitySystem.decide(agent, this);
+      if (personalityAction) {
+        if (personalityAction.text) this.event(personalityAction.text);
+        if (this.personalitySystem.resolve(agent, personalityAction, this)) return;
+      }
+    }
+
     super.resolve(agent, action);
   }
 
@@ -136,6 +157,7 @@ export class DungeonSim extends Phase7DungeonSim {
     if (!spawned) return null;
     spawned.ecologyFaction ??= settlement?.factionId ?? factionFor(species);
     this.settlementSystem.registerSpawn(spawned, this);
+    this.personalitySystem.initializeAgent(spawned);
     return spawned;
   }
 
@@ -149,6 +171,7 @@ export class DungeonSim extends Phase7DungeonSim {
     const spawned = super.spawnAdvancedMonster(species, roomId);
     if (!spawned) return null;
     this.settlementSystem.registerSpawn(spawned, this);
+    this.personalitySystem.initializeAgent(spawned);
     return spawned;
   }
 
@@ -171,6 +194,7 @@ export class DungeonSim extends Phase7DungeonSim {
       this.agents.splice(before, 1);
       return null;
     }
+    this.personalitySystem.initializeAgent(spawned);
     return spawned;
   }
 
@@ -182,6 +206,13 @@ export class DungeonSim extends Phase7DungeonSim {
 
   finalizeDeath(source, target) {
     this.logisticsSystem.dropForAgent(target, this);
+    if (source && target) {
+      this.personalitySystem.remember(source, 'defeated-enemy', {
+        subjectId: target.id,
+        roomId: target.roomId,
+        intensity: 0.56
+      }, this.time);
+    }
     super.finalizeDeath(source, target);
     this.settlementSystem.sync(this);
   }
@@ -204,6 +235,7 @@ export class DungeonSim extends Phase7DungeonSim {
     super.returnParty();
     for (const agent of this.agents) {
       if (agent.faction === 'party') agent.ecologyFaction = ADVENTURER_FACTION;
+      this.personalitySystem.initializeAgent(agent);
     }
     this.expeditionSystem.initializeParties();
     this.settlementSystem.sync(this);
@@ -215,7 +247,8 @@ export class DungeonSim extends Phase7DungeonSim {
       settlement: this.settlementSystem.snapshot(),
       expedition: this.expeditionSystem.snapshot(),
       logistics: this.logisticsSystem.snapshot(),
-      construction: this.constructionSystem.snapshot()
+      construction: this.constructionSystem.snapshot(),
+      personality: this.personalitySystem.snapshot(this.agents)
     };
   }
 
@@ -225,7 +258,8 @@ export class DungeonSim extends Phase7DungeonSim {
       ...this.settlementSystem.metrics(this.agents),
       ...this.expeditionSystem.metrics(),
       ...this.logisticsSystem.metrics(),
-      ...this.constructionSystem.metrics()
+      ...this.constructionSystem.metrics(),
+      ...this.personalitySystem.metrics(this.agents)
     };
   }
 }
