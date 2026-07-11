@@ -1,0 +1,46 @@
+name: P0 common and flooded asset smoke
+
+on:
+  push:
+    paths:
+      - 'src/engine/CommonDungeonArchitecture*.js'
+      - 'src/engine/Flooded*.js'
+      - 'tests/p0-common-flooded-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/p0-common-flooded-assets-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/engine/CommonDungeonArchitecture*.js'
+      - 'src/engine/Flooded*.js'
+      - 'tests/p0-common-flooded-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/p0-common-flooded-assets-smoke.yml'
+
+jobs:
+  p0-common-flooded-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/engine/CommonDungeonArchitectureKit.js
+          node --check src/engine/CommonDungeonArchitectureAssetPack.js
+          node --check src/engine/FloodedStorehouseGeometry.js
+          node --check src/engine/FloodedReservoirDiorama.js
+          node --check src/engine/FloodedDrainageEngineDiorama.js
+          node --check src/engine/FloodedSluicePassageDiorama.js
+          node --check src/engine/FloodedStorehouseLandmarkRecipes.js
+          node --check src/engine/FloodedStorehouseLandmarkAssetFactory.js
+          node --check src/engine/FloodedStorehouseAssetAnimator.js
+          node --check src/engine/FloodedStorehouseAssetPack.js
+          node --check tests/p0-common-flooded-assets-smoke.mjs
+      - name: Validate production content
+        run: npm run validate:production-content
+      - name: Test P0 common and flooded assets
+        run: node tests/p0-common-flooded-assets-smoke.mjs
