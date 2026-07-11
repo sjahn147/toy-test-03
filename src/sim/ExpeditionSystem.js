@@ -333,11 +333,6 @@ export class ExpeditionSystem {
       parties: [...this.partySystem.parties.values()].map(party => ({
         id: party.id,
         name: party.name,
-        leaderId: party.leaderId ?? null,
-        memberIds: [...(party.memberIds ?? [])],
-        state: party.state ?? 'assembled',
-        cohesion: round(party.cohesion ?? 0),
-        targetRoomId: party.targetRoomId ?? null,
         provisions: round(party.provisions),
         maxProvisions: party.maxProvisions,
         water: round(party.water),
