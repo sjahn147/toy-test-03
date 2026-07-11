@@ -7,6 +7,9 @@ import { buildSkeletonRig } from './SkeletonMiniatureRig.js';
 import { buildSlime, buildMimic } from './CreatureMiniatureBuilders.js';
 import { buildSpider, buildWraith, buildMyconid, buildStirge } from './ExoticMiniatureBuilders.js';
 import { buildLongbow, buildArrow } from './MiniatureWeaponBuilders.js';
+import { installAdvancedMiniatureAnimation } from './AdvancedMiniatureAnimator.js';
+
+installAdvancedMiniatureAnimation();
 
 const HUMANOID_SKELETONS = new Set(['humanoid', 'goblin', 'ogre']);
 const EXOTIC_BUILDERS = {
