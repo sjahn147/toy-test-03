@@ -16,6 +16,7 @@ on:
       - 'src/engine/DungeonRendererPhase8.js'
       - 'src/miniatures/recipes.js'
       - 'src/miniatures/partCatalog.js'
+      - 'src/ui/StrategyObserverShell.js'
       - 'tests/miniature-polish-smoke.mjs'
       - 'package.json'
       - '.github/workflows/miniature-polish-smoke.yml'
@@ -34,6 +35,7 @@ on:
       - 'src/engine/DungeonRendererPhase8.js'
       - 'src/miniatures/recipes.js'
       - 'src/miniatures/partCatalog.js'
+      - 'src/ui/StrategyObserverShell.js'
       - 'tests/miniature-polish-smoke.mjs'
       - 'package.json'
       - '.github/workflows/miniature-polish-smoke.yml'
@@ -62,6 +64,7 @@ jobs:
           node --check src/engine/DungeonRendererPhase8.js
           node --check src/miniatures/recipes.js
           node --check src/miniatures/partCatalog.js
+          node --check src/ui/StrategyObserverShell.js
           node --check tests/miniature-polish-smoke.mjs
       - name: Test miniature contracts
         run: npm run test:miniatures
