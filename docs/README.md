@@ -32,6 +32,10 @@
    - Developer #2 캐릭터·몬스터 miniature presentation 담당 범위
    - 완료된 모델링·리깅·전투·사망 presentation
    - 알려진 기술 부채, 후속 우선순위와 acceptance 기준
+9. [`handoff/developer-3-campaign-landmarks.md`](handoff/developer-3-campaign-landmarks.md)
+   - Developer #3 캠페인 랜드마크 책임 범위와 완료 매트릭스
+   - 남은 16개 절차적 hero/zone-completion asset의 PR·배선·배치 상태
+   - 최종 캠페인 맵 placement/wiring audit 완료 조건
 
 ## 기계 판독 가능한 설계 자료
 
