@@ -8,23 +8,25 @@ export function installAdvancedMiniatureAnimation() {
   const baseUpdate = MiniatureAnimator.prototype.update;
   MiniatureAnimator.prototype.update = function updateWithAdvancedLayer(mesh, agent, time, effects = []) {
     baseUpdate.call(this, mesh, agent, time, effects);
-    applyAdvancedLayer(mesh, agent, time);
+    applyAdvancedLayer(mesh, agent, time, effects);
   };
 }
 
 export class AdvancedMiniatureAnimator extends MiniatureAnimator {
   update(mesh, agent, time, effects = []) {
     super.update(mesh, agent, time, effects);
-    applyAdvancedLayer(mesh, agent, time);
+    applyAdvancedLayer(mesh, agent, time, effects);
   }
 }
 
-function applyAdvancedLayer(mesh, agent, time) {
+function applyAdvancedLayer(mesh, agent, time, effects) {
   const alpha = 0.24;
   const attack = attackTimeline(agent, time, mesh.userData.animationSeed ?? 0);
   const rig = mesh.userData.rig;
   const style = mesh.userData.weaponStyle ?? 'natural';
   if (rig) animateWeaponStyle(rig, style, attack, alpha);
+  animatePresentation(mesh, agent, time, effects, attack, style, alpha);
+
   const model = mesh.getObjectByName('miniature-model');
   const parts = model?.userData?.creatureParts;
   if (!parts) return;
@@ -61,12 +63,56 @@ function animateWeaponStyle(rig, style, attack, alpha) {
     dampRotation(rig.forearmR, 'x', 0.32 + attack.windup * 0.42, alpha);
     return;
   }
+  if (style === 'axe-shield') {
+    dampRotation(rig.upperArmL, 'x', -0.22 - attack.strike * 0.12, alpha);
+    dampRotation(rig.upperArmL, 'y', -0.34, alpha);
+    dampRotation(rig.forearmL, 'x', 0.62, alpha);
+    dampRotation(rig.upperArmR, 'x', 0.92 * attack.windup - 1.32 * attack.strike, alpha);
+    dampRotation(rig.upperArmR, 'y', -0.22 * attack.windup + 0.3 * attack.strike, alpha);
+    dampRotation(rig.forearmR, 'x', 0.36 + attack.windup * 0.44, alpha);
+    dampRotation(rig.chest, 'y', -0.22 * attack.windup + 0.38 * attack.strike, alpha);
+    return;
+  }
   if (style === 'heavy-club') {
     dampRotation(rig.upperArmR, 'x', 0.72 * attack.windup - 1.35 * attack.strike, alpha);
     dampRotation(rig.upperArmL, 'x', 0.48 * attack.windup - 0.9 * attack.strike, alpha);
     dampRotation(rig.forearmR, 'x', 0.58 + attack.windup * 0.38, alpha);
     dampRotation(rig.forearmL, 'x', 0.5 + attack.windup * 0.3, alpha);
   }
+}
+
+function animatePresentation(mesh, agent, time, effects, attack, style, alpha) {
+  const presentation = mesh.userData.presentation;
+  if (!presentation) return;
+  const moving = Boolean(agent.travel);
+  const gait = Math.sin(time * (moving ? 7.5 : 1.5) + presentation.seed * 6.28);
+  const hit = effects.some(effect => effect.agentId === agent.id && ['attack', 'siege-hit'].includes(effect.type));
+  const heal = effects.some(effect => effect.agentId === agent.id && effect.type === 'heal');
+  const lift = agent.role === 'stirge' || agent.role === 'wraith' ? 0.6 : moving ? 0.08 : 0;
+
+  if (presentation.shadow) {
+    const spread = 1 - lift * 0.22 + (hit ? 0.1 : 0);
+    dampScale(presentation.shadow, spread, spread, spread, alpha);
+    presentation.shadow.material.opacity += ((presentation.baseShadowOpacity * (1 - lift * 0.45)) - presentation.shadow.material.opacity) * alpha;
+  }
+
+  if (presentation.cape) {
+    dampRotation(presentation.cape, 'x', 0.08 + (moving ? 0.18 : 0.04) + gait * 0.06 - attack.strike * 0.1, alpha);
+    dampRotation(presentation.cape, 'z', gait * 0.035, alpha);
+  }
+  if (presentation.quiver) dampRotation(presentation.quiver, 'z', gait * 0.045 + attack.strike * 0.03, alpha);
+  if (presentation.spellbook) dampRotation(presentation.spellbook, 'y', gait * 0.04 + (heal ? 0.12 : 0), alpha);
+  if (presentation.relicPack) dampRotation(presentation.relicPack, 'z', gait * 0.035, alpha);
+  if (presentation.hood) dampRotation(presentation.hood, 'z', gait * 0.018, alpha);
+  if (presentation.wizardHat) dampRotation(presentation.wizardHat, 'z', -0.04 + gait * 0.025, alpha);
+  if (presentation.topknot) dampRotation(presentation.topknot, 'z', 0.12 + gait * 0.08 - attack.strike * 0.06, alpha);
+  if (presentation.arrow) presentation.arrow.visible = !(style === 'bow' && attack.strike > 0.16 && attack.strike < 0.92);
+
+  const downed = Boolean(agent.downed) || agent.mood === 'downed';
+  const fallDirection = presentation.seed > 0.5 ? 1 : -1;
+  dampRotation(mesh, 'z', downed ? fallDirection * 1.22 : 0, downed ? 0.18 : 0.1);
+  dampRotation(mesh, 'x', downed ? -0.18 : 0, downed ? 0.18 : 0.1);
+  dampPosition(mesh, 'y', downed ? -0.2 : 0, downed ? 0.18 : 0.1);
 }
 
 function animateSpider(parts, agent, time, attack, alpha) {
@@ -139,6 +185,7 @@ function attackTimeline(agent, time, seed) {
 function pulse(value) { return Math.sin(Math.max(0, Math.min(1, value)) * Math.PI / 2); }
 function smoothstep(value) { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); }
 function dampRotation(node, axis, target, alpha) { if (node) node.rotation[axis] += (target - node.rotation[axis]) * alpha; }
+function dampPosition(node, axis, target, alpha) { if (node) node.position[axis] += (target - node.position[axis]) * alpha; }
 function dampScale(node, x, y, z, alpha) {
   if (!node) return;
   node.scale.x += (x - node.scale.x) * alpha;
