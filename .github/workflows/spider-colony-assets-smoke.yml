@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'src/engine/SpiderColony*.js'
+      - 'src/engine/SpiderSilkRampDiorama.js'
+      - 'src/engine/SpiderVerticalWellDiorama.js'
+      - 'src/engine/SpiderQueenNestDiorama.js'
       - 'tests/spider-colony-assets-smoke.mjs'
       - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
       - 'content/assets/asset-catalog.json'
@@ -11,6 +14,9 @@ on:
   pull_request:
     paths:
       - 'src/engine/SpiderColony*.js'
+      - 'src/engine/SpiderSilkRampDiorama.js'
+      - 'src/engine/SpiderVerticalWellDiorama.js'
+      - 'src/engine/SpiderQueenNestDiorama.js'
       - 'tests/spider-colony-assets-smoke.mjs'
       - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
       - 'content/assets/asset-catalog.json'
@@ -28,6 +34,10 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check src/engine/SpiderColonyLandmarkRecipes.js
+          node --check src/engine/SpiderColonyGeometry.js
+          node --check src/engine/SpiderSilkRampDiorama.js
+          node --check src/engine/SpiderVerticalWellDiorama.js
+          node --check src/engine/SpiderQueenNestDiorama.js
           node --check src/engine/SpiderColonyLandmarkAssetFactory.js
           node --check src/engine/SpiderColonyAssetAnimator.js
           node --check src/engine/SpiderColonyAssetPack.js
