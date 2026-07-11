@@ -63,6 +63,8 @@ try {
   assert.ok(dropped, 'second cargo was not created');
   sim.logisticsSystem.dropForAgent(worker, sim);
   assert.equal(dropped.state, 'dropped', 'carrier loss did not leave physical cargo on the floor');
+  sim.occupancy.release(worker.id);
+  worker.hidden = true;
 
   const rival = sim.agents.find(agent => agent.alive && agent.ecologyFaction && agent.ecologyFaction !== worker.ecologyFaction && !agent.hidden);
   assert.ok(rival, 'no rival raider was available');
