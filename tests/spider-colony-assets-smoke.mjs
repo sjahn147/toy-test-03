@@ -6,26 +6,18 @@ import {
   listSpiderColonyLandmarkRecipes
 } from '../src/engine/SpiderColonyLandmarkRecipes.js';
 
-const manifest = JSON.parse(await readFile(
-  new URL('../content/campaigns/sleeping-citadel/campaign.manifest.json', import.meta.url),
-  'utf8'
-));
-const catalog = JSON.parse(await readFile(
-  new URL('../content/assets/asset-catalog.json', import.meta.url),
-  'utf8'
-));
-const factorySource = await readFile(
-  new URL('../src/engine/SpiderColonyLandmarkAssetFactory.js', import.meta.url),
-  'utf8'
-);
-const animatorSource = await readFile(
-  new URL('../src/engine/SpiderColonyAssetAnimator.js', import.meta.url),
-  'utf8'
-);
-const packSource = await readFile(
-  new URL('../src/engine/SpiderColonyAssetPack.js', import.meta.url),
-  'utf8'
-);
+const manifest = JSON.parse(await readFile(new URL('../content/campaigns/sleeping-citadel/campaign.manifest.json', import.meta.url), 'utf8'));
+const catalog = JSON.parse(await readFile(new URL('../content/assets/asset-catalog.json', import.meta.url), 'utf8'));
+const sources = await Promise.all([
+  'SpiderColonyLandmarkAssetFactory.js',
+  'SpiderColonyGeometry.js',
+  'SpiderSilkRampDiorama.js',
+  'SpiderVerticalWellDiorama.js',
+  'SpiderQueenNestDiorama.js'
+].map(name => readFile(new URL(`../src/engine/${name}`, import.meta.url), 'utf8')));
+const dioramaSource = sources.join('\n');
+const animatorSource = await readFile(new URL('../src/engine/SpiderColonyAssetAnimator.js', import.meta.url), 'utf8');
+const packSource = await readFile(new URL('../src/engine/SpiderColonyAssetPack.js', import.meta.url), 'utf8');
 
 const roomById = new Map(manifest.rooms.map(room => [room.id, room]));
 const catalogIds = new Set(catalog.entries.map(entry => entry.id));
@@ -48,42 +40,25 @@ for (const recipe of recipes) {
   assert.ok(recipe.sockets.length >= 5, `${recipe.id} needs five semantic sockets`);
   assert.equal(new Set(recipe.sockets).size, recipe.sockets.length, `${recipe.id} has duplicate sockets`);
   assert.equal(getSpiderColonyLandmarkRecipe(recipe.id), recipe, `${recipe.id} lookup is unstable`);
-  assert.ok(factorySource.includes(`'${recipe.id}'`), `factory does not claim ${recipe.id}`);
+  assert.ok(dioramaSource.includes(`'${recipe.id}'`), `factory does not claim ${recipe.id}`);
 }
 
 for (const semanticNode of [
-  'silk-ramp-structure',
-  'sticky-ambush-zone',
-  'hanging-cocoon-line',
-  'royal-guard-insignia',
-  'rope-route',
-  'vertical-shaft',
-  'silk-bridge-network',
-  'rope-elevator',
-  'royal-secret-exit',
-  'fall-hazard',
-  'queen-exuvia',
-  'egg-throne',
-  'host-ritual-altar',
-  'silk-crown-crest',
-  'adventurer-containment',
-  'awakened-spider-queen'
+  'silk-ramp-structure','sticky-ambush-zone','hanging-cocoon-line','royal-guard-insignia','rope-route',
+  'vertical-shaft','silk-bridge-network','rope-elevator','royal-secret-exit','fall-hazard',
+  'queen-exuvia','egg-throne','host-ritual-altar','silk-crown-crest','adventurer-containment','awakened-spider-queen'
 ]) {
-  assert.ok(factorySource.includes(`'${semanticNode}'`), `factory is missing semantic node ${semanticNode}`);
+  assert.ok(dioramaSource.includes(`'${semanticNode}'`), `diorama modules are missing semantic node ${semanticNode}`);
 }
 
-for (const state of [
-  'webbed', 'cleared', 'burning',
-  'web-bridge', 'collapsed',
-  'empty', 'queen-awakened', 'captured'
-]) {
-  assert.ok(factorySource.includes(`'${state}'`) || JSON.stringify(recipes).includes(`"${state}"`), `missing state ${state}`);
+for (const state of ['webbed','cleared','burning','web-bridge','collapsed','empty','queen-awakened','captured']) {
+  assert.ok(dioramaSource.includes(`'${state}'`) || JSON.stringify(recipes).includes(`"${state}"`), `missing state ${state}`);
 }
 
-assert.ok(factorySource.includes('queen-leg-upper'), 'queen must be a composite articulated creature');
-assert.ok(factorySource.includes('crown-silk-rib'), 'queen nest must have a crown silhouette');
-assert.ok(factorySource.includes('bridge-cross-thread'), 'vertical well bridges need woven traversal detail');
-assert.ok(!factorySource.includes("'inn."), 'isolated spider pack must not claim inn bundles');
+assert.ok(dioramaSource.includes('queen-leg-upper'), 'queen must be a composite articulated creature');
+assert.ok(dioramaSource.includes('crown-silk-rib'), 'queen nest must have a crown silhouette');
+assert.ok(dioramaSource.includes('bridge-cross-thread'), 'vertical well bridges need woven traversal detail');
+assert.ok(!dioramaSource.includes("'inn."), 'isolated spider pack must not claim inn bundles');
 assert.ok(!packSource.includes('AssetRegistryPhase8'), 'standalone pack must not import shared registry');
 assert.ok(!packSource.includes('DungeonRendererPhase8'), 'standalone pack must not import shared renderer');
 assert.ok(!animatorSource.includes('position.y +='), 'animator must not accumulate vertical drift');
