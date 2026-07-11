@@ -5,12 +5,46 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     super(three, scenario, assets);
     this.settlementMeshes = new Map();
     this.settlementSignatures = new Map();
+    this.fieldCampMeshes = new Map();
   }
 
   renderState(snapshot) {
-    super.renderState(snapshot);
+    const fieldCamps = snapshot.props.filter(prop => prop.type === 'adventurer_field_camp');
+    const filtered = { ...snapshot, props: snapshot.props.filter(prop => prop.type !== 'adventurer_field_camp') };
+    super.renderState(filtered);
+    this.renderFieldCamps(fieldCamps, snapshot.rooms, snapshot.time);
     const settlements = (snapshot.settlement?.settlements ?? []).filter(settlement => settlement.type !== 'field-camp');
     this.renderSettlements(settlements, snapshot.rooms, snapshot.time);
+  }
+
+  renderFieldCamps(camps, rooms, time) {
+    const live = new Set(camps.map(camp => camp.id));
+    for (const [id, mesh] of this.fieldCampMeshes) {
+      if (live.has(id)) continue;
+      this.group.remove(mesh);
+      this.fieldCampMeshes.delete(id);
+    }
+
+    for (const camp of camps) {
+      let mesh = this.fieldCampMeshes.get(camp.id);
+      if (!mesh) {
+        mesh = this.assets.makeProp(camp);
+        mesh.userData.fieldCampId = camp.id;
+        this.fieldCampMeshes.set(camp.id, mesh);
+        this.group.add(mesh);
+      }
+      const room = rooms.find(candidate => candidate.id === camp.roomId);
+      if (!room) continue;
+      const placement = camp.placement ?? {};
+      mesh.position.set(
+        room.x + (placement.ox ?? 0),
+        this.roomY(room) + 0.035,
+        room.z + (placement.oz ?? 0)
+      );
+      mesh.rotation.y = placement.rotation ?? 0;
+      const pulse = 1 + Math.sin(time * 3.4 + camp.id.length) * 0.008;
+      mesh.scale.setScalar((placement.scale ?? 0.82) * pulse);
+    }
   }
 
   renderSettlements(settlements, rooms, time) {
@@ -81,6 +115,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   destroy() {
     this.settlementMeshes.clear();
     this.settlementSignatures.clear();
+    this.fieldCampMeshes.clear();
     super.destroy();
   }
 }
