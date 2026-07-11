@@ -13,7 +13,11 @@ import {
   selectSettlementList,
   selectRoomList,
   selectFollowRoster,
-  selectObserverFactionSummary
+  selectObserverFactionSummary,
+  selectOverlayAvailability,
+  selectTerritoryOverlay,
+  selectSupplyOverlay,
+  selectDangerOverlay
 } from '../presentation/selectors/index.js';
 
 const RUNTIME_METHODS = ['update', 'getSnapshot', 'dispatch', 'subscribe', 'destroy'];
@@ -27,6 +31,13 @@ function selectSelection(state, context) {
   return null;
 }
 
+function selectOverlay(state, mode) {
+  if (mode === 'territory') return selectTerritoryOverlay(state);
+  if (mode === 'supply') return selectSupplyOverlay(state);
+  if (mode === 'danger') return selectDangerOverlay(state);
+  return [];
+}
+
 export class GameRuntimeFacade {
   constructor({ runtime } = {}) {
     if (!runtime) throw new Error('GameRuntimeFacade requires a runtime adapter');
@@ -37,20 +48,15 @@ export class GameRuntimeFacade {
     this.destroyed = false;
   }
 
-  update(dt) {
-    if (!this.destroyed) this.runtime.update(dt);
-  }
-
+  update(dt) { if (!this.destroyed) this.runtime.update(dt); }
   getSnapshot() {
     if (this.destroyed) throw new Error('GameRuntimeFacade is destroyed');
     return this.runtime.getSnapshot();
   }
-
   dispatch(command) {
     if (this.destroyed) return { ok: false, error: 'game runtime is destroyed' };
     return this.runtime.dispatch(command);
   }
-
   subscribe(listener) {
     if (this.destroyed) throw new Error('GameRuntimeFacade is destroyed');
     return this.runtime.subscribe(listener);
@@ -58,6 +64,7 @@ export class GameRuntimeFacade {
 
   getViewModel(context = {}) {
     const state = this.getSnapshot();
+    const overlayMode = context.overlayMode ?? 'normal';
     return {
       topBar: selectGlobalBar(state),
       observerFaction: selectObserverFactionSummary(state, context.observerFactionId ?? null),
@@ -73,7 +80,12 @@ export class GameRuntimeFacade {
         filter: context.timelineFilter ?? 'all',
         limit: context.timelineLimit ?? 50
       }),
-      alerts: state.events.filter(event => ALERT_SEVERITIES.has(event.severity))
+      alerts: state.events.filter(event => ALERT_SEVERITIES.has(event.severity)),
+      overlays: {
+        active: overlayMode,
+        availability: selectOverlayAvailability(state),
+        rooms: selectOverlay(state, overlayMode)
+      }
     };
   }
 
