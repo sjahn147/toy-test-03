@@ -22,6 +22,7 @@
     "test:content": "node tests/content-pipeline-smoke.mjs",
     "test:facade": "node tests/runtime-facade-smoke.mjs",
     "test:presentation": "node tests/presentation-boundary-smoke.mjs",
+    "test:miniatures": "node tests/miniature-polish-smoke.mjs",
     "test:production": "npm run test:content && npm run test:facade && npm run test:presentation"
   },
   "keywords": ["threejs", "dungeon", "simulation", "agent-ai", "toy-game"]
