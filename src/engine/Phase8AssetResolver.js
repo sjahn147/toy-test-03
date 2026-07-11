@@ -9,6 +9,7 @@ import { LaboratoryAssetAnimator } from './LaboratoryAssetAnimator.js';
 import { createRoyalSanctumAssetPack } from './RoyalSanctumAssetPack.js';
 import { RoyalSanctumAssetAnimator } from './RoyalSanctumAssetAnimator.js';
 import { createOldLanternAssetPack } from './OldLanternAssetPack.js';
+import { createCampaignCompletionAssetPack } from './CampaignCompletionAssetPack.js';
 import { installOldLanternRuntimeBridge } from '../sim/OldLanternRuntimeBridge.js';
 
 installOldLanternRuntimeBridge();
@@ -48,6 +49,10 @@ export class Phase8AssetResolver {
     });
     this.register(createOldLanternAssetPack(), {
       priority: 120,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.animate?.(root, elapsedSeconds)
+    });
+    this.register(createCampaignCompletionAssetPack(), {
+      priority: 130,
       animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.animate?.(root, elapsedSeconds)
     });
   }
