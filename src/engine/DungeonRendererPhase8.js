@@ -1,4 +1,5 @@
 import { DungeonRendererPhase7 } from './DungeonRendererPhase7.js';
+import { PHASE8D_STRUCTURE_TYPES } from './AssetRegistryPhase8.js';
 
 export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   constructor(three, scenario, assets) {
@@ -7,16 +8,53 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.settlementSignatures = new Map();
     this.fieldCampMeshes = new Map();
     this.cargoMeshes = new Map();
+    this.structureMeshes = new Map();
+    this.structureSignatures = new Map();
   }
 
   renderState(snapshot) {
     const fieldCamps = snapshot.props.filter(prop => prop.type === 'adventurer_field_camp');
-    const filtered = { ...snapshot, props: snapshot.props.filter(prop => prop.type !== 'adventurer_field_camp') };
+    const structures = snapshot.props.filter(prop => PHASE8D_STRUCTURE_TYPES.has(prop.type));
+    const filtered = { ...snapshot, props: snapshot.props.filter(prop => prop.type !== 'adventurer_field_camp' && !PHASE8D_STRUCTURE_TYPES.has(prop.type)) };
     super.renderState(filtered);
     this.renderFieldCamps(fieldCamps, snapshot.rooms, snapshot.time);
+    this.renderStructures(structures, snapshot.rooms, snapshot.time);
     const settlements = (snapshot.settlement?.settlements ?? []).filter(settlement => settlement.type !== 'field-camp');
     this.renderSettlements(settlements, snapshot.rooms, snapshot.time);
     this.renderCargo(snapshot.logistics?.cargo ?? [], snapshot.agents, snapshot.rooms, snapshot.time);
+  }
+
+  renderStructures(structures, rooms, time) {
+    const live = new Set(structures.map(prop => prop.id));
+    for (const [id, mesh] of this.structureMeshes) {
+      if (live.has(id)) continue;
+      this.group.remove(mesh);
+      this.structureMeshes.delete(id);
+      this.structureSignatures.delete(id);
+    }
+    for (const prop of structures) {
+      const signature = `${prop.type}:${prop.structureFaction}:${Math.floor((prop.integrity ?? 0) / 8)}:${Math.floor((prop.buildProgress ?? 1) * 10)}`;
+      let mesh = this.structureMeshes.get(prop.id);
+      if (!mesh || this.structureSignatures.get(prop.id) !== signature) {
+        if (mesh) this.group.remove(mesh);
+        mesh = this.assets.makeProp(prop);
+        if (!mesh) continue;
+        this.structureMeshes.set(prop.id, mesh);
+        this.structureSignatures.set(prop.id, signature);
+        this.group.add(mesh);
+      }
+      const room = rooms.find(candidate => candidate.id === prop.roomId);
+      if (!room) continue;
+      const placement = prop.placement ?? {};
+      const progress = Math.max(0.08, prop.buildProgress ?? 1);
+      const integrityRatio = Math.max(0.08, (prop.integrity ?? prop.maxIntegrity ?? 1) / Math.max(1, prop.maxIntegrity ?? 1));
+      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.035, room.z + (placement.oz ?? 0));
+      mesh.rotation.y = placement.rotation ?? 0;
+      const baseScale = placement.scale ?? 1;
+      const damagePulse = integrityRatio < 0.4 ? 1 + Math.sin(time * 9 + prop.id.length) * 0.025 : 1;
+      mesh.scale.set(baseScale * damagePulse, baseScale * (0.25 + progress * 0.75), baseScale * damagePulse);
+      mesh.rotation.z = integrityRatio < 0.25 ? Math.sin(time * 5 + prop.id.length) * 0.025 : 0;
+    }
   }
 
   renderFieldCamps(camps, rooms, time) {
@@ -74,9 +112,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
         mesh.rotation.y = angle;
         mesh.scale.setScalar(0.78 + Math.sin(time * 2.8 + angle) * 0.015);
       }
-      mesh.traverse(child => {
-        if (child.name === 'cargo-mote') child.rotation.y = time * 1.4 + child.id;
-      });
+      mesh.traverse(child => { if (child.name === 'cargo-mote') child.rotation.y = time * 1.4 + child.id; });
     }
   }
 
@@ -95,7 +131,6 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
         if (mesh) this.group.remove(mesh);
         mesh = this.assets.settlement.create(settlement);
         mesh.userData.settlementId = settlement.id;
-        mesh.userData.state = settlement.state;
         this.settlementMeshes.set(settlement.id, mesh);
         this.settlementSignatures.set(settlement.id, signature);
         this.group.add(mesh);
@@ -113,16 +148,8 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   animateSettlement(mesh, settlement, time) {
     const threatened = settlement.state === 'threatened';
     const collapsing = settlement.state === 'collapsing';
-    const overcrowded = settlement.overcrowded > 0;
-    const rootPulse = collapsing ? 0.94 + Math.sin(time * 8 + settlement.id.length) * 0.055 : threatened ? 0.98 + Math.sin(time * 5 + settlement.id.length) * 0.025 : 1;
     const baseScale = settlement.visualPlacement?.scale ?? 0.68;
-    mesh.scale.setScalar(baseScale * rootPulse);
-    mesh.traverse(child => {
-      if (child.userData.settlementBaseY === undefined) child.userData.settlementBaseY = child.position.y;
-      if (child.name === 'settlement-light') child.scale.setScalar(0.88 + Math.sin(time * 6.2 + child.id) * 0.16);
-      if (child.name === 'settlement-integrity-gauge') child.rotation.z = threatened || collapsing ? time * 0.22 : 0;
-      if (child.name?.startsWith('settlement-slot-')) child.position.y = child.userData.settlementBaseY + (overcrowded && child.userData.occupied ? Math.sin(time * 7 + child.id) * 0.018 : 0);
-    });
+    mesh.scale.setScalar(baseScale * (collapsing ? 0.94 + Math.sin(time * 8) * 0.055 : threatened ? 0.98 + Math.sin(time * 5) * 0.025 : 1));
   }
 
   destroy() {
@@ -130,12 +157,14 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.settlementSignatures.clear();
     this.fieldCampMeshes.clear();
     this.cargoMeshes.clear();
+    this.structureMeshes.clear();
+    this.structureSignatures.clear();
     super.destroy();
   }
 }
 
 function settlementSignature(settlement) {
-  return JSON.stringify([settlement.state, settlement.factionId, settlement.tier, settlement.capacity, settlement.population, settlement.overcrowded, Math.floor((settlement.structuralIntegrity ?? 0) / 8), Math.floor((settlement.control ?? 0) / 10), settlement.anchorPresent]);
+  return JSON.stringify([settlement.state, settlement.factionId, settlement.tier, settlement.capacity, settlement.population, settlement.overcrowded, Math.floor((settlement.structuralIntegrity ?? 0) / 8), Math.floor((settlement.control ?? 0) / 10), settlement.anchorPresent, settlement.supplyStatus]);
 }
 
 function hash(value) {
