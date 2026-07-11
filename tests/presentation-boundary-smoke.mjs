@@ -10,7 +10,8 @@ import {
   selectPartyList,
   selectSettlementList,
   selectRoomList,
-  selectFollowRoster
+  selectFollowRoster,
+  selectTimelineEvents
 } from '../src/presentation/selectors/index.js';
 
 assert.equal(typeof StrategyObserverShell, 'function');
@@ -56,7 +57,12 @@ const snapshot = {
     structures: {}, effects: {}
   },
   indexes: { agentsByRoom: { hall: ['hero'] }, propsByRoom: { hall: ['banner'] }, settlementsByFaction: { 'adventurer-expedition': ['camp'] } },
-  events: [], metrics: {}
+  events: [
+    { id: 'ambient-1', time: 10, type: 'ecology.growth', severity: 'ambient', roomId: 'hall', text: 'Moss spreads.' },
+    { id: 'critical-1', time: 11, type: 'combat.death', severity: 'critical', locationRoomId: 'hall', sourceId: 'hero', targetId: 'rival', text: 'A fatal blow lands.' },
+    { id: 'historic-1', time: 12, type: 'settlement.founded', severity: 'historic', roomId: 'hall', factionId: 'adventurer-expedition', text: 'A new settlement rises.' }
+  ],
+  metrics: {}
 };
 
 const inspector = selectAgentInspector(snapshot, 'hero');
@@ -79,8 +85,13 @@ assert.equal(selectSettlementList(snapshot)[0].name, 'Mouse Camp');
 assert.equal(selectRoomList(snapshot)[0].occupantCount, 1);
 assert.equal(selectFollowRoster(snapshot)[0].id, 'hero');
 
-// Legacy expedition snapshots intentionally omit party structure. The compat
-// projector must recover it from agent records without touching gameplay code.
+const majorEvents = selectTimelineEvents(snapshot, { filter: 'major' });
+assert.deepEqual(majorEvents.map(event => event.id), ['critical-1', 'historic-1']);
+assert.equal(majorEvents[0].roomId, 'hall');
+assert.equal(majorEvents[0].actorId, 'hero');
+assert.equal(majorEvents[0].targetId, 'rival');
+assert.equal(selectTimelineEvents(snapshot, { filter: 'ecology' }).length, 1);
+
 const normalized = normalizeLegacySnapshot({
   time: 3,
   agents: [
@@ -107,7 +118,9 @@ assert.match(screenSource, /this\.selection = \{ type: 'agent', id: this\.select
 assert.match(screenSource, /renderer\.renderState\(this\.sim\.snapshot\(\)\)/, 'legacy renderer migration exception disappeared unexpectedly');
 assert.match(screenSource, /setCameraTarget\(this\.mapCamera\.x, this\.mapCamera\.y, this\.mapCamera\.z, null, false\)/, 'overview camera still overwrites user zoom each frame');
 assert.match(screenSource, /cycleFollowTarget/, 'follow roster cycling is not wired');
-assert.match(screenSource, /handleShortcut/, 'camera keyboard shortcuts are not wired');
+assert.match(screenSource, /focusTimelineEvent/, 'chronicle events cannot focus the world');
+assert.match(screenSource, /togglePinnedEvent/, 'chronicle pins are not wired');
+assert.match(screenSource, /focusNavigatorSearch/, 'world-index search shortcut is not wired');
 
 const shellSource = await readFile(new URL('../src/ui/StrategyObserverShell.js', import.meta.url), 'utf8');
 assert.equal(shellSource.includes('sim.'), false, 'strategy shell accesses simulation internals');
@@ -118,10 +131,19 @@ assert.match(shellSource, /strategy-timeline/);
 assert.match(shellSource, /strategy-mobile-nav/, 'mobile surface navigation is missing');
 assert.match(shellSource, /data-shell-camera-action="focus"/, 'selection focus control is missing');
 assert.match(shellSource, /data-camera-strip/, 'legacy camera controls are not removed during shell mount');
+assert.match(shellSource, /data-shell-nav-search/, 'navigator search is missing');
+assert.match(shellSource, /data-event-pin/, 'chronicle pin control is missing');
+assert.match(shellSource, /setTimelineFilter\('major'\)/, 'alert button does not open major events');
+assert.match(shellSource, /aria-current/, 'navigator selection is not exposed accessibly');
+
+const polishSource = await readFile(new URL('../src/strategy-observer-polish.css', import.meta.url), 'utf8');
+assert.match(polishSource, /strategy-nav-row\.is-selected/, 'selected navigator row is not styled');
+assert.match(polishSource, /strategy-pinned-events/, 'pinned chronicle strip is not styled');
+assert.match(polishSource, /min-height: 44px/, 'mobile controls do not meet the touch target contract');
 
 const expeditionSource = await readFile(new URL('../src/sim/ExpeditionSystem.js', import.meta.url), 'utf8');
 for (const uiField of ['memberIds: [...(party.memberIds', 'leaderId: party.leaderId', 'cohesion: round(party.cohesion']) {
   assert.equal(expeditionSource.includes(uiField), false, `ExpeditionSystem still contains UI projection field: ${uiField}`);
 }
 
-console.log('presentation boundary, compat party projection and camera UX smoke passed');
+console.log('presentation boundary, chronicle and navigator UX smoke passed');
