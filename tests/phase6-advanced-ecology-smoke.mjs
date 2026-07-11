@@ -31,6 +31,7 @@ try {
   const orc = active(sim, 'orc');
   assert.equal(orc.maxHp, 22, 'advanced orc stats were not normalized');
   assert.equal(orc.attack, 6, 'advanced orc attack was not normalized');
+  assert.equal(orc.hp, orc.maxHp, 'advanced orc did not begin at full health');
   assert.ok(sim.advancedEcology.territories.size > 0, 'territory map was not initialized');
 
   const zombie = active(sim, 'zombie');
@@ -85,10 +86,8 @@ try {
   assert.equal(infectedHost.infected, true, 'parasite infection flag missing');
   assert.equal(sim.advancedEcology.infections.length, 1, 'parasite infection state missing');
   const safeRoom = sim.rooms.find(room => room.tags?.includes('safe_zone'));
-  sim.occupancy.release(infectedHost.id);
-  infectedHost.roomId = safeRoom.id;
-  infectedHost.travel = null;
-  sim.occupancy.placeAgent(infectedHost, safeRoom.id);
+  assert.ok(safeRoom, 'safe room missing');
+  placeInRoom(sim, infectedHost, safeRoom.id);
   sim.advancedEcology.updateInfections(0.5, sim);
   assert.equal(infectedHost.infected, false, 'sanctuary failed to remove parasite infection');
 
@@ -98,6 +97,7 @@ try {
   placeTogether(sim, parasiteB, burstHost);
   sim.advancedEcology.resolve(parasiteB, { type: 'parasite-infect', targetId: burstHost.id }, sim);
   const infection = sim.advancedEcology.infections.find(item => item.targetId === burstHost.id);
+  assert.ok(infection, 'second parasite infection missing');
   sim.advancedEcology.updateInfections(infection.duration + 0.1, sim);
   assert.equal(burstHost.downed, true, 'completed parasite infection did not down the host');
   assert.ok(sim.advancedEcology.pendingSpawns.filter(spawn => spawn.species === 'parasite').length >= 2, 'infection did not stage larval births');
@@ -111,13 +111,12 @@ try {
   const trap = sim.advancedEcology.traps[0];
   assert.ok(trap, 'kobold did not build a trap');
   const trapTarget = party(sim, 0);
-  sim.occupancy.release(trapTarget.id);
-  trapTarget.roomId = trapRoom;
-  trapTarget.travel = null;
-  trapTarget.downed = false;
-  trapTarget.alive = true;
+  for (const member of sim.agents.filter(agent => agent.faction === 'party' && agent.id !== trapTarget.id)) {
+    member.hidden = true;
+    sim.occupancy.release(member.id);
+  }
+  placeInRoom(sim, trapTarget, trapRoom);
   trapTarget.hp = trapTarget.maxHp;
-  sim.occupancy.placeAgent(trapTarget, trapRoom);
   const hpBeforeTrap = trapTarget.hp;
   sim.advancedEcology.updateTraps(0.1, sim);
   assert.ok(trapTarget.hp < hpBeforeTrap, 'kobold trap did not deal damage');
@@ -139,7 +138,19 @@ try {
   assert.ok(sim.advancedEcology.lairs.get('orc').meatStock > meatBefore, 'orc did not bank meat after predation');
 
   const rivalKobold = active(sim, 'kobold');
-  const contestRoom = sim.rooms.find(room => !room.tags?.includes('safe_zone') && room.id !== orc.homeRoomId)?.id;
+  const contestRoom = sim.rooms.find(room =>
+    !room.tags?.includes('safe_zone') && !room.tags?.includes('entrance_threshold') && room.kind !== 'start' &&
+    !sim.agents.some(agent =>
+      agent.alive && !agent.hidden && agent.faction === 'dungeon' && agent.id !== orc.id && agent.id !== rivalKobold.id && agent.roomId === room.id
+    )
+  )?.id ?? sim.rooms.find(room => !room.tags?.includes('safe_zone') && room.kind !== 'start')?.id;
+  assert.ok(contestRoom, 'no room available for territory test');
+  for (const occupant of sim.agents.filter(agent =>
+    agent.alive && agent.faction === 'dungeon' && agent.id !== orc.id && agent.id !== rivalKobold.id && agent.roomId === contestRoom
+  )) {
+    occupant.hidden = true;
+    sim.occupancy.release(occupant.id);
+  }
   placeInRoom(sim, orc, contestRoom);
   placeInRoom(sim, rivalKobold, contestRoom);
   sim.advancedEcology.updateTerritories(sim);
