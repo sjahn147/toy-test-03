@@ -5,12 +5,12 @@
 
 import { assertWorldSnapshot } from '../domain/snapshotContract.js';
 
+const ADVENTURER_FACTION = 'adventurer-expedition';
+
 function finiteNumber(value, fallback = 0) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
-// 방어적 직렬화: Map→object, Set→array, Date→ISO 문자열,
-// 함수/심볼/bigint 제거, 비유한 숫자→null, 순환 참조 차단.
 function toSerializable(value, seen = new WeakSet()) {
   if (value === null) return null;
   if (value === undefined) return undefined;
@@ -18,7 +18,7 @@ function toSerializable(value, seen = new WeakSet()) {
   if (type === 'string' || type === 'boolean') return value;
   if (type === 'number') {
     if (!Number.isFinite(value)) return null;
-    return value === 0 ? 0 : value; // -0은 JSON 왕복에서 0이 되므로 선제 정규화
+    return value === 0 ? 0 : value;
   }
   if (type === 'function' || type === 'symbol' || type === 'bigint') return undefined;
   if (type !== 'object') return undefined;
@@ -56,7 +56,6 @@ function toSerializable(value, seen = new WeakSet()) {
   return result;
 }
 
-// 배열/Map/plain object 어느 형태로 오든 id 키 테이블로 변환합니다.
 function tableOf(source, prefix) {
   const table = {};
   const push = (record, fallbackKey) => {
@@ -75,7 +74,6 @@ function tableOf(source, prefix) {
   return table;
 }
 
-// 레거시 links([[a,b], ...] 또는 {a,b}/{from,to})에서 connection 테이블 파생.
 function connectionTable(links) {
   const table = {};
   if (!Array.isArray(links)) return table;
@@ -94,17 +92,20 @@ function connectionTable(links) {
   return table;
 }
 
-// 세력 테이블은 agents의 ecologyFaction + settlements의 factionId에서 파생합니다.
+function normalizedFactionId(agent) {
+  if (agent?.faction === 'party') return ADVENTURER_FACTION;
+  return agent?.factionId ?? agent?.ecologyFaction ?? (agent?.faction !== 'dungeon' ? agent?.faction : null) ?? null;
+}
+
 function factionTable(agents, settlements) {
   const table = {};
   const ensure = id => {
-    table[id] ??= { id, agentCount: 0, settlementIds: [] };
+    table[id] ??= { id, name: id.replaceAll('-', ' '), agentCount: 0, settlementIds: [] };
     return table[id];
   };
   for (const agent of Object.values(agents)) {
-    if (typeof agent.ecologyFaction === 'string' && agent.ecologyFaction) {
-      ensure(agent.ecologyFaction).agentCount += 1;
-    }
+    const id = normalizedFactionId(agent);
+    if (typeof id === 'string' && id) ensure(id).agentCount += 1;
   }
   for (const settlement of Object.values(settlements)) {
     if (typeof settlement.factionId === 'string' && settlement.factionId) {
@@ -124,14 +125,6 @@ function groupIndex(records, keyOf) {
   return index;
 }
 
-/**
- * @param {Object} rawSnapshot  sim.snapshot() 결과 (base 또는 Phase8)
- * @param {Object} [options]
- * @param {Object[]} [options.events]  eventContract.js shape의 WorldEvent 배열
- * @param {Object|null} [options.metrics]  sim.metrics() 결과 (추가 top-level 필드로 보존)
- * @param {number|null} [options.turn]  sim.turn (레거시 snapshot에는 없음)
- * @returns {import('../domain/snapshotContract.js').WorldSnapshot}
- */
 export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = null, turn = null } = {}) {
   const raw = rawSnapshot && typeof rawSnapshot === 'object' ? rawSnapshot : {};
 
