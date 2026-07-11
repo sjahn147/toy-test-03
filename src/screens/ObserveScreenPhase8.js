@@ -124,6 +124,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
   }
 
   renderInspectPanel() {
+    if (this.selectedAgentId) this.selection = { type: 'agent', id: this.selectedAgentId };
+    else if (this.selection?.type === 'agent') this.selection = null;
     this.refreshViewModel(true);
   }
 
