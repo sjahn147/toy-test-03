@@ -188,7 +188,8 @@ export class DungeonRenderer {
       if (!target) continue;
 
       const bob = agent.role === 'slime' ? Math.sin(time * 5 + agent.index) * 0.05 : Math.sin(time * 4 + agent.index) * 0.025;
-      mesh.position.lerp(new THREE.Vector3(target.x, target.y + bob, target.z), agent.travel ? 0.28 : 0.18);
+      const interpolation = agent.travel?.phase === 'entering' ? 0.42 : agent.travel ? 0.3 : 0.2;
+      mesh.position.lerp(new THREE.Vector3(target.x, target.y + bob, target.z), interpolation);
       if (target.rotation !== undefined) mesh.rotation.y = target.rotation;
       mesh.visible = true;
 
@@ -206,6 +207,16 @@ export class DungeonRenderer {
   roomPosition(agent, rooms, roomMembers) {
     const room = rooms.find(candidate => candidate.id === agent.roomId);
     if (!room) return null;
+    const height = agent.role === 'ogre' ? 0.58 : AGENT_HEIGHT;
+
+    if (agent.roomCell) {
+      return {
+        x: agent.roomCell.x,
+        y: this.roomY(room) + height,
+        z: agent.roomCell.z
+      };
+    }
+
     const members = roomMembers.get(room.id) ?? [agent.id];
     const count = members.length;
     const index = Math.max(0, members.indexOf(agent.id));
@@ -213,20 +224,35 @@ export class DungeonRenderer {
     const spacing = count > 6 ? 0.68 : 0.82;
     const ox = ((slot % 3) - 1) * spacing;
     const oz = (Math.floor(slot / 3) - 1) * spacing;
-    const height = agent.role === 'ogre' ? 0.58 : AGENT_HEIGHT;
     return { x: room.x + ox, y: this.roomY(room) + height, z: room.z + oz };
   }
 
   travelPosition(agent) {
-    const connection = this.connectionById.get(agent.travel.connectionId);
-    if (!connection) return null;
-    const forward = agent.travel.fromRoomId === connection.aId;
-    const progress = forward ? agent.travel.progress : 1 - agent.travel.progress;
-    const sample = sampleConnection(connection, progress);
-    const fromRoom = this.topology.roomById.get(agent.travel.fromRoomId);
-    const toRoom = this.topology.roomById.get(agent.travel.toRoomId);
-    const y = this.roomY(fromRoom) + (this.roomY(toRoom) - this.roomY(fromRoom)) * agent.travel.progress;
+    const travel = agent.travel;
+    const destinationRoom = this.topology.roomById.get(travel.toRoomId);
     const height = agent.role === 'ogre' ? 0.58 : AGENT_HEIGHT;
+
+    if (travel.phase === 'entering') {
+      const start = travel.entryPort;
+      const end = travel.destinationCell;
+      const t = smoothstep(travel.entryProgress ?? 0);
+      const dx = end.x - start.x;
+      const dz = end.z - start.z;
+      return {
+        x: start.x + dx * t,
+        y: this.roomY(destinationRoom) + height,
+        z: start.z + dz * t,
+        rotation: Math.atan2(dx, dz)
+      };
+    }
+
+    const connection = this.connectionById.get(travel.connectionId);
+    if (!connection) return null;
+    const forward = travel.fromRoomId === connection.aId;
+    const progress = forward ? travel.progress : 1 - travel.progress;
+    const sample = sampleConnection(connection, progress);
+    const fromRoom = this.topology.roomById.get(travel.fromRoomId);
+    const y = this.roomY(fromRoom) + (this.roomY(destinationRoom) - this.roomY(fromRoom)) * travel.progress;
     return {
       x: sample.x,
       y: y + height,
@@ -295,4 +321,9 @@ export class DungeonRenderer {
   destroy() {
     this.three.scene.remove(this.group);
   }
+}
+
+function smoothstep(value) {
+  const t = Math.max(0, Math.min(1, value));
+  return t * t * (3 - 2 * t);
 }
