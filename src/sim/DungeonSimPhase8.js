@@ -3,9 +3,14 @@ import { SettlementSystem } from './SettlementSystem.js';
 import { ExpeditionSystem } from './ExpeditionSystem.js';
 import { factionFor } from '../data/applyPhase6Ecology.js';
 
+const ADVENTURER_FACTION = 'adventurer-expedition';
+
 export class DungeonSim extends Phase7DungeonSim {
   constructor(scenario, options = {}) {
     super(scenario, options);
+    for (const agent of this.agents) {
+      if (agent.faction === 'party') agent.ecologyFaction = ADVENTURER_FACTION;
+    }
     this.settlementSystem = new SettlementSystem({
       rooms: this.rooms,
       props: this.props,
@@ -130,6 +135,9 @@ export class DungeonSim extends Phase7DungeonSim {
 
   returnParty() {
     super.returnParty();
+    for (const agent of this.agents) {
+      if (agent.faction === 'party') agent.ecologyFaction = ADVENTURER_FACTION;
+    }
     this.expeditionSystem.initializeParties();
     this.settlementSystem.sync(this);
   }
