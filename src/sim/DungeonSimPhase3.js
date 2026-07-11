@@ -121,10 +121,11 @@ export class DungeonSim extends Phase2DungeonSim {
     super.onDeath(killer, target);
   }
 
-  beginTravel(agent, toRoomId) {
-    if (agent.webbed > 0 || agent.combat || agent.downed) return;
-    super.beginTravel(agent, toRoomId);
+  beginTravel(agent, toRoomId, options = {}) {
+    if (agent.webbed > 0 || agent.combat || agent.downed) return false;
+    const started = super.beginTravel(agent, toRoomId, options);
     if (agent.travel && agent.webbed > 0) agent.travel.duration *= 1.75;
+    return started;
   }
 
   spawnMonster(forcedRole = null) {
