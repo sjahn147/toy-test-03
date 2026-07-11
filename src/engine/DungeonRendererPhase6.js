@@ -203,7 +203,8 @@ export class DungeonRendererPhase6 extends DungeonRendererPhase5 {
       if (!mesh || !mesh.visible) continue;
       mesh.traverse(child => {
         if (child.name === 'advanced-wing') {
-          child.rotation.z += Math.sin(time * 14 + child.id) * 0.045;
+          if (child.userData.baseRotationZ === undefined) child.userData.baseRotationZ = child.rotation.z;
+          child.rotation.z = child.userData.baseRotationZ + Math.sin(time * 14 + child.id) * 0.18;
         }
         if (child.name === 'advanced-spore') {
           if (child.userData.baseY === undefined) child.userData.baseY = child.position.y;
@@ -219,9 +220,10 @@ export class DungeonRendererPhase6 extends DungeonRendererPhase5 {
   animateAdvancedLair(mesh, time, seed) {
     mesh.traverse(child => {
       if (child.userData.baseY === undefined) child.userData.baseY = child.position.y;
+      if (child.userData.baseScaleY === undefined) child.userData.baseScaleY = child.scale.y;
       if (child.name === 'advanced-flame') {
         const pulse = 0.88 + Math.sin(time * 8 + child.id) * 0.14;
-        child.scale.set(pulse, 0.9 + Math.sin(time * 10 + child.id) * 0.18, pulse);
+        child.scale.set(pulse, child.userData.baseScaleY * (0.9 + Math.sin(time * 10 + child.id) * 0.18), pulse);
       }
       if (child.name === 'advanced-spore' || child.name === 'advanced-larva') {
         child.position.y = child.userData.baseY + Math.sin(time * 3.6 + child.id) * 0.045;
@@ -229,10 +231,10 @@ export class DungeonRendererPhase6 extends DungeonRendererPhase5 {
       }
       if (child.name === 'advanced-sac' || child.name === 'advanced-spore-cap') {
         const pulse = 0.96 + Math.sin(time * 2.4 + child.id) * 0.045;
-        child.scale.y = pulse;
+        child.scale.y = child.userData.baseScaleY * pulse;
       }
       if (child.name === 'advanced-fluid') {
-        child.scale.y = 1 + Math.sin(time * 2.5 + seed) * 0.025;
+        child.scale.y = child.userData.baseScaleY * (1 + Math.sin(time * 2.5 + seed) * 0.025);
       }
       if (child.name === 'advanced-gear') child.rotation.z = time * 0.5 + child.id;
       if (child.name === 'advanced-veil') child.material.opacity = 0.48 + Math.sin(time * 2.2 + seed) * 0.1;
