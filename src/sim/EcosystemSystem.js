@@ -24,7 +24,11 @@ export class EcosystemSystem {
     this.props = props;
     this.occupancy = occupancy;
     this.onEvent = onEvent;
-    this.lairs = new Map(props.filter(prop => prop.species && prop.type?.includes('lair') || ['slime_pool', 'rat_warren'].includes(prop.type)).map(prop => [prop.species, prop]));
+    this.lairs = new Map(
+      props
+        .filter(prop => (prop.species && prop.type?.includes('lair')) || ['slime_pool', 'rat_warren'].includes(prop.type))
+        .map(prop => [prop.species, prop])
+    );
     this.corpses = [];
     this.hosts = [];
     this.pendingSpawns = [];
@@ -96,13 +100,12 @@ export class EcosystemSystem {
       if (carrier.travel) continue;
       if (carrier.roomId !== carrier.homeRoomId) continue;
 
+      const pending = this.startSpawn('spider', carrier.homeRoomId, SPECIES.spider.spawnDuration, host.id);
+      if (!pending) continue;
       host.carrierId = null;
       host.deposited = true;
       host.roomId = carrier.homeRoomId;
       carrier.carryingHostId = null;
-      const lair = this.lairs.get('spider');
-      if (lair) lair.bloodStock = (lair.bloodStock ?? 0) + 2;
-      this.startSpawn('spider', carrier.homeRoomId, SPECIES.spider.spawnDuration, host.id);
       this.onEvent(`${carrier.name} suspended ${host.targetName} in the brood chamber.`);
     }
   }
@@ -338,7 +341,8 @@ export class EcosystemSystem {
   tryReproduction(sim) {
     for (const [species, lair] of this.lairs) {
       const profile = SPECIES[species];
-      if (!profile || this.pendingSpawns.some(spawn => spawn.species === species)) continue;
+      const stockSpawnExists = this.pendingSpawns.some(spawn => spawn.species === species && !spawn.sourceHostId);
+      if (!profile || stockSpawnExists) continue;
       const population = sim.agents.filter(agent => agent.alive && !agent.departed && agent.role === species).length;
       if (population >= (lair.capacity ?? profile.capacity)) continue;
       const adults = sim.agents.filter(agent => agent.alive && agent.role === species && (agent.maturity ?? 1) >= 1).length;
@@ -369,7 +373,12 @@ export class EcosystemSystem {
   }
 
   startSpawn(species, roomId, duration, sourceHostId = null) {
-    if (this.pendingSpawns.some(spawn => spawn.species === species || sourceHostId && spawn.sourceHostId === sourceHostId)) return null;
+    if (sourceHostId) {
+      if (this.pendingSpawns.some(spawn => spawn.sourceHostId === sourceHostId)) return null;
+    } else if (this.pendingSpawns.some(spawn => spawn.species === species && !spawn.sourceHostId)) {
+      return null;
+    }
+
     const pending = {
       id: `spawn-${this.spawnSequence++}`,
       species,
