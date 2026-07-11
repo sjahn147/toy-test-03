@@ -45,7 +45,7 @@ for (const [role, skeleton] of [['spider', 'arachnid'], ['wraith', 'spectral'], 
   assert.equal(MINIATURE_RECIPES[role].skeleton, skeleton, `${role} needs the ${skeleton} skeleton family`);
   assert.ok(factorySource.includes(`build${role === 'myconid' ? 'Myconid' : role[0].toUpperCase() + role.slice(1)}`), `factory must route ${role}`);
 }
-for (const detail of ['spider_hip_', 'spider_fang_', 'wraith_tatter', 'myconid_spore', 'stirge_wing_']) {
+for (const detail of ['spider_hip_', 'spider_fang_', 'wraith_tatter', 'myconid-spore', 'stirge_wing_']) {
   assert.ok(exoticSource.includes(detail), `exotic miniature model is missing ${detail}`);
 }
 assert.equal(MINIATURE_RECIPES.archer.weaponStyle, 'bow');
