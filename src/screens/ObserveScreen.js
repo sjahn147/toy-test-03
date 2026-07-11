@@ -1,15 +1,17 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
-import { DungeonRendererPhase4 } from '../engine/DungeonRendererPhase4.js';
-import { AssetRegistryPhase4 } from '../engine/AssetRegistryPhase4.js';
-import { DungeonSim } from '../sim/DungeonSimPhase4.js';
+import { DungeonRendererPhase5 } from '../engine/DungeonRendererPhase5.js';
+import { AssetRegistryPhase5 } from '../engine/AssetRegistryPhase5.js';
+import { DungeonSim } from '../sim/DungeonSimPhase5.js';
 import { expandScenario } from '../data/generateDungeon.js';
 import { applyPhase2Facilities } from '../data/applyPhase2Facilities.js';
+import { applyPhase5Ecology } from '../data/applyPhase5Ecology.js';
 
 export class ObserveScreen {
   constructor({ scenario, state, onBack }) {
     this.baseScenario = scenario;
     const expanded = scenario.useGeneratedMap ? expandScenario(scenario) : scenario;
-    this.scenario = applyPhase2Facilities(expanded);
+    const withFacilities = applyPhase2Facilities(expanded);
+    this.scenario = applyPhase5Ecology(withFacilities);
     this.state = state;
     this.onBack = onBack;
     this.running = true;
@@ -28,7 +30,7 @@ export class ObserveScreen {
       <div class="viewport">
         <div class="legend">
           <strong>${this.scenario.name}</strong>
-          <span>Equipment drops, durability, automatic upgrades and visible socket swaps are active.</span>
+          <span>Species lairs, hunger, predation, corpses, hosts and staged reproduction are active.</span>
         </div>
         <div class="camera-strip" data-camera-strip>
           <button class="camera-btn is-active" data-camera-mode="fixed">고정</button>
@@ -42,6 +44,10 @@ export class ObserveScreen {
         <div class="metrics">
           <div class="metric"><b data-metric="party">0</b><span>party inside</span></div>
           <div class="metric"><b data-metric="dungeon">0</b><span>dungeon awake</span></div>
+          <div class="metric"><b data-metric="hungry">0</b><span>hungry monsters</span></div>
+          <div class="metric"><b data-metric="corpses">0</b><span>corpses</span></div>
+          <div class="metric"><b data-metric="hosts">0</b><span>living hosts</span></div>
+          <div class="metric"><b data-metric="births">0</b><span>developing births</span></div>
           <div class="metric"><b data-metric="waiting">0</b><span>waiting outside</span></div>
           <div class="metric"><b data-metric="orphaned">0</b><span>orphan members</span></div>
           <div class="metric"><b data-metric="downed">0</b><span>downed</span></div>
@@ -71,11 +77,11 @@ export class ObserveScreen {
     this.logEl = el.querySelector('[data-log]');
     this.inspectEl = el.querySelector('[data-inspect]');
 
-    this.assets = new AssetRegistryPhase4();
+    this.assets = new AssetRegistryPhase5();
     this.assets.loadManifest();
     this.three = new ThreeScene(this.viewport);
     this.fitCameraToScenario();
-    this.renderer = new DungeonRendererPhase4(this.three, this.scenario, this.assets);
+    this.renderer = new DungeonRendererPhase5(this.three, this.scenario, this.assets);
     this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
 
     el.querySelectorAll('[data-camera-mode]').forEach(button => button.addEventListener('click', () => this.setCameraMode(button.dataset.cameraMode)));
@@ -133,7 +139,7 @@ export class ObserveScreen {
   ensureFollowTarget() {
     const current = this.sim.agents.find(agent => agent.id === this.selectedAgentId && agent.alive && !agent.departed && !agent.hidden);
     if (current) return current;
-    const fallback = this.sim.agents.find(agent => agent.alive && !agent.departed && agent.faction === 'party')
+    const fallback = this.sim.agents.find(agent => agent.alive && !agent.departed && agent.faction === 'party' && !agent.hidden)
       ?? this.sim.agents.find(agent => agent.alive && !agent.departed && !agent.hidden);
     this.selectedAgentId = fallback?.id ?? null;
     if (this.selectedAgentId) this.renderInspectPanel();
@@ -179,7 +185,7 @@ export class ObserveScreen {
     const room = this.sim.rooms.find(candidate => candidate.id === agent.roomId);
     const destination = agent.travel ? this.sim.rooms.find(candidate => candidate.id === agent.travel.toRoomId) : null;
     const related = this.events.filter(event => event.includes(agent.name)).slice(0, 3);
-    const status = agent.queued ? 'waiting outside' : agent.downed ? `downed ${Math.ceil(agent.bleedout)}s` : agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.combat ? agent.combat.phase : agent.travel ? agent.travel.phase : agent.partyState ?? 'active';
+    const status = agent.hosted ? 'living host' : agent.queued ? 'waiting outside' : agent.downed ? `downed ${Math.ceil(agent.bleedout)}s` : agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.combat ? agent.combat.phase : agent.travel ? agent.travel.phase : agent.partyState ?? agent.mood ?? 'active';
     const location = agent.queued ? 'Outside the expedition gate' : agent.travel ? `${agent.travel.phase === 'entering' ? 'Entering' : 'Corridor'}: ${room?.name ?? agent.roomId} → ${destination?.name ?? agent.travel.toRoomId}` : `Room: ${room?.name ?? agent.roomId}`;
 
     this.inspectEl.innerHTML = `
@@ -188,12 +194,13 @@ export class ObserveScreen {
         <div><b>${Math.max(0, agent.hp)}/${agent.maxHp}</b><span>HP</span></div>
         <div><b>${agent.attack ?? 0}</b><span>attack</span></div>
         <div><b>${agent.defense ?? 0}</b><span>defense</span></div>
-        <div><b>${agent.gold ?? 0}</b><span>gold</span></div>
+        <div><b>${agent.faction === 'dungeon' ? Math.round(agent.hunger ?? 0) : agent.gold ?? 0}</b><span>${agent.faction === 'dungeon' ? 'hunger' : 'gold'}</span></div>
         <div><b>${Math.round(agent.fatigue ?? 0)}</b><span>fatigue</span></div>
         <div><b>${agent.inventory?.length ?? 0}</b><span>inventory</span></div>
       </div>
       <div class="thought">“${escapeHtml(currentThought(agent, this.sim))}”</div>
       <div class="inspect-room">${escapeHtml(location)}</div>
+      ${renderEcology(agent, this.sim)}
       ${renderEquipment(agent)}
       <div class="memory-list">${related.length ? related.map(event => `<div>${escapeHtml(event)}</div>`).join('') : '<div>No recent memorable mistakes.</div>'}</div>
     `;
@@ -224,6 +231,21 @@ export class ObserveScreen {
   }
 }
 
+function renderEcology(agent, sim) {
+  if (agent.faction !== 'dungeon' && !agent.hosted) return '';
+  const home = sim.rooms.find(room => room.id === agent.homeRoomId)?.name ?? agent.homeRoomId ?? 'none';
+  const host = agent.carryingHostId ? sim.ecosystem.hosts.find(candidate => candidate.id === agent.carryingHostId) : null;
+  return `
+    <section class="equipment-panel ecology-panel">
+      <strong>Ecology</strong>
+      <div class="equipment-row"><span>home</span><b>${escapeHtml(home)}</b></div>
+      <div class="equipment-row"><span>hunger</span><b>${Math.round(agent.hunger ?? 0)}/100</b></div>
+      <div class="equipment-row"><span>maturity</span><b>${Math.round((agent.maturity ?? 1) * 100)}%</b></div>
+      ${host ? `<div class="equipment-row"><span>carrying</span><b>${escapeHtml(host.targetName)}</b></div>` : ''}
+      ${agent.hosted ? '<div class="equipment-row"><span>state</span><b>incubating host</b></div>' : ''}
+    </section>`;
+}
+
 function renderEquipment(agent) {
   if (agent.faction !== 'party' || !agent.equipment) return '';
   const rows = Object.entries(agent.equipment).map(([slot, item]) => {
@@ -239,17 +261,22 @@ function renderEquipment(agent) {
 }
 
 function currentThought(agent, sim) {
+  if (agent.hosted) return 'The silk is warm. That is not reassuring.';
   if (agent.queued) return 'Everyone is here. Someone is still checking the rope.';
   if (agent.downed) return `I have about ${Math.ceil(agent.bleedout)} seconds of optimism left.`;
   if (!agent.alive && agent.resurrectable) return 'The statue has not forgotten my name yet.';
   if (!agent.alive) return 'I have become useful documentation.';
   if ((agent.webbed ?? 0) > 0) return 'The silk is tighter than the employment contract.';
   if (Object.values(agent.equipment ?? {}).some(item => item?.broken)) return 'Something important is making the wrong metal noise.';
+  if ((agent.hunger ?? 0) >= 82) return 'Everything nearby has become a menu category.';
+  if (agent.carryingHostId) return 'The brood chamber is this way. The package is still breathing.';
   if (agent.resurrectionSickness > 0) return 'Being alive again is more tiring than advertised.';
   if (agent.combat?.phase === 'windup') return 'This is the part where commitment becomes visible.';
   if (agent.travel) return `The corridor to ${sim.roomName(agent.travel.toRoomId)} is taking this personally.`;
   if ((agent.fatigue ?? 0) > 75) return 'A bench, a fountain, or a small administrative miracle would help.';
   if (agent.orphaned) return `I should be able to hear ${sim.agents.find(candidate => candidate.id === agent.partyLeaderId)?.name ?? 'the others'}.`;
+  if (agent.role === 'rat') return 'The grain belongs to whoever reaches it first.';
+  if (agent.role === 'spider') return 'Stillness is a kind of hunting.';
   if (agent.role === 'rogue') return 'That chest is probably fine.';
   if (agent.role === 'cleric') return 'Everyone is temporarily acceptable.';
   if (agent.role === 'wizard') return 'This is academically survivable.';
