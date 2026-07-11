@@ -1,8 +1,9 @@
 export class EntranceQueueSystem {
-  constructor({ entryRoomId, occupancy, onEvent = () => {} }) {
+  constructor({ entryRoomId, occupancy, onEvent = () => {}, capacityProvider = null }) {
     this.entryRoomId = entryRoomId;
     this.occupancy = occupancy;
     this.onEvent = onEvent;
+    this.capacityProvider = capacityProvider;
     this.queue = [];
     this.sequence = 1;
   }
@@ -38,7 +39,6 @@ export class EntranceQueueSystem {
     if (record.countdown > 0) return;
 
     if (!this.tryAdmit(record, sim)) {
-      record.waitingReason = 'entry-full';
       record.countdown = 1.25;
       return;
     }
@@ -50,13 +50,19 @@ export class EntranceQueueSystem {
   tryAdmit(record, sim) {
     const members = record.members.filter(member => member.alive);
     if (!members.length) return true;
-    const reservations = [];
 
+    if (this.capacityProvider && !this.capacityProvider(members.length, sim, record)) {
+      record.waitingReason = 'settlement-capacity';
+      return false;
+    }
+
+    const reservations = [];
     for (const member of members) {
       member.roomId = this.entryRoomId;
       const reservation = this.occupancy.reserveDestination(member, this.entryRoomId, null);
       if (!reservation) {
         for (const reserved of reservations) this.occupancy.cancelReservation(reserved.member.id);
+        record.waitingReason = 'entry-full';
         return false;
       }
       reservations.push({ member, reservation });
@@ -71,6 +77,7 @@ export class EntranceQueueSystem {
       this.occupancy.commitReservation(member, reservation);
     }
 
+    record.waitingReason = 'admitted';
     sim.partySystem.update(sim.agents);
     return true;
   }
