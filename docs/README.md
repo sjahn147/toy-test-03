@@ -28,6 +28,10 @@
 7. [`handoff/workstream-plan.md`](handoff/workstream-plan.md)
    - 병렬로 나눌 수 있는 작업 스트림
    - 의존성, 산출물, 인수 조건
+8. [`handoff/developer-2-character-monster-presentation.md`](handoff/developer-2-character-monster-presentation.md)
+   - Developer #2 캐릭터·몬스터 miniature presentation 담당 범위
+   - 완료된 모델링·리깅·전투·사망 presentation
+   - 알려진 기술 부채, 후속 우선순위와 acceptance 기준
 
 ## 기계 판독 가능한 설계 자료
 
