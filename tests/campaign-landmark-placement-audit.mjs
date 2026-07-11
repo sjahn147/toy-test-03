@@ -8,7 +8,7 @@ const resolver = await source('../src/engine/Phase8AssetResolver.js');
 const registry = await source('../src/engine/AssetRegistryPhase8.js');
 const renderer = await source('../src/engine/DungeonRendererPhase8.js');
 const pack = await source('../src/engine/CampaignCompletionAssetPack.js');
-const dioramas = await source('../src/engine/CampaignCompletionDioramas.js');
+const overlays = await source('../src/engine/CampaignCompletionStateOverlays.js');
 const recipes = listCampaignCompletionRecipes();
 const rooms = new Map(manifest.rooms.map(room => [room.id, room]));
 
@@ -20,7 +20,9 @@ for (const recipe of recipes) {
   assert.deepEqual(room.stateVariants, recipe.states, `${recipe.roomId} states must match manifest`);
   assert.ok(recipe.footprint.width <= room.size[0], `${recipe.roomId} width exceeds room`);
   assert.ok(recipe.footprint.depth <= room.size[1], `${recipe.roomId} depth exceeds room`);
-  for (const state of recipe.states) assert.ok(dioramas.includes(`'${state}'`) || dioramas.includes(`===\'${state}\'`) || state === recipe.defaultState, `${recipe.roomId} state ${state} must be represented`);
+  for (const state of recipe.states) {
+    assert.ok(overlays.includes(`'${recipe.id}:${state}'`), `${recipe.roomId} state ${state} needs an explicit visual overlay`);
+  }
 }
 
 for (const contract of [
@@ -53,6 +55,7 @@ for (const contract of [
 ]) assert.ok(renderer.includes(contract), `renderer missing ${contract}`);
 
 assert.ok(pack.includes('CAMPAIGN_COMPLETION_BUNDLE_IDS'));
+assert.ok(pack.includes('applyCampaignCompletionStateOverlay'));
 assert.ok(pack.includes('animateCampaignCompletion'));
 assert.equal(packageJson.scripts['test:campaign-placement'], 'node tests/campaign-landmark-placement-audit.mjs');
 assert.ok(packageJson.scripts['test:assets'].includes('test:campaign-placement'));
