@@ -1,0 +1,17 @@
+name: Phase 4 Equipment Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  phase4-equipment-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:phase4
