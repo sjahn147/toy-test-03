@@ -121,8 +121,14 @@ export class ExpeditionSystem {
     }
 
     const localSettlement = this.activeAdventurerSettlement(roomId);
-    if (localSettlement && this.partyNeedsRest(party, members)) return { type: 'expedition-rest', settlementId: localSettlement.id };
-    if (this.canEstablishCamp(party, members, roomId, sim)) return { type: 'expedition-build-camp', roomId };
+    if (localSettlement && this.partyNeedsRest(party, members)) {
+      return { type: 'expedition-rest', settlementId: localSettlement.id };
+    }
+
+    if (this.canEstablishCamp(party, members, roomId, sim)) {
+      return { type: 'expedition-build-camp', roomId };
+    }
+
     return null;
   }
 
@@ -233,42 +239,63 @@ export class ExpeditionSystem {
       medicine: 1,
       materials: 1,
       wealth: 0,
-      comfort: 22,
-      security: 18,
-      recoveryPower: 12,
+      comfort: 12,
+      security: 10,
+      recoveryPower: 9,
       buildings: [],
-      visualPlacement: { ox: prop.placement.ox, oz: prop.placement.oz },
-      constructionSlots: 1,
-      supplyStatus: 'open',
-      supplyEfficiency: 1,
-      lastAttackedAt: -999,
-      lastCapacityWarningAt: -999,
+      visualPlacement: { ...prop.placement },
+      foundedAt: sim.time,
+      lastAttackedAt: null,
       abandonedAt: null
     };
-    this.settlementSystem.settlements.set(settlement.id, settlement);
+    prop.settlementId = settlement.id;
+    this.settlementSystem.registerSettlement(settlement);
     party.baseSettlementId = settlement.id;
-    party.expeditionState = 'camping';
+    party.expeditionState = 'encamped';
+
     for (const member of members) {
-      member.homeSettlementId = settlement.id;
-      member.homeRoomId = roomId;
+      if (projectedRoom(member) !== roomId) continue;
+      this.settlementSystem.rehome(member, settlement, sim, 'field-camp-founding');
     }
-    this.onEvent(`${party.name} established a field camp in ${room.name}.`);
-    sim.emitEffect?.('settlement-founded', { roomId, duration: 1.4 });
+    this.settlementSystem.sync(sim);
+    this.occupancy.blockArea(roomId, room.x + prop.placement.ox, room.z + prop.placement.oz, 1.05 * prop.placement.scale, prop.id);
+    sim.emitEffect('expedition-camp-build', { roomId, agentId: agent.id, duration: 1.4 });
+    this.onEvent(`${party.name} established a field camp in ${sim.roomName(roomId)} with four resident slots.`);
     return true;
   }
 
   restAtSettlement(agent, settlementId, sim) {
     const party = this.partySystem.getParty(agent);
     const settlement = this.settlementSystem.settlements.get(settlementId);
-    if (!party || !settlement || !ACTIVE_SETTLEMENT_STATES.has(settlement.state)) return true;
-    party.expeditionState = 'resting';
-    party.endurance = Math.min(party.maxExpeditionTime, party.endurance + 12);
-    party.provisions = Math.min(party.maxProvisions, party.provisions + Math.max(0.4, settlement.food * 0.02));
-    party.water = Math.min(party.maxWater, party.water + 1.2);
-    for (const member of this.activeMembers(party, sim)) {
-      member.fatigue = Math.max(0, (member.fatigue ?? 0) - 5);
-      member.hp = Math.min(member.maxHp, member.hp + 0.8);
+    if (!party || !settlement || projectedRoom(agent) !== settlement.roomId || !ACTIVE_SETTLEMENT_STATES.has(settlement.state)) return true;
+    const members = this.activeMembers(party, sim).filter(member => !member.travel && projectedRoom(member) === settlement.roomId);
+    if (!members.length) return true;
+
+    const isSafe = settlement.indestructible;
+    const provisionCost = isSafe ? 0 : Math.min(1, party.provisions);
+    const waterCost = isSafe ? 0 : Math.min(0.8, party.water);
+    if (!isSafe && (provisionCost < 0.5 || waterCost < 0.4)) return true;
+    party.provisions -= provisionCost;
+    party.water -= waterCost;
+
+    const medicalNeed = members.some(member => member.hp < member.maxHp * 0.45);
+    const medicineUsed = medicalNeed && party.medicine >= 1 ? 1 : 0;
+    party.medicine -= medicineUsed;
+    const healRatio = isSafe ? 0.42 : 0.2 + medicineUsed * 0.16;
+    const fatigueRecovery = isSafe ? 62 : 38;
+
+    for (const member of members) {
+      const amount = Math.max(3, Math.round(member.maxHp * healRatio));
+      member.hp = Math.min(member.maxHp, member.hp + amount);
+      member.fatigue = Math.max(0, (member.fatigue ?? 0) - fatigueRecovery);
+      member.recoveryCooldown = Math.max(member.recoveryCooldown ?? 0, 10);
+      sim.emitEffect('heal', { roomId: member.roomId, agentId: member.id, duration: 1.05, amount });
     }
+
+    party.endurance = Math.min(party.maxExpeditionTime, party.endurance + (isSafe ? 90 : 42));
+    party.expeditionState = isSafe ? 'resupplying' : 'encamped';
+    party.campCooldown = 12;
+    this.onEvent(`${party.name} rested at ${this.settlementSystem.label(settlement)} and recovered expedition endurance.`);
     return true;
   }
 
