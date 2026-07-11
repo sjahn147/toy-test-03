@@ -1,9 +1,11 @@
 import { DungeonRendererPhase7 } from './DungeonRendererPhase7.js';
 import { PHASE8D_STRUCTURE_TYPES } from './AssetRegistryPhase8.js';
+import { MiniatureAnimator } from './MiniatureAnimator.js';
 
 export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   constructor(three, scenario, assets) {
     super(three, scenario, assets);
+    this.miniatureAnimator = new MiniatureAnimator();
     this.settlementMeshes = new Map();
     this.settlementSignatures = new Map();
     this.fieldCampMeshes = new Map();
@@ -17,11 +19,20 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     const structures = snapshot.props.filter(prop => PHASE8D_STRUCTURE_TYPES.has(prop.type));
     const filtered = { ...snapshot, props: snapshot.props.filter(prop => prop.type !== 'adventurer_field_camp' && !PHASE8D_STRUCTURE_TYPES.has(prop.type)) };
     super.renderState(filtered);
+    this.animateMiniatures(snapshot.agents, snapshot.effects ?? [], snapshot.time);
     this.renderFieldCamps(fieldCamps, snapshot.rooms, snapshot.time);
     this.renderStructures(structures, snapshot.rooms, snapshot.time);
     const settlements = (snapshot.settlement?.settlements ?? []).filter(settlement => settlement.type !== 'field-camp');
     this.renderSettlements(settlements, snapshot.rooms, snapshot.time);
     this.renderCargo(snapshot.logistics?.cargo ?? [], snapshot.agents, snapshot.rooms, snapshot.time);
+  }
+
+  animateMiniatures(agents, effects, time) {
+    for (const agent of agents) {
+      if (!agent.alive || agent.hidden || agent.departed) continue;
+      const mesh = this.agentMeshes.get(agent.id);
+      if (mesh) this.miniatureAnimator.update(mesh, agent, time, effects);
+    }
   }
 
   renderStructures(structures, rooms, time) {
