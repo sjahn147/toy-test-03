@@ -8,63 +8,36 @@ import { enrichLegacyParties } from './enrichLegacyParties.js';
 
 const ADVENTURER_FACTION = 'adventurer-expedition';
 
-function finiteNumber(value, fallback = 0) {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
-}
-
+function finiteNumber(value, fallback = 0) { return typeof value === 'number' && Number.isFinite(value) ? value : fallback; }
 function toSerializable(value, seen = new WeakSet()) {
   if (value === null) return null;
   if (value === undefined) return undefined;
   const type = typeof value;
   if (type === 'string' || type === 'boolean') return value;
-  if (type === 'number') {
-    if (!Number.isFinite(value)) return null;
-    return value === 0 ? 0 : value;
-  }
+  if (type === 'number') return Number.isFinite(value) ? (value === 0 ? 0 : value) : null;
   if (type === 'function' || type === 'symbol' || type === 'bigint') return undefined;
-  if (type !== 'object') return undefined;
-  if (seen.has(value)) return undefined;
+  if (type !== 'object' || seen.has(value)) return undefined;
   seen.add(value);
-
   let result;
-  if (Array.isArray(value)) {
-    result = value.map(item => {
-      const cleaned = toSerializable(item, seen);
-      return cleaned === undefined ? null : cleaned;
-    });
-  } else if (value instanceof Map) {
+  if (Array.isArray(value)) result = value.map(item => toSerializable(item, seen) ?? null);
+  else if (value instanceof Map) {
     result = {};
-    for (const [key, item] of value.entries()) {
-      const cleaned = toSerializable(item, seen);
-      if (cleaned !== undefined) result[String(key)] = cleaned;
-    }
-  } else if (value instanceof Set) {
-    result = [...value].map(item => {
-      const cleaned = toSerializable(item, seen);
-      return cleaned === undefined ? null : cleaned;
-    });
-  } else if (value instanceof Date) {
-    result = value.toISOString();
-  } else {
+    for (const [key, item] of value.entries()) { const cleaned = toSerializable(item, seen); if (cleaned !== undefined) result[String(key)] = cleaned; }
+  } else if (value instanceof Set) result = [...value].map(item => toSerializable(item, seen) ?? null);
+  else if (value instanceof Date) result = value.toISOString();
+  else {
     result = {};
-    for (const [key, item] of Object.entries(value)) {
-      const cleaned = toSerializable(item, seen);
-      if (cleaned !== undefined) result[key] = cleaned;
-    }
+    for (const [key, item] of Object.entries(value)) { const cleaned = toSerializable(item, seen); if (cleaned !== undefined) result[key] = cleaned; }
   }
-
   seen.delete(value);
   return result;
 }
-
 function tableOf(source, prefix) {
   const table = {};
   const push = (record, fallbackKey) => {
     const cleaned = toSerializable(record);
     if (!cleaned || typeof cleaned !== 'object' || Array.isArray(cleaned)) return;
-    const id = cleaned.id !== undefined && cleaned.id !== null && `${cleaned.id}`.length > 0
-      ? String(cleaned.id)
-      : String(fallbackKey);
+    const id = cleaned.id !== undefined && cleaned.id !== null && `${cleaned.id}`.length > 0 ? String(cleaned.id) : String(fallbackKey);
     cleaned.id = id;
     table[id] = cleaned;
   };
@@ -74,63 +47,54 @@ function tableOf(source, prefix) {
   else if (typeof source === 'object') for (const [key, record] of Object.entries(source)) push(record, key);
   return table;
 }
-
 function connectionTable(links) {
   const table = {};
   if (!Array.isArray(links)) return table;
   for (const link of links) {
-    let from;
-    let to;
+    let from; let to;
     if (Array.isArray(link)) [from, to] = link;
-    else if (link && typeof link === 'object') {
-      from = link.from ?? link.a;
-      to = link.to ?? link.b;
-    }
+    else if (link && typeof link === 'object') { from = link.from ?? link.a; to = link.to ?? link.b; }
     if (typeof from !== 'string' || typeof to !== 'string' || !from || !to) continue;
     const id = `${from}--${to}`;
     table[id] = { id, from, to };
   }
   return table;
 }
-
 function normalizedFactionId(agent) {
   if (agent?.faction === 'party') return ADVENTURER_FACTION;
   return agent?.factionId ?? agent?.ecologyFaction ?? (agent?.faction !== 'dungeon' ? agent?.faction : null) ?? null;
 }
-
 function factionTable(agents, settlements) {
   const table = {};
-  const ensure = id => {
-    table[id] ??= { id, name: id.replaceAll('-', ' '), agentCount: 0, settlementIds: [] };
-    return table[id];
-  };
-  for (const agent of Object.values(agents)) {
-    const id = normalizedFactionId(agent);
-    if (typeof id === 'string' && id) ensure(id).agentCount += 1;
-  }
-  for (const settlement of Object.values(settlements)) {
-    if (typeof settlement.factionId === 'string' && settlement.factionId) {
-      ensure(settlement.factionId).settlementIds.push(settlement.id);
-    }
-  }
+  const ensure = id => { table[id] ??= { id, name: id.replaceAll('-', ' '), agentCount: 0, settlementIds: [] }; return table[id]; };
+  for (const agent of Object.values(agents)) { const id = normalizedFactionId(agent); if (typeof id === 'string' && id) ensure(id).agentCount += 1; }
+  for (const settlement of Object.values(settlements)) if (typeof settlement.factionId === 'string' && settlement.factionId) ensure(settlement.factionId).settlementIds.push(settlement.id);
   return table;
 }
-
 function groupIndex(records, keyOf) {
   const index = {};
-  for (const record of Object.values(records)) {
-    const key = keyOf(record);
-    if (typeof key !== 'string' || !key) continue;
-    (index[key] ??= []).push(record.id);
-  }
+  for (const record of Object.values(records)) { const key = keyOf(record); if (typeof key === 'string' && key) (index[key] ??= []).push(record.id); }
   return index;
+}
+function projectTerritory(rooms, source) {
+  const states = tableOf(source, 'territory-room');
+  for (const state of Object.values(states)) {
+    const roomId = state.roomId ?? state.id;
+    const room = rooms[roomId];
+    if (!room) continue;
+    room.territoryOwner = state.owner ?? state.factionId ?? null;
+    room.territoryControl = finiteNumber(state.control);
+    room.control = finiteNumber(state.control);
+    room.contested = state.contested === true;
+    room.contestedBy = Array.isArray(state.contestedBy) ? state.contestedBy : [];
+  }
 }
 
 export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = null, turn = null } = {}) {
   const raw = rawSnapshot && typeof rawSnapshot === 'object' ? rawSnapshot : {};
-
   const agents = tableOf(raw.agents, 'agent');
   const rooms = tableOf(raw.rooms, 'room');
+  projectTerritory(rooms, raw.territory?.rooms);
   const props = tableOf(raw.props, 'prop');
   const effects = tableOf(raw.effects, 'effect');
   const connections = connectionTable(raw.links);
@@ -139,29 +103,18 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const cargo = tableOf(raw.logistics?.cargo, 'cargo');
   const structures = tableOf(raw.construction?.structures, 'structure');
   const factions = factionTable(agents, settlements);
-
   const visited = new Set(Array.isArray(raw.visited) ? raw.visited : []);
   for (const room of Object.values(rooms)) room.visited = visited.has(room.id);
-
   const snapshot = {
-    clock: {
-      time: finiteNumber(raw.time),
-      turn: finiteNumber(turn ?? raw.turn),
-      ended: raw.ended === true
-    },
+    clock: { time: finiteNumber(raw.time), turn: finiteNumber(turn ?? raw.turn), ended: raw.ended === true },
     entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, effects },
     indexes: {
-      agentsByRoom: groupIndex(agents, agent =>
-        agent.alive !== false && agent.departed !== true ? agent.roomId : null
-      ),
+      agentsByRoom: groupIndex(agents, agent => agent.alive !== false && agent.departed !== true ? agent.roomId : null),
       propsByRoom: groupIndex(props, prop => prop.roomId),
       settlementsByFaction: groupIndex(settlements, settlement => settlement.factionId)
     },
-    events: Array.isArray(events)
-      ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object')
-      : [],
+    events: Array.isArray(events) ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object') : [],
     metrics: toSerializable(metrics) ?? null
   };
-
   return assertWorldSnapshot(snapshot);
 }
