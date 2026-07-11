@@ -11,8 +11,10 @@ import { buildHeavyAxe, buildKiteShield } from './MiniaturePhase3Equipment.js';
 import { decorateOrc } from './OrcMiniaturePolish.js';
 import { applyMiniaturePresentationPolish } from './MiniaturePresentationPolish.js';
 import { installAdvancedMiniatureAnimation } from './AdvancedMiniatureAnimator.js';
+import { installCombatPresentationBridge } from './CombatPresentationBridge.js';
 
 installAdvancedMiniatureAnimation();
+installCombatPresentationBridge();
 
 const HUMANOID_SKELETONS = new Set(['humanoid', 'goblin', 'orc', 'ogre']);
 const EXOTIC_BUILDERS = {
