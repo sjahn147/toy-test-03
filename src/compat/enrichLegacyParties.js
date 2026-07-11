@@ -16,4 +16,36 @@ export function enrichLegacyParties(parties, agents) {
 
   for (const [partyId, party] of Object.entries(result)) {
     const members = membersByParty.get(partyId) ?? [];
-    const memberIds = uniqueStrings
+    const memberIds = uniqueStrings([
+      ...(Array.isArray(party.memberIds) ? party.memberIds : []),
+      ...members.map(member => member.id)
+    ]);
+    const leaderId = party.leaderId
+      ?? members.find(member => member.partyLeaderId === member.id)?.id
+      ?? members.find(member => member.partyLeaderId)?.partyLeaderId
+      ?? memberIds[0]
+      ?? null;
+    const leader = leaderId ? agents[leaderId] : null;
+
+    result[partyId] = {
+      ...party,
+      id: partyId,
+      memberIds,
+      leaderId,
+      state: party.state ?? party.expeditionState ?? members[0]?.partyState ?? 'assembled',
+      cohesion: typeof party.cohesion === 'number' ? party.cohesion : null,
+      targetRoomId: party.targetRoomId
+        ?? leader?.travel?.toRoomId
+        ?? leader?.roomId
+        ?? members.find(member => member.travel?.toRoomId)?.travel?.toRoomId
+        ?? members[0]?.roomId
+        ?? null
+    };
+  }
+
+  return result;
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values.filter(value => typeof value === 'string' && value))];
+}
