@@ -1,7 +1,7 @@
 import { ThreeScene } from '../engine/ThreeScene.js';
-import { DungeonRendererPhase2 } from '../engine/DungeonRendererPhase2.js';
+import { DungeonRendererPhase3 } from '../engine/DungeonRendererPhase3.js';
 import { AssetRegistryPhase2 } from '../engine/AssetRegistryPhase2.js';
-import { DungeonSim } from '../sim/DungeonSimPhase2.js';
+import { DungeonSim } from '../sim/DungeonSimPhase3.js';
 import { expandScenario } from '../data/generateDungeon.js';
 import { applyPhase2Facilities } from '../data/applyPhase2Facilities.js';
 
@@ -28,7 +28,7 @@ export class ObserveScreen {
       <div class="viewport">
         <div class="legend">
           <strong>${this.scenario.name}</strong>
-          <span>Fixed / Follow / Free camera. Parties recover at the licensed waystation.</span>
+          <span>Physical arrows, spells, healing bolts and phased melee combat are active.</span>
         </div>
         <div class="camera-strip" data-camera-strip>
           <button class="camera-btn is-active" data-camera-mode="fixed">고정</button>
@@ -44,6 +44,8 @@ export class ObserveScreen {
           <div class="metric"><b data-metric="dungeon">0</b><span>dungeon awake</span></div>
           <div class="metric"><b data-metric="waiting">0</b><span>waiting outside</span></div>
           <div class="metric"><b data-metric="orphaned">0</b><span>orphan members</span></div>
+          <div class="metric"><b data-metric="downed">0</b><span>downed</span></div>
+          <div class="metric"><b data-metric="projectiles">0</b><span>projectiles</span></div>
           <div class="metric"><b data-metric="resurrectable">0</b><span>awaiting return</span></div>
           <div class="metric"><b data-metric="cycles">1</b><span>return cycle</span></div>
           <div class="metric"><b data-metric="fallen">0</b><span>fallen mice</span></div>
@@ -71,10 +73,8 @@ export class ObserveScreen {
     this.assets.loadManifest();
     this.three = new ThreeScene(this.viewport);
     this.fitCameraToScenario();
-    this.renderer = new DungeonRendererPhase2(this.three, this.scenario, this.assets);
-    this.sim = new DungeonSim(this.scenario, {
-      onEvent: event => this.pushEvent(event.text)
-    });
+    this.renderer = new DungeonRendererPhase3(this.three, this.scenario, this.assets);
+    this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
 
     el.querySelectorAll('[data-camera-mode]').forEach(button => {
       button.addEventListener('click', () => this.setCameraMode(button.dataset.cameraMode));
@@ -107,9 +107,7 @@ export class ObserveScreen {
 
   setCameraMode(mode) {
     this.cameraMode = mode;
-    this.el.querySelectorAll('[data-camera-mode]').forEach(button => {
-      button.classList.toggle('is-active', button.dataset.cameraMode === mode);
-    });
+    this.el.querySelectorAll('[data-camera-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.cameraMode === mode));
     if (mode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, false);
     if (mode === 'follow') {
       this.ensureFollowTarget();
@@ -182,7 +180,13 @@ export class ObserveScreen {
     const room = this.sim.rooms.find(candidate => candidate.id === agent.roomId);
     const destination = agent.travel ? this.sim.rooms.find(candidate => candidate.id === agent.travel.toRoomId) : null;
     const related = this.events.filter(event => event.includes(agent.name)).slice(0, 3);
-    const status = agent.queued ? 'waiting outside' : agent.departed ? 'departed' : !agent.alive ? 'fallen' : agent.travel ? agent.travel.phase : agent.partyState ?? 'active';
+    const status = agent.queued ? 'waiting outside'
+      : agent.downed ? `downed ${Math.ceil(agent.bleedout)}s`
+        : agent.departed ? 'departed'
+          : !agent.alive ? 'fallen'
+            : agent.combat ? agent.combat.phase
+              : agent.travel ? agent.travel.phase
+                : agent.partyState ?? 'active';
     const location = agent.queued
       ? 'Outside the expedition gate'
       : agent.travel
@@ -197,7 +201,7 @@ export class ObserveScreen {
       <div class="inspect-grid">
         <div><b>${Math.max(0, agent.hp)}/${agent.maxHp}</b><span>HP</span></div>
         <div><b>${Math.round(agent.fatigue ?? 0)}</b><span>fatigue</span></div>
-        <div><b>${agent.gold ?? 0}</b><span>gold</span></div>
+        <div><b>${Math.ceil(agent.webbed ?? 0)}</b><span>webbed</span></div>
         <div><b>${agent.kills ?? 0}</b><span>kills</span></div>
       </div>
       <div class="thought">“${escapeHtml(currentThought(agent, this.sim))}”</div>
@@ -233,9 +237,12 @@ export class ObserveScreen {
 
 function currentThought(agent, sim) {
   if (agent.queued) return 'Everyone is here. Someone is still checking the rope.';
+  if (agent.downed) return `I have about ${Math.ceil(agent.bleedout)} seconds of optimism left.`;
   if (!agent.alive && agent.resurrectable) return 'The statue has not forgotten my name yet.';
   if (!agent.alive) return 'I have become useful documentation.';
+  if ((agent.webbed ?? 0) > 0) return 'The silk is tighter than the employment contract.';
   if (agent.resurrectionSickness > 0) return 'Being alive again is more tiring than advertised.';
+  if (agent.combat?.phase === 'windup') return 'This is the part where commitment becomes visible.';
   if (agent.travel) return `The corridor to ${sim.roomName(agent.travel.toRoomId)} is taking this personally.`;
   if ((agent.fatigue ?? 0) > 75) return 'A bench, a fountain, or a small administrative miracle would help.';
   if (agent.orphaned) return `I should be able to hear ${sim.agents.find(candidate => candidate.id === agent.partyLeaderId)?.name ?? 'the others'}.`;
