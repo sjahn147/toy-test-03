@@ -1,5 +1,6 @@
 import { CAMPAIGN_COMPLETION_BUNDLE_IDS, getCampaignCompletionRecipe, listCampaignCompletionRecipes } from './CampaignCompletionLandmarkRecipes.js';
 import { createCampaignCompletionDiorama, animateCampaignCompletion } from './CampaignCompletionDioramas.js';
+import { applyCampaignCompletionStateOverlay } from './CampaignCompletionStateOverlays.js';
 
 export const CAMPAIGN_COMPLETION_ASSET_PACK_ID = 'campaign.sleeping-citadel.completion';
 
@@ -9,7 +10,11 @@ export function createCampaignCompletionAssetPack() {
     id: CAMPAIGN_COMPLETION_ASSET_PACK_ID,
     bundleIds: CAMPAIGN_COMPLETION_BUNDLE_IDS,
     canCreate: id => bundleIds.has(id),
-    create: (id, context = {}) => createCampaignCompletionDiorama(id, context),
+    create: (id, context = {}) => {
+      const root = createCampaignCompletionDiorama(id, context);
+      if (!root) return null;
+      return applyCampaignCompletionStateOverlay(root, id, root.userData.state);
+    },
     animate: (root, elapsedSeconds) => animateCampaignCompletion(root, elapsedSeconds),
     getRecipe: getCampaignCompletionRecipe,
     listRecipes: listCampaignCompletionRecipes
