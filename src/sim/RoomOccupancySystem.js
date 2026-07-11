@@ -57,10 +57,11 @@ export class RoomOccupancySystem {
     this.release(agent.id);
     const reservation = this.reserveDestination(agent, roomId, entryPort);
     if (!reservation) {
-      const room = this.rooms.find(candidate => candidate.id === roomId);
-      agent.roomCell = room ? { id: null, roomId, x: room.x, z: room.z, footprint: [] } : null;
-      return agent.roomCell;
+      agent.roomCell = null;
+      agent.waitingForCell = true;
+      return null;
     }
+    agent.waitingForCell = false;
     return this.commitReservation(agent, reservation);
   }
 
@@ -103,6 +104,7 @@ export class RoomOccupancySystem {
     this.agentCells.set(agent.id, reservation);
     this.reservations.delete(agent.id);
     agent.roomCell = { ...reservation };
+    agent.waitingForCell = false;
     return agent.roomCell;
   }
 
@@ -151,7 +153,7 @@ export class RoomOccupancySystem {
     return cells;
   }
 
-  scoreCell(agent, cell, entryPort, grid) {
+  scoreCell(agent, cell, entryPort) {
     const room = this.rooms.find(candidate => candidate.id === cell.roomId);
     const centerDistance = room ? Math.hypot(cell.x - room.x, cell.z - room.z) : 0;
     const portDistance = entryPort ? Math.hypot(cell.x - entryPort.x, cell.z - entryPort.z) : centerDistance;
