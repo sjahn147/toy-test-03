@@ -1,0 +1,38 @@
+name: Spider colony asset smoke
+
+on:
+  push:
+    paths:
+      - 'src/engine/SpiderColony*.js'
+      - 'tests/spider-colony-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/spider-colony-assets-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/engine/SpiderColony*.js'
+      - 'tests/spider-colony-assets-smoke.mjs'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'content/assets/asset-catalog.json'
+      - '.github/workflows/spider-colony-assets-smoke.yml'
+
+jobs:
+  spider-colony-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/engine/SpiderColonyLandmarkRecipes.js
+          node --check src/engine/SpiderColonyLandmarkAssetFactory.js
+          node --check src/engine/SpiderColonyAssetAnimator.js
+          node --check src/engine/SpiderColonyAssetPack.js
+          node --check tests/spider-colony-assets-smoke.mjs
+      - name: Validate production content
+        run: npm run validate:production-content
+      - name: Test spider colony asset contracts
+        run: node tests/spider-colony-assets-smoke.mjs
