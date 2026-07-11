@@ -1,0 +1,42 @@
+name: Production architecture smoke
+
+on:
+  push:
+    paths:
+      - 'src/domain/**'
+      - 'src/content/**'
+      - 'src/compat/**'
+      - 'src/application/**'
+      - 'src/presentation/**'
+      - 'src/data/**'
+      - 'src/sim/**'
+      - 'content/**'
+      - 'tests/content-pipeline-smoke.mjs'
+      - 'tests/runtime-facade-smoke.mjs'
+      - 'package.json'
+      - '.github/workflows/production-architecture-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/domain/**'
+      - 'src/content/**'
+      - 'src/compat/**'
+      - 'src/application/**'
+      - 'src/presentation/**'
+      - 'src/data/**'
+      - 'src/sim/**'
+      - 'content/**'
+      - 'tests/content-pipeline-smoke.mjs'
+      - 'tests/runtime-facade-smoke.mjs'
+      - 'package.json'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:content
+      - run: npm run test:facade
