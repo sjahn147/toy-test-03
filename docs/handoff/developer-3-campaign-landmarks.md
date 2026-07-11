@@ -18,59 +18,58 @@ Authoritative tracker: [GitHub issue #19](../../issues/19)
 
 | Priority | Room | Bundle | States | Asset | Runtime | Placement | PR |
 |---|---|---|---|---|---|---|---|
-| P0 | D19 Brass Button Market | `industry.goblin.market` | goblin-market / neutral-market / orc-taxed / burned | Not started | — | — | — |
-| P0 | J49 Red Pit Arena | `orc.arena.red-pit` | matches / chieftain-challenge / liberated | Not started | — | — | — |
-| P0 | J50 Chieftain Hall | `orc.hall.chieftain` | tribal-court / war-council / leaderless | Not started | — | — | — |
-| P0 | M62 Circular Sanctum | `sanctum.circular` | dormant / ritual-active / fractured | Not started | — | — | — |
-| P0 | M63 Heart Chamber | `sanctum.heart.chamber` | sleeping / awakened / claimed / collapsed | Not started | — | — | — |
-| P1 | K54 Failed Summoning Room | `laboratory.summoning.failed` | dormant / breached / stabilized | Not started | — | — | — |
-| P1 | K55 Emergency Way | `laboratory.emergency.way` | sealed / opened / collapsed | Not started | — | — | — |
-| P1 | L57 Crown Vault | `royal.vault.crown` | sealed / opened / stripped | Not started | — | — | — |
-| P1 | L58 Shattered Banquet Hall | `royal.banquet.shattered` | haunted / occupied / restored-feast | Not started | — | — | — |
-| P1 | L60 Royal Bedchamber | `royal.bedchamber` | sealed / searched / sanctuary | Not started | — | — | — |
-| P1 | C12 Granary of Quiet Teeth | `flooded.granary.quiet-teeth` | sealed / rat-dominated / restored | Not started | — | — | — |
-| P1 | C13 Flooded Wine Cellar | `flooded.wine-cellar` | flooded / drained / fermenting-colony | Not started | — | — | — |
-| P1 | F27 Rotten Glasshouse | `fungal.glasshouse.rotten` | overgrown / cultivated / shattered | Not started | — | — | — |
-| P1 | F29 Sleeping Gardener's Chamber | `fungal.gardener.chamber` | sleeping / awakened / consumed | Not started | — | — | — |
-| P1 | G32 Host Vault | `spider.vault.hosts` | occupied / rescued / empty-cocoons | Not started | — | — | — |
-| P1 | G33 Spawning Gallery | `spider.gallery.spawning` | brooding / overpopulated / destroyed | Not started | — | — | — |
+| P0 | D19 Brass Button Market | `industry.goblin.market` | goblin-market / neutral-market / orc-taxed / burned | Asset complete | Runtime wired | Audit pending | #21 |
+| P0 | J49 Red Pit Arena | `orc.arena.red-pit` | matches / chieftain-challenge / liberated | Asset complete | Runtime wired | Audit pending | #21 |
+| P0 | J50 Chieftain Hall | `orc.hall.chieftain` | tribal-court / war-council / leaderless | Asset complete | Runtime wired | Audit pending | #21 |
+| P0 | M62 Circular Sanctum | `sanctum.circular` | dormant / ritual-active / fractured | Asset complete | Runtime wired | Audit pending | #21 |
+| P0 | M63 Heart Chamber | `sanctum.heart.chamber` | sleeping / awakened / claimed / collapsed | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | K54 Failed Summoning Room | `laboratory.summoning.failed` | dormant / breached / stabilized | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | K55 Emergency Way | `laboratory.emergency.way` | sealed / opened / collapsed | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | L57 Crown Vault | `royal.vault.crown` | sealed / opened / stripped | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | L58 Shattered Banquet Hall | `royal.banquet.shattered` | haunted / occupied / restored-feast | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | L60 Royal Bedchamber | `royal.bedchamber` | sealed / searched / sanctuary | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | C12 Granary of Quiet Teeth | `flooded.granary.quiet-teeth` | sealed / rat-dominated / restored | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | C13 Flooded Wine Cellar | `flooded.wine-cellar` | flooded / drained / fermenting-colony | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | F27 Rotten Glasshouse | `fungal.glasshouse.rotten` | overgrown / cultivated / shattered | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | F29 Sleeping Gardener's Chamber | `fungal.gardener.chamber` | sleeping / awakened / consumed | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | G32 Host Vault | `spider.vault.hosts` | occupied / rescued / empty-cocoons | Asset complete | Runtime wired | Audit pending | #21 |
+| P1 | G33 Spawning Gallery | `spider.gallery.spawning` | brooding / overpopulated / destroyed | Asset complete | Runtime wired | Audit pending | #21 |
 
-## Work packages
+## Current implementation
 
-### WP1 — Final Sanctum
+PR #21 provides one resolver-native completion pack with 16 individual recipes and dedicated room builders. Shared code is limited to material helpers, deterministic animation and pack registration. Each room keeps a distinct dominant silhouette and semantic anchors.
 
-- M62 Circular Sanctum
-- M63 Heart Chamber
-- Multi-ring ritual staging, faction altars, fracture states, central heart boss structure and campaign-resolution states
+Implemented visual families:
 
-### WP2 — Industrial and Orc power centers
+- D19 market stalls, stolen-goods island, faction occupation and tax checkpoint
+- J49 arena pit, spectator tiers, fighter gates, chieftain dais and liberation layer
+- J50 war throne, trophy wall, council table and leaderless state
+- M62 nested ritual rings, faction altars and fracture rifts
+- M63 suspended heart, artery bridges, claim standards and collapse state
+- K54 containment pylons, summoning breach and stabilization console
+- K55 blast door, escape rails and collapse route
+- L57 vault door, crown pedestal and stripped state
+- L58 banquet rows, ghost occupation and restored feast state
+- L60 royal bed, relic cabinet, secret panel and sanctuary state
+- C12 silos, loading crane and rat occupation
+- C13 barrel racks, flood basin and fermenting fungal colony
+- F27 glasshouse ribs, cultivation beds and shattered glazing
+- F29 gardener cot, medicine table and consuming root growth
+- G32 host cocoons, rescue platform and emptied shells
+- G33 egg clutches, nursery web and burned brood state
 
-- D19 Brass Button Market
-- J49 Red Pit Arena
-- J50 Chieftain Hall
-- Multi-faction occupation, market taxation, arena spectacle and tribal authority states
+## Remaining work — WP5 placement and wiring audit
 
-### WP3 — Laboratory and Royal completion
+The asset-development phase is complete on PR #21. Final acceptance still requires:
 
-- K54, K55
-- L57, L58, L60
-- Completes the late-campaign route from laboratory failure through royal quarter to M61
-
-### WP4 — Existing-zone gap completion
-
-- C12, C13
-- F27, F29
-- G32, G33
-- Fills the two missing rooms in each already-developed C/F/G zone
-
-### WP5 — Campaign placement and wiring audit
-
-- Assert every target manifest `landmarkBundle` resolves through `Phase8AssetResolver`
-- Instantiate every recipe in all declared states
-- Verify room footprint constraints and placement offsets
-- Verify state replacement and resource disposal in `DungeonRendererPhase8`
-- Add one aggregate campaign-landmark smoke test
-- Confirm `npm run test:production` contains every pack
+1. Assert every target manifest `landmarkBundle` resolves through `Phase8AssetResolver` without a diagnostic marker.
+2. Instantiate every recipe in every declared state.
+3. Verify footprint constraints and default placement.
+4. Verify renderer signature changes replace the old root when `visualState` changes.
+5. Verify `releaseCampaignLandmark` and `disposeTree` are invoked for removed and replaced landmarks.
+6. Verify animator registration and release for the new pack.
+7. Run the aggregate test through `npm run test:production`.
+8. Mark all matrix rows `Placement verified` and then `Done` after merge.
 
 ## Asset quality contract
 
@@ -95,17 +94,12 @@ Every landmark must be a recognizable prop assembly or diorama rather than an en
 
 ## Existing foundation
 
-The following merged systems are prerequisites and must be preserved:
-
 - Layered resolver core: PR #12
 - Runtime procedural-pack wiring: PR #15
 - Old Lantern resolver integration: PR #16
-- Common/flooded pack: PR #8
-- Fungal pack: PR #4
-- Spider pack: PR #6
-- Laboratory pack: PR #9
-- Royal/sanctum entry pack: PR #10
+- Developer #3 tracking baseline: PR #20
+- Campaign completion assets: PR #21
 
 ## Completion definition
 
-Developer #3 work is complete when the matrix contains no `Not started` or partial rows, issue #19 is closed, and the aggregate placement audit passes on `main`.
+Developer #3 work is complete when the matrix contains no partial rows, issue #19 is closed, and the aggregate placement audit passes on `main`.
