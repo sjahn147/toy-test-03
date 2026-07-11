@@ -29,6 +29,10 @@ export class DungeonRendererPhase2 extends DungeonRenderer {
         mesh = this.assets.makeProp(prop);
         if (!mesh) continue;
         mesh.userData.propId = prop.id;
+        mesh.traverse(child => {
+          child.userData.facilityBaseY = child.position.y;
+          child.userData.facilityBaseScale = child.scale.clone();
+        });
         this.facilityMeshes.set(prop.id, mesh);
         this.group.add(mesh);
       }
@@ -49,16 +53,22 @@ export class DungeonRendererPhase2 extends DungeonRenderer {
 
   animateFacility(mesh, prop, time) {
     mesh.traverse(child => {
-      if (child.name === 'facility-flame') {
+      const baseScale = child.userData.facilityBaseScale;
+      if (child.name === 'facility-flame' && baseScale) {
         const pulse = 0.9 + Math.sin(time * 7 + child.id) * 0.12;
-        child.scale.set(pulse, 0.9 + Math.sin(time * 9 + child.id) * 0.18, pulse);
+        child.scale.set(
+          baseScale.x * pulse,
+          baseScale.y * (0.9 + Math.sin(time * 9 + child.id) * 0.18),
+          baseScale.z * pulse
+        );
       }
       if (child.name === 'facility-water') {
-        child.position.y += Math.sin(time * 3.2 + child.id) * 0.0007;
+        const baseY = child.userData.facilityBaseY ?? child.position.y;
+        child.position.y = baseY + Math.sin(time * 3.2 + child.id) * 0.012;
       }
-      if (child.name === 'facility-glow') {
+      if (child.name === 'facility-glow' && baseScale) {
         const pulse = 0.94 + Math.sin(time * 4.5 + child.id) * 0.07;
-        child.scale.setScalar(pulse);
+        child.scale.copy(baseScale).multiplyScalar(pulse);
       }
     });
 
@@ -67,7 +77,7 @@ export class DungeonRendererPhase2 extends DungeonRenderer {
         ? (prop.resurrectionCharges ?? prop.maxResurrectionCharges) / prop.maxResurrectionCharges
         : 1;
       mesh.traverse(child => {
-        if (child.name === 'facility-divine-light') child.visible = charge > 0;
+        if (child.name === 'facility-glow' || child.name === 'facility-orb') child.visible = charge > 0;
       });
     }
   }
