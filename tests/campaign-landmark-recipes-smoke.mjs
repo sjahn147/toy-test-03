@@ -18,12 +18,20 @@ const annexFactorySource = await readFile(
   new URL('../src/engine/OldLanternAnnexAssetFactory.js', import.meta.url),
   'utf8'
 );
+const marketFactorySource = await readFile(
+  new URL('../src/engine/CentralMarketLandmarkAssetFactory.js', import.meta.url),
+  'utf8'
+);
+const registrySource = await readFile(
+  new URL('../src/engine/AssetRegistryPhase8.js', import.meta.url),
+  'utf8'
+);
 
 const roomById = new Map(manifest.rooms.map(room => [room.id, room]));
 const catalogIds = new Set(catalog.entries.map(entry => entry.id));
 const recipes = listCampaignLandmarkRecipes();
 
-assert.equal(recipes.length, 7, 'landmark slice must expose the four P0 landmarks and three Old Lantern annex rooms');
+assert.equal(recipes.length, 8, 'landmark slice must expose P0 waystation, complete Old Lantern family and Grand Crossroads');
 assert.equal(Object.keys(CAMPAIGN_LANDMARK_RECIPES).length, recipes.length, 'recipe listing is inconsistent');
 
 for (const recipe of recipes) {
@@ -48,7 +56,8 @@ const requiredIds = [
   'inn.old-lantern.kitchen',
   'inn.old-lantern.guest-wing',
   'inn.old-lantern.cellar',
-  'inn.old-lantern.secret-office'
+  'inn.old-lantern.secret-office',
+  'market.crossroads.grand'
 ];
 
 for (const requiredId of requiredIds) {
@@ -75,6 +84,23 @@ for (const semanticNode of [
   assert.ok(annexFactorySource.includes(`'${semanticNode}'`), `annex factory is missing semantic node ${semanticNode}`);
 }
 
+for (const marketNode of [
+  'central-wayfinder',
+  'district-mosaic',
+  'cargo-scale',
+  'market-notice-board',
+  'goblin-market-banner',
+  'adventurer-market-banner',
+  'orc-checkpoint-banner',
+  'battlefield'
+]) {
+  assert.ok(marketFactorySource.includes(`'${marketNode}'`), `market factory is missing state or semantic node ${marketNode}`);
+}
+
+assert.ok(
+  registrySource.indexOf('this.centralMarket.create') < registrySource.indexOf('this.campaignLandmarks.create'),
+  'specific landmark factories must run before the generic factory'
+);
 assert.equal(getCampaignLandmarkRecipe('missing.landmark'), null, 'unknown landmarks must fail softly');
 
-console.log(`campaign landmark recipe smoke passed with ${recipes.length} detailed dioramas across the complete Old Lantern family`);
+console.log(`campaign landmark recipe smoke passed with ${recipes.length} detailed procedural dioramas`);
