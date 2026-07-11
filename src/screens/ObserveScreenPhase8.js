@@ -22,13 +22,19 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.sim = new DungeonSim(this.scenario, { onEvent: event => this.pushEvent(event.text) });
     this.addPhase8Metrics();
     const legend = this.el.querySelector('.legend span');
-    if (legend) legend.textContent = 'Spacious rooms, physical logistics, guarded supply routes, construction, sieges and blockades are active.';
+    if (legend) legend.textContent = 'Spacious rooms, physical logistics, construction, sieges, persistent personalities and targeted full-room interactions are active.';
   }
 
   addPhase8Metrics() {
     const metrics = this.el.querySelector('.metrics');
     if (!metrics || metrics.querySelector('[data-metric="settlements"]')) return;
     metrics.insertAdjacentHTML('afterbegin', `
+      <div class="metric"><b data-metric="activeMemories">0</b><span>active memories</span></div>
+      <div class="metric"><b data-metric="strongBonds">0</b><span>strong bonds</span></div>
+      <div class="metric"><b data-metric="activeGrudges">0</b><span>active grudges</span></div>
+      <div class="metric"><b data-metric="deliberateWaiting">0</b><span>deliberate waiting</span></div>
+      <div class="metric"><b data-metric="interactionOverflowLandings">0</b><span>targeted landings</span></div>
+      <div class="metric"><b data-metric="blockedMovementRetries">0</b><span>blocked route retries</span></div>
       <div class="metric"><b data-metric="constructionJobs">0</b><span>building projects</span></div>
       <div class="metric"><b data-metric="completedStructures">0</b><span>defensive structures</span></div>
       <div class="metric"><b data-metric="activeSieges">0</b><span>active sieges</span></div>
@@ -76,7 +82,30 @@ export class ObserveScreen extends Phase6ObserveScreen {
         <div class="equipment-row"><span>cargo</span><b>${cargo ? escapeHtml(cargo.resourceType) : 'none'}</b><em>${cargo ? `${Math.round((cargo.routeRisk ?? 0) * 100)}% risk · ${cargo.escortId ? 'escorted' : 'unguarded'}` : agent.siegeCooldown > 0 ? 'siege recovery' : 'available'}</em></div>
       </section>
     `);
+    this.renderPersonalityPanel(agent, insertionPoint);
     if (agent.faction === 'party') this.renderExpeditionPanel(agent, insertionPoint);
+  }
+
+  renderPersonalityPanel(agent, insertionPoint) {
+    const traits = agent.personality ?? {};
+    const strongest = Object.entries(traits).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const strongestText = strongest.length
+      ? strongest.map(([name, value]) => `${name} ${Math.round(value * 100)}`).join(' · ')
+      : 'unformed';
+    const memories = (agent.memories ?? []).slice(0, 3);
+    const bonds = Object.values(agent.relationships ?? {}).filter(value => value >= 0.45).length;
+    const grudges = Object.values(agent.relationships ?? {}).filter(value => value <= -0.35).length;
+    insertionPoint.insertAdjacentHTML('beforebegin', `
+      <section class="equipment-panel personality-panel">
+        <strong>Personality & Memory</strong>
+        <div class="equipment-row"><span>state</span><b>${escapeHtml(agent.personalityState ?? 'steady')}</b><em>${escapeHtml(strongestText)}</em></div>
+        <div class="equipment-row"><span>relationships</span><b>${bonds} bonds</b><em>${grudges} grudges</em></div>
+        <div class="equipment-row"><span>movement</span><b>${agent.roomCell?.overflow ? 'targeted landing' : 'normal placement'}</b><em>${agent.blockedMoveCount ?? 0} blocked retries</em></div>
+        <div class="memory-list compact-memory-list">
+          ${memories.length ? memories.map(memory => `<div>${escapeHtml(memory.type.replaceAll('-', ' '))} · ${Math.round((memory.currentIntensity ?? memory.intensity ?? 0) * 100)}%</div>`).join('') : '<div>No persistent memories yet.</div>'}
+        </div>
+      </section>
+    `);
   }
 
   renderExpeditionPanel(agent, insertionPoint) {
