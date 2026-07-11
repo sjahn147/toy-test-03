@@ -5,6 +5,7 @@ import { ExpeditionAssetFactory } from './ExpeditionAssetFactory.js';
 import { LogisticsAssetFactory } from './LogisticsAssetFactory.js';
 import { ConstructionAssetFactory } from './ConstructionAssetFactory.js';
 import { CampaignLandmarkAssetFactory } from './CampaignLandmarkAssetFactory.js';
+import { OldLanternAnnexAssetFactory } from './OldLanternAnnexAssetFactory.js';
 
 export const PHASE8D_STRUCTURE_TYPES = new Set(['supply_depot', 'gatehouse', 'siege_workshop', 'ambush_post']);
 
@@ -16,6 +17,7 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
     this.logistics = new LogisticsAssetFactory();
     this.construction = new ConstructionAssetFactory();
     this.campaignLandmarks = new CampaignLandmarkAssetFactory();
+    this.oldLanternAnnex = new OldLanternAnnexAssetFactory();
   }
 
   makeProp(prop) {
@@ -25,7 +27,8 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
   }
 
   makeCampaignLandmark(bundleId, context = {}) {
-    return this.campaignLandmarks.create(bundleId, context);
+    return this.campaignLandmarks.create(bundleId, context)
+      ?? this.oldLanternAnnex.create(bundleId, context);
   }
 
   makeEffect(effect) {
@@ -39,7 +42,7 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
     if (effect.type === 'cargo-drop') return shardEffect(0xb8874d, 0x6e5040, 7);
     if (effect.type === 'cargo-raid') return shardEffect(0xd56a57, 0x332e36, 9);
     if (effect.type === 'construction-start') return ringEffect(0xd6b36a, 0x7d6b61, 3);
-    if (effect.type === 'construction-complete') return ringEffect(0x8ed18a, 0xe3c66c, 4);
+    if (effect.type === 'construction-complete') return ringEffect(0x8ed18a, 0xe3c66b, 4);
     if (effect.type === 'siege-hit') return shardEffect(0xd56a57, 0x6d4b3b, 8);
     if (effect.type === 'structure-break') return shardEffect(0x77747b, 0x3a3438, 14);
     return super.makeEffect(effect);
