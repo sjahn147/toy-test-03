@@ -1,0 +1,225 @@
+{
+  "$schema": "../schemas/asset-catalog.schema.json",
+  "schemaVersion": 1,
+  "catalogVersion": "0.1.0",
+  "status": "design-complete-runtime-pending",
+  "resolverOrder": ["authored", "proceduralFallback", "primitiveFallback", "diagnosticMarker"],
+  "roots": {
+    "models": "assets/models/",
+    "textures": "assets/textures/",
+    "audio": "assets/audio/",
+    "ui": "assets/ui/",
+    "licenses": "assets/licenses/"
+  },
+  "licensePolicy": {
+    "externalAssetsRequireLicenseEntry": true,
+    "hotlinkingAllowed": false,
+    "preferredLicenses": ["CC0", "project-owned"],
+    "licenseFileConvention": "assets/licenses/<pack-id>/LICENSE.txt"
+  },
+  "conventions": {
+    "worldUp": "Y",
+    "forward": "+Z",
+    "unitMeters": 1,
+    "roomSurfaceY": 0,
+    "characterSocketContract": ["root", "pelvis", "chest", "head", "headTop", "handL", "handR", "shoulderL", "shoulderR", "back", "waistFront", "waistBack", "baseFx"],
+    "requiredVariants": ["default", "damaged"],
+    "recommendedVariants": ["occupied", "ruined", "burned", "infested"]
+  },
+  "performanceBudgets": {
+    "desktopHeroDioramaTriangles": 75000,
+    "mobileHeroDioramaTriangles": 28000,
+    "desktopRoomKitTextureSize": 2048,
+    "mobileRoomKitTextureSize": 1024,
+    "maximumDynamicLightsPerVisibleRoom": 3,
+    "maximumParticlesPerVisibleRoomMobile": 80
+  },
+  "templates": {
+    "zone-kit": {
+      "kind": "environment-kit",
+      "proceduralFallback": { "factory": "CampaignZoneFallbackFactory", "recipeFromId": true },
+      "primitiveFallback": "diagnostic.room-kit"
+    },
+    "campaign-landmark": {
+      "kind": "diorama",
+      "proceduralFallback": { "factory": "CampaignLandmarkFallbackFactory", "recipeFromId": true },
+      "primitiveFallback": "diagnostic.landmark",
+      "defaultFootprint": { "radius": 1.8 }
+    },
+    "facility": {
+      "kind": "diorama",
+      "proceduralFallback": { "factory": "FacilityAssetFactory", "recipeFromId": true },
+      "primitiveFallback": "diagnostic.facility"
+    },
+    "settlement-structure": {
+      "kind": "destructible-diorama",
+      "proceduralFallback": { "factory": "Phase8DAssetFactory", "recipeFromId": true },
+      "primitiveFallback": "diagnostic.structure"
+    }
+  },
+  "entries": [
+    { "id": "diagnostic.room-kit", "kind": "diagnostic", "status": "active-procedural", "priority": "P0", "proceduralFallback": { "factory": "DiagnosticAssetFactory", "recipe": "roomKit" } },
+    { "id": "diagnostic.landmark", "kind": "diagnostic", "status": "active-procedural", "priority": "P0", "proceduralFallback": { "factory": "DiagnosticAssetFactory", "recipe": "landmark" } },
+    { "id": "diagnostic.facility", "kind": "diagnostic", "status": "active-procedural", "priority": "P0", "proceduralFallback": { "factory": "DiagnosticAssetFactory", "recipe": "facility" } },
+    { "id": "diagnostic.structure", "kind": "diagnostic", "status": "active-procedural", "priority": "P0", "proceduralFallback": { "factory": "DiagnosticAssetFactory", "recipe": "structure" } },
+
+    { "id": "environment.room-floor", "kind": "environment-module", "status": "upgrade", "priority": "P0", "authored": { "model": "assets/models/environment/common/room-floor.glb" }, "proceduralFallback": { "factory": "AssetRegistry", "recipe": "makeRoomFloor" }, "variants": ["stone", "wood", "metal", "wet", "organic"] },
+    { "id": "environment.wall-segment", "kind": "environment-module", "status": "upgrade", "priority": "P0", "authored": { "model": "assets/models/environment/common/wall-segment.glb" }, "proceduralFallback": { "factory": "AssetRegistry", "recipe": "makeWallSegment" }, "variants": ["straight", "corner", "cracked", "mossy"] },
+    { "id": "environment.door-frame", "kind": "environment-module", "status": "upgrade", "priority": "P0", "authored": { "model": "assets/models/environment/common/door-frame.glb" }, "proceduralFallback": { "factory": "AssetRegistry", "recipe": "makeDoorFrame" }, "variants": ["open", "closed", "locked", "broken", "faction-marked"] },
+    { "id": "environment.corridor", "kind": "environment-module", "status": "upgrade", "priority": "P0", "authored": { "model": "assets/models/environment/common/corridor.glb" }, "proceduralFallback": { "factory": "AssetRegistry", "recipe": "makeCorridorSegment" }, "variants": ["stone", "drain", "collapsed", "webbed"] },
+
+    { "id": "facility.expedition-gate", "template": "facility", "status": "upgrade", "priority": "P0", "authored": { "model": "assets/models/props/facilities/expedition-gate.glb" }, "proceduralFallback": { "factory": "FacilityAssetFactory", "recipe": "createDungeonEntrance" }, "footprint": { "radius": 1.25 } },
+    { "id": "facility.water-fountain", "template": "facility", "status": "upgrade", "priority": "P0", "authored": { "model": "assets/models/props/facilities/water-fountain.glb" }, "proceduralFallback": { "factory": "FacilityAssetFactory", "recipe": "createWaterFountain" }, "footprint": { "radius": 0.85 } },
+    { "id": "facility.rest-site", "template": "facility", "status": "content", "priority": "P0", "authored": { "model": "assets/models/props/facilities/rest-site.glb" }, "proceduralFallback": { "factory": "FacilityAssetFactory", "recipe": "createRestSite" }, "footprint": { "radius": 1.15 } },
+    { "id": "facility.field-camp", "template": "facility", "status": "active-procedural", "priority": "P0", "authored": { "model": "assets/models/props/facilities/field-camp.glb" }, "proceduralFallback": { "factory": "ExpeditionAssetFactory", "recipe": "createFieldCamp" }, "footprint": { "radius": 1.4 }, "variants": ["bivouac", "camp", "damaged", "abandoned"] },
+    { "id": "facility.merchant-stall", "template": "facility", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/facilities/merchant-stall.glb" }, "proceduralFallback": { "factory": "FacilityAssetFactory", "recipe": "createMerchantStall" }, "footprint": { "radius": 1.2 } },
+    { "id": "facility.goddess-statue", "template": "facility", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/facilities/goddess-statue.glb" }, "proceduralFallback": { "factory": "FacilityAssetFactory", "recipe": "createGoddessStatue" }, "footprint": { "radius": 1.0 }, "variants": ["charged", "depleted", "defiled"] },
+
+    { "id": "settlement.supply-depot", "template": "settlement-structure", "status": "active-procedural", "priority": "P0", "authored": { "model": "assets/models/props/settlements/supply-depot.glb" }, "proceduralFallback": { "factory": "Phase8DAssetFactory", "recipe": "createSupplyDepot" }, "footprint": { "radius": 1.2 }, "variants": ["building", "complete", "damaged", "destroyed"] },
+    { "id": "settlement.gatehouse", "template": "settlement-structure", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/settlements/gatehouse.glb" }, "proceduralFallback": { "factory": "Phase8DAssetFactory", "recipe": "createGatehouse" }, "footprint": { "radius": 1.45 }, "variants": ["building", "complete", "breached", "destroyed"] },
+    { "id": "settlement.siege-workshop", "template": "settlement-structure", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/settlements/siege-workshop.glb" }, "proceduralFallback": { "factory": "Phase8DAssetFactory", "recipe": "createSiegeWorkshop" }, "footprint": { "radius": 1.3 } },
+    { "id": "settlement.ambush-post", "template": "settlement-structure", "status": "active-procedural", "priority": "P1", "authored": { "model": "assets/models/props/settlements/ambush-post.glb" }, "proceduralFallback": { "factory": "Phase8DAssetFactory", "recipe": "createAmbushPost" }, "footprint": { "radius": 0.95 } },
+
+    { "id": "habitat.goblin-hearth", "kind": "habitat", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/habitats/goblin-hearth.glb" }, "proceduralFallback": { "factory": "EcologyAssetFactory", "recipe": "goblinLair" } },
+    { "id": "habitat.ossuary", "kind": "habitat", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/habitats/ossuary.glb" }, "proceduralFallback": { "factory": "EcologyAssetFactory", "recipe": "ossuaryLair" } },
+    { "id": "habitat.spider-brood", "kind": "habitat", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/habitats/spider-brood.glb" }, "proceduralFallback": { "factory": "EcologyAssetFactory", "recipe": "spiderLair" } },
+    { "id": "habitat.slime-pool", "kind": "habitat", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/habitats/slime-pool.glb" }, "proceduralFallback": { "factory": "EcologyAssetFactory", "recipe": "slimePool" } },
+    { "id": "habitat.rat-warren", "kind": "habitat", "status": "active-procedural", "priority": "P1", "authored": { "model": "assets/models/props/habitats/rat-warren.glb" }, "proceduralFallback": { "factory": "EcologyAssetFactory", "recipe": "ratWarren" } },
+    { "id": "habitat.ogre-butcher", "kind": "habitat", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/habitats/ogre-butcher.glb" }, "proceduralFallback": { "factory": "EcologyAssetFactory", "recipe": "ogreLair" } },
+    { "id": "habitat.plague-mortuary", "kind": "habitat", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/habitats/plague-mortuary.glb" }, "proceduralFallback": { "factory": "AdvancedLairAssetFactory", "recipe": "plagueMortuary" } },
+    { "id": "habitat.orc-war-camp", "kind": "habitat", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/habitats/orc-war-camp.glb" }, "proceduralFallback": { "factory": "AdvancedLairAssetFactory", "recipe": "orcTribeCamp" } },
+    { "id": "habitat.fungal-colony", "kind": "habitat", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/habitats/fungal-colony.glb" }, "proceduralFallback": { "factory": "AdvancedLairAssetFactory", "recipe": "fungalGarden" } },
+    { "id": "habitat.blood-roost", "kind": "habitat", "status": "author", "priority": "P2", "authored": { "model": "assets/models/props/habitats/blood-roost.glb" }, "proceduralFallback": { "factory": "AdvancedLairAssetFactory", "recipe": "bloodRoost" } },
+    { "id": "habitat.carrion-pit", "kind": "habitat", "status": "upgrade", "priority": "P2", "authored": { "model": "assets/models/props/habitats/carrion-pit.glb" }, "proceduralFallback": { "factory": "AdvancedLairAssetFactory", "recipe": "carrionPit" } },
+    { "id": "habitat.kobold-trapworks", "kind": "habitat", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/habitats/kobold-trapworks.glb" }, "proceduralFallback": { "factory": "AdvancedLairAssetFactory", "recipe": "koboldWorkshop" } },
+    { "id": "habitat.cursed-chapel", "kind": "habitat", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/habitats/cursed-chapel.glb" }, "proceduralFallback": { "factory": "AdvancedLairAssetFactory", "recipe": "cursedChapel" } },
+    { "id": "habitat.parasite-cistern", "kind": "habitat", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/habitats/parasite-cistern.glb" }, "proceduralFallback": { "factory": "AdvancedLairAssetFactory", "recipe": "parasitePool" } },
+
+    { "id": "zone.gate-waystation", "template": "zone-kit", "status": "author", "priority": "P0", "authored": { "root": "assets/models/environment/zones/gate-waystation/" } },
+    { "id": "zone.residential-ruins", "template": "zone-kit", "status": "author", "priority": "P0", "authored": { "root": "assets/models/environment/zones/residential-ruins/" } },
+    { "id": "zone.flooded-storehouse", "template": "zone-kit", "status": "author", "priority": "P0", "authored": { "root": "assets/models/environment/zones/flooded-storehouse/" } },
+    { "id": "zone.industrial-trapworks", "template": "zone-kit", "status": "author", "priority": "P1", "authored": { "root": "assets/models/environment/zones/industrial-trapworks/" } },
+    { "id": "zone.ossuary-cathedral", "template": "zone-kit", "status": "author", "priority": "P0", "authored": { "root": "assets/models/environment/zones/ossuary-cathedral/" } },
+    { "id": "zone.fungal-garden", "template": "zone-kit", "status": "author", "priority": "P1", "authored": { "root": "assets/models/environment/zones/fungal-garden/" } },
+    { "id": "zone.spider-colony", "template": "zone-kit", "status": "author", "priority": "P1", "authored": { "root": "assets/models/environment/zones/spider-colony/" } },
+    { "id": "zone.old-lantern-inn", "template": "zone-kit", "status": "author", "priority": "P0", "authored": { "root": "assets/models/environment/zones/old-lantern-inn/" } },
+    { "id": "zone.central-market", "template": "zone-kit", "status": "author", "priority": "P0", "authored": { "root": "assets/models/environment/zones/central-market/" } },
+    { "id": "zone.orc-barracks", "template": "zone-kit", "status": "author", "priority": "P1", "authored": { "root": "assets/models/environment/zones/orc-barracks/" } },
+    { "id": "zone.royal-laboratory", "template": "zone-kit", "status": "author", "priority": "P1", "authored": { "root": "assets/models/environment/zones/royal-laboratory/" } },
+    { "id": "zone.royal-deep", "template": "zone-kit", "status": "author", "priority": "P1", "authored": { "root": "assets/models/environment/zones/royal-deep/" } },
+    { "id": "zone.heart-sanctum", "template": "zone-kit", "status": "author", "priority": "P0", "authored": { "root": "assets/models/environment/zones/heart-sanctum/" } },
+
+    { "id": "waystation.plaza.core", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/waystation-plaza-core.glb" }, "footprint": { "radius": 3.2 } },
+    { "id": "waystation.registry.office", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/waystation-registry-office.glb" }, "footprint": { "radius": 2.2 } },
+    { "id": "gate.citadel.outer", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/citadel-outer-gate.glb" }, "footprint": { "radius": 3.4 }, "variants": ["managed", "pressured", "open", "breached"] },
+    { "id": "waystation.baggage.store", "template": "campaign-landmark", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/campaign/waystation-baggage-store.glb" }, "footprint": { "radius": 2.4 } },
+    { "id": "stairs.citadel.descent", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/citadel-descent-stairs.glb" }, "footprint": { "radius": 2.8 } },
+
+    { "id": "residential.dormitory.broken", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/residential-dormitory-broken.glb" }, "variants": ["abandoned", "field-camp", "burned"] },
+    { "id": "residential.kitchen.communal", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/residential-kitchen-communal.glb" } },
+    { "id": "residential.laundry.cistern", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/residential-laundry-cistern.glb" } },
+    { "id": "residential.tenement.court", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/residential-tenement-court.glb" }, "footprint": { "radius": 2.8 } },
+    { "id": "residential.chapel.household", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/residential-household-chapel.glb" } },
+
+    { "id": "flooded.reservoir.shallow", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/flooded-reservoir-shallow.glb" }, "variants": ["shallow", "drained", "overflowing"] },
+    { "id": "flooded.granary.quiet-teeth", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/flooded-granary-quiet-teeth.glb" } },
+    { "id": "flooded.wine-cellar", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/flooded-wine-cellar.glb" } },
+    { "id": "flooded.drainage.engine", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/flooded-drainage-engine.glb" }, "variants": ["stalled", "operational", "sabotaged"] },
+    { "id": "flooded.sluice.passage", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/flooded-sluice-passage.glb" } },
+
+    { "id": "industry.workshop.abandoned", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/industry-workshop-abandoned.glb" } },
+    { "id": "industry.scrap.iron", "template": "campaign-landmark", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/campaign/industry-iron-scrap.glb" } },
+    { "id": "industry.kobold.trapworks", "template": "campaign-landmark", "status": "upgrade", "priority": "P1", "authored": { "model": "assets/models/props/campaign/industry-kobold-trapworks.glb" } },
+    { "id": "industry.goblin.market", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/industry-goblin-market.glb" }, "footprint": { "radius": 3.2 } },
+    { "id": "industry.powder.magazine", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/industry-powder-magazine.glb" }, "variants": ["sealed", "looted", "detonated"] },
+
+    { "id": "ossuary.cloister.bone", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/ossuary-bone-cloister.glb" } },
+    { "id": "ossuary.chapel.funeral", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/ossuary-funeral-chapel.glb" } },
+    { "id": "ossuary.shelves.working", "template": "campaign-landmark", "status": "upgrade", "priority": "P0", "authored": { "model": "assets/models/props/campaign/ossuary-working-shelves.glb" } },
+    { "id": "ossuary.tomb.nameless", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/ossuary-nameless-tomb.glb" } },
+    { "id": "ossuary.well.last-names", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/ossuary-well-last-names.glb" }, "footprint": { "radius": 2.8 } },
+
+    { "id": "fungal.spore-field.blue", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/fungal-blue-spore-field.glb" } },
+    { "id": "fungal.glasshouse.rotten", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/fungal-rotten-glasshouse.glb" } },
+    { "id": "fungal.pillars.forest", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/fungal-pillar-forest.glb" }, "footprint": { "radius": 3.0 } },
+    { "id": "fungal.gardener.chamber", "template": "campaign-landmark", "status": "author", "priority": "P2", "authored": { "model": "assets/models/props/campaign/fungal-gardener-chamber.glb" } },
+    { "id": "fungal.heart.mycelial", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/fungal-mycelial-heart.glb" }, "footprint": { "radius": 2.9 } },
+
+    { "id": "spider.ramp.silk", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/spider-silk-ramp.glb" } },
+    { "id": "spider.vault.hosts", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/spider-host-vault.glb" } },
+    { "id": "spider.gallery.spawning", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/spider-spawning-gallery.glb" } },
+    { "id": "spider.well.vertical", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/spider-vertical-well.glb" } },
+    { "id": "spider.nest.queen-empty", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/spider-empty-queen-nest.glb" }, "footprint": { "radius": 3.4 }, "variants": ["empty", "queen-awakened", "captured"] },
+
+    { "id": "inn.old-lantern.common-room", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/old-lantern-common-room.glb" }, "proceduralFallback": { "factory": "InnAssetFactory", "recipe": "commonRoom" }, "footprint": { "radius": 3.6 }, "variants": ["ruined", "bivouac", "repaired", "prosperous", "besieged", "burned"] },
+    { "id": "inn.old-lantern.kitchen", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/old-lantern-kitchen.glb" }, "proceduralFallback": { "factory": "InnAssetFactory", "recipe": "kitchen" }, "footprint": { "radius": 2.6 } },
+    { "id": "inn.old-lantern.guest-wing", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/old-lantern-guest-wing.glb" }, "proceduralFallback": { "factory": "InnAssetFactory", "recipe": "guestWing" }, "footprint": { "radius": 2.8 } },
+    { "id": "inn.old-lantern.cellar", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/old-lantern-cellar.glb" }, "proceduralFallback": { "factory": "InnAssetFactory", "recipe": "cellar" }, "footprint": { "radius": 2.8 } },
+    { "id": "inn.old-lantern.secret-office", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/inn/old-lantern-secret-office.glb" }, "proceduralFallback": { "factory": "InnAssetFactory", "recipe": "secretOffice" }, "footprint": { "radius": 1.7 } },
+    { "id": "inn.component.hearth", "kind": "prop-module", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/components/hearth.glb" }, "variants": ["cold", "lit", "damaged"] },
+    { "id": "inn.component.service-bar", "kind": "prop-module", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/components/service-bar.glb" }, "variants": ["ruined", "repaired", "fortified"] },
+    { "id": "inn.component.table-set", "kind": "prop-module", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/components/table-set.glb" }, "variants": ["intact", "broken", "barricade"] },
+    { "id": "inn.component.bed-module", "kind": "prop-module", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/components/bed-module.glb" }, "variants": ["ruined", "camp", "guest-bed"] },
+    { "id": "inn.component.kitchen-range", "kind": "prop-module", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/components/kitchen-range.glb" }, "variants": ["blackened", "working", "broken"] },
+    { "id": "inn.component.barrel-rack", "kind": "prop-module", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/components/barrel-rack.glb" }, "variants": ["empty", "stocked", "fungal"] },
+    { "id": "inn.component.signboard", "kind": "prop-module", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/inn/components/signboard.glb" }, "variants": ["fallen", "lit", "faction-painted"] },
+    { "id": "inn.component.defense-shutters", "kind": "prop-module", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/inn/components/defense-shutters.glb" }, "variants": ["open", "closed", "breached"] },
+    { "id": "inn.component.job-board", "kind": "prop-module", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/inn/components/job-board.glb" } },
+
+    { "id": "market.crossroads.grand", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/market-grand-crossroads.glb" }, "footprint": { "radius": 3.8 }, "variants": ["neutral", "goblin", "adventurer", "orc", "battlefield"] },
+    { "id": "market.customs.dead", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/market-dead-customs.glb" } },
+    { "id": "market.auction.ruined", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/market-ruined-auction.glb" } },
+    { "id": "market.well.neutral", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/market-neutral-well.glb" } },
+    { "id": "market.smuggler.way", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/market-smuggler-way.glb" } },
+
+    { "id": "orc.drill-yard", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-drill-yard.glb" } },
+    { "id": "orc.armory.war", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-war-armory.glb" } },
+    { "id": "orc.store.meat", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-meat-store.glb" } },
+    { "id": "orc.arena.red-pit", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/orc-red-pit-arena.glb" }, "footprint": { "radius": 3.8 } },
+    { "id": "orc.hall.chieftain", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/orc-chieftain-hall.glb" } },
+
+    { "id": "laboratory.alchemical.main", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/laboratory-alchemical-main.glb" } },
+    { "id": "laboratory.parasite.vats", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/laboratory-parasite-vats.glb" } },
+    { "id": "laboratory.observatory.sealed", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/laboratory-sealed-observatory.glb" } },
+    { "id": "laboratory.summoning.failed", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/laboratory-failed-summoning.glb" }, "footprint": { "radius": 3.0 } },
+    { "id": "laboratory.emergency.way", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/laboratory-emergency-way.glb" } },
+
+    { "id": "royal.antechamber", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/royal-antechamber.glb" } },
+    { "id": "royal.vault.crown", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/royal-crown-vault.glb" } },
+    { "id": "royal.banquet.shattered", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/royal-shattered-banquet.glb" }, "footprint": { "radius": 3.4 } },
+    { "id": "royal.throne.black", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/royal-black-throne.glb" }, "footprint": { "radius": 3.2 }, "variants": ["empty", "claimed", "awakened"] },
+    { "id": "royal.bedchamber", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/royal-bedchamber.glb" } },
+
+    { "id": "sanctum.gate.seal", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/sanctum-seal-gate.glb" }, "footprint": { "radius": 3.0 }, "variants": ["sealed", "assaulted", "opened"] },
+    { "id": "sanctum.circular", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/sanctum-circular.glb" }, "footprint": { "radius": 4.0 } },
+    { "id": "sanctum.heart.chamber", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/sanctum-heart-chamber.glb" }, "footprint": { "radius": 4.8 }, "variants": ["sleeping", "awakened", "claimed", "collapsed"] },
+
+    { "id": "ui.icons.strategy-atlas", "kind": "ui-atlas", "status": "author", "priority": "P0", "authored": { "image": "assets/ui/strategy-icons.webp", "metadata": "assets/ui/strategy-icons.json" }, "requiredIcons": ["population", "food", "water", "materials", "medicine", "territory", "supply", "danger", "infection", "secret", "siege", "settlement", "party", "cargo"] },
+    { "id": "audio.zone.old-lantern", "kind": "audio-layer", "status": "author", "priority": "P1", "authored": { "audio": "assets/audio/ambience/old-lantern.ogg" }, "loops": true },
+    { "id": "audio.zone.ossuary", "kind": "audio-layer", "status": "author", "priority": "P1", "authored": { "audio": "assets/audio/ambience/ossuary.ogg" }, "loops": true },
+    { "id": "audio.zone.fungal", "kind": "audio-layer", "status": "author", "priority": "P2", "authored": { "audio": "assets/audio/ambience/fungal.ogg" }, "loops": true },
+    { "id": "audio.alert.siege", "kind": "audio-cue", "status": "author", "priority": "P1", "authored": { "audio": "assets/audio/ui/siege-alert.ogg" } }
+  ],
+  "coverage": {
+    "campaignId": "sleeping-citadel",
+    "expectedZoneKitCount": 13,
+    "expectedRoomLandmarkCount": 63,
+    "innVerticalSliceIds": [
+      "zone.old-lantern-inn",
+      "inn.old-lantern.common-room",
+      "inn.old-lantern.kitchen",
+      "inn.old-lantern.guest-wing",
+      "inn.old-lantern.cellar",
+      "inn.old-lantern.secret-office",
+      "inn.component.hearth",
+      "inn.component.service-bar",
+      "inn.component.table-set",
+      "inn.component.bed-module",
+      "inn.component.kitchen-range",
+      "inn.component.barrel-rack",
+      "inn.component.signboard",
+      "inn.component.defense-shutters",
+      "inn.component.job-board"
+    ]
+  }
+}
