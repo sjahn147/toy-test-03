@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - 'src/engine/PolishedMiniatureFactory.js'
+      - 'src/engine/MiniatureBodyProfiles.js'
+      - 'src/engine/HumanoidMiniatureRig.js'
+      - 'src/engine/SkeletonMiniatureRig.js'
+      - 'src/engine/CreatureMiniatureBuilders.js'
       - 'src/engine/MiniatureAnimator.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
@@ -14,6 +18,10 @@ on:
   pull_request:
     paths:
       - 'src/engine/PolishedMiniatureFactory.js'
+      - 'src/engine/MiniatureBodyProfiles.js'
+      - 'src/engine/HumanoidMiniatureRig.js'
+      - 'src/engine/SkeletonMiniatureRig.js'
+      - 'src/engine/CreatureMiniatureBuilders.js'
       - 'src/engine/MiniatureAnimator.js'
       - 'src/engine/AssetRegistryPhase8.js'
       - 'src/engine/DungeonRendererPhase8.js'
@@ -34,6 +42,10 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check src/engine/PolishedMiniatureFactory.js
+          node --check src/engine/MiniatureBodyProfiles.js
+          node --check src/engine/HumanoidMiniatureRig.js
+          node --check src/engine/SkeletonMiniatureRig.js
+          node --check src/engine/CreatureMiniatureBuilders.js
           node --check src/engine/MiniatureAnimator.js
           node --check src/engine/AssetRegistryPhase8.js
           node --check src/engine/DungeonRendererPhase8.js
