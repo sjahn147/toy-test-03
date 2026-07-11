@@ -29,8 +29,9 @@
     "test:laboratory": "node tests/laboratory-assets-smoke.mjs",
     "test:royal": "node tests/royal-sanctum-assets-smoke.mjs",
     "test:old-lantern": "node tests/old-lantern-resolver-smoke.mjs",
+    "test:campaign-completion": "node tests/campaign-completion-assets-smoke.mjs",
     "test:asset-integration": "node tests/phase8-asset-resolver-smoke.mjs",
-    "test:assets": "npm run test:miniatures && npm run test:fungal && npm run test:spider && npm run test:flooded && npm run test:laboratory && npm run test:royal && npm run test:old-lantern && npm run test:asset-integration",
+    "test:assets": "npm run test:miniatures && npm run test:fungal && npm run test:spider && npm run test:flooded && npm run test:laboratory && npm run test:royal && npm run test:old-lantern && npm run test:campaign-completion && npm run test:asset-integration",
     "test:production": "npm run validate:production-content && npm run test:content && npm run test:facade && npm run test:presentation && npm run test:assets"
   },
   "keywords": ["threejs", "dungeon", "simulation", "agent-ai", "toy-game"]
