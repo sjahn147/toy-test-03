@@ -4,6 +4,11 @@ import { AdvancedEcologySystem } from './AdvancedEcologySystem.js';
 import { ADVANCED_LAIR_RADII, ADVANCED_PROFILES } from './advancedEcologyConfig.js';
 import { factionFor } from '../data/applyPhase6Ecology.js';
 
+const FACTION_WARRIORS = new Set([
+  'goblin', 'skeleton', 'spider', 'ogre',
+  'zombie', 'orc', 'carrion', 'kobold', 'wraith'
+]);
+
 export class DungeonSim extends Phase5DungeonSim {
   constructor(scenario, options = {}) {
     super(scenario, options);
@@ -15,6 +20,10 @@ export class DungeonSim extends Phase5DungeonSim {
       onEvent: text => this.event(text)
     });
     this.advancedEcology.initializeAgents(this.agents, this);
+    for (const agent of this.agents) {
+      if (!ADVANCED_PROFILES[agent.role] || !agent.alive) continue;
+      agent.hp = agent.maxHp;
+    }
     this.spawnClock = null;
   }
 
@@ -46,6 +55,9 @@ export class DungeonSim extends Phase5DungeonSim {
   update(dt) {
     this.advanceAdvancedMaturity(dt);
     this.resetAdvancedReturnState();
+    for (const agent of this.agents) {
+      if ((agent.sporeSleep ?? 0) > 0) agent.combat = null;
+    }
     this.advancedEcology.update(dt, this);
     super.update(dt);
   }
@@ -80,9 +92,19 @@ export class DungeonSim extends Phase5DungeonSim {
   resolve(agent, action) {
     if (!this.isActive(agent) || agent.travel || agent.combat) return;
     const advancedAction = this.advancedEcology.decide(agent, this);
-    if (advancedAction) {
-      if (this.advancedEcology.resolve(agent, advancedAction, this)) return;
+    if (advancedAction && this.advancedEcology.resolve(agent, advancedAction, this)) return;
+
+    if (agent.faction === 'dungeon' && FACTION_WARRIORS.has(agent.role) && agent.ecologyFaction) {
+      const rival = this.agents.find(candidate =>
+        candidate.id !== agent.id && this.isActive(candidate) && !candidate.travel && candidate.faction === 'dungeon' &&
+        candidate.roomId === agent.roomId && candidate.ecologyFaction && candidate.ecologyFaction !== agent.ecologyFaction
+      );
+      if (rival && this.combatSystem.startAttack(agent, rival, this)) {
+        this.event(`${agent.name} challenged ${rival.name} over ${this.roomName(agent.roomId)}.`);
+        return;
+      }
     }
+
     super.resolve(agent, action);
   }
 
@@ -118,6 +140,7 @@ export class DungeonSim extends Phase5DungeonSim {
     this.combatSystem.initializeAgent(baby);
     this.equipmentSystem.initializeAgent(baby);
     this.advancedEcology.initializeAgent(baby, this);
+    baby.hp = baby.maxHp;
     const placement = this.occupancy.placeAgent(baby, roomId);
     if (!placement) {
       this.agents.pop();
