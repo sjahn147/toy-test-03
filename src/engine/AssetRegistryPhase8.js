@@ -4,6 +4,7 @@ import { SettlementAssetFactory } from './SettlementAssetFactory.js';
 import { ExpeditionAssetFactory } from './ExpeditionAssetFactory.js';
 import { LogisticsAssetFactory } from './LogisticsAssetFactory.js';
 import { ConstructionAssetFactory } from './ConstructionAssetFactory.js';
+import { CampaignLandmarkAssetFactory } from './CampaignLandmarkAssetFactory.js';
 
 export const PHASE8D_STRUCTURE_TYPES = new Set(['supply_depot', 'gatehouse', 'siege_workshop', 'ambush_post']);
 
@@ -14,12 +15,17 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
     this.expedition = new ExpeditionAssetFactory();
     this.logistics = new LogisticsAssetFactory();
     this.construction = new ConstructionAssetFactory();
+    this.campaignLandmarks = new CampaignLandmarkAssetFactory();
   }
 
   makeProp(prop) {
     if (prop.type === 'adventurer_field_camp') return this.expedition.createFieldCamp(prop);
     if (PHASE8D_STRUCTURE_TYPES.has(prop.type)) return this.construction.create(prop);
     return super.makeProp(prop);
+  }
+
+  makeCampaignLandmark(bundleId, context = {}) {
+    return this.campaignLandmarks.create(bundleId, context);
   }
 
   makeEffect(effect) {
