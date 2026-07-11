@@ -118,6 +118,16 @@ export class RoomOccupancySystem {
     return blocked;
   }
 
+  unblockByBlocker(blockerId) {
+    const released = [];
+    for (const [cellId, currentBlocker] of [...this.blockedCells.entries()]) {
+      if (currentBlocker !== blockerId) continue;
+      this.blockedCells.delete(cellId);
+      released.push(cellId);
+    }
+    return released;
+  }
+
   release(agentId) {
     const current = this.agentCells.get(agentId);
     if (current) {
