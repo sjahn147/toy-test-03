@@ -136,10 +136,12 @@ assert.match(shellSource, /data-event-pin/, 'chronicle pin control is missing');
 assert.match(shellSource, /setTimelineFilter\('major'\)/, 'alert button does not open major events');
 assert.match(shellSource, /aria-current/, 'navigator selection is not exposed accessibly');
 
-const polishSource = await readFile(new URL('../src/strategy-observer-polish.css', import.meta.url), 'utf8');
-assert.match(polishSource, /strategy-nav-row\.is-selected/, 'selected navigator row is not styled');
-assert.match(polishSource, /strategy-pinned-events/, 'pinned chronicle strip is not styled');
-assert.match(polishSource, /min-height: 44px/, 'mobile controls do not meet the touch target contract');
+// strategy-observer-polish.css was superseded by the Route A production theme
+// (strategy-observer.css), which is a strict superset of its styling contracts.
+const themeSource = await readFile(new URL('../src/strategy-observer.css', import.meta.url), 'utf8');
+assert.match(themeSource, /strategy-nav-row\.is-selected/, 'selected navigator row is not styled');
+assert.match(themeSource, /strategy-pinned-events/, 'pinned chronicle strip is not styled');
+assert.match(themeSource, /min-height: 44px/, 'mobile controls do not meet the touch target contract');
 
 const expeditionSource = await readFile(new URL('../src/sim/ExpeditionSystem.js', import.meta.url), 'utf8');
 for (const uiField of ['memberIds: [...(party.memberIds', 'leaderId: party.leaderId', 'cohesion: round(party.cohesion']) {
