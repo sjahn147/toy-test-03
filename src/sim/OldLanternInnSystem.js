@@ -124,6 +124,7 @@ export class OldLanternInnSystem {
       residentIds: [],
       presentIds: [],
       displacedIds: [],
+      buildings: [],
       food: 0,
       water: 0,
       medicine: 0,

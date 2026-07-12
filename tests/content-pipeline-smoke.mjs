@@ -103,6 +103,13 @@ try {
       assert.ok(Number.isFinite(value), `metric "${key}" is not finite`);
     }
   }
+  // snapshot()은 렌더러/UI가 매 프레임 호출하는 경로 — metrics()만으로는 놓친
+  // 크래시(예: OldLantern settlement의 buildings 누락)를 잡는다.
+  const snapshot = sim.snapshot();
+  assert.ok(Array.isArray(snapshot.settlement?.settlements), 'settlement snapshot missing');
+  for (const settlement of snapshot.settlement.settlements) {
+    assert.ok(Array.isArray(settlement.buildings), `settlement "${settlement.id}" has no buildings array in snapshot`);
+  }
   const elapsed = Date.now() - started;
   assert.ok(elapsed < 60000, `campaign run exceeded 60s budget (${elapsed}ms)`);
   console.log(`150-tick campaign run ok in ${elapsed}ms with ${events.length} events`);

@@ -517,11 +517,13 @@ export class SettlementSystem {
     return {
       settlements: [...this.settlements.values()].map(settlement => ({
         ...settlement,
-        residentIds: [...settlement.residentIds],
-        presentIds: [...settlement.presentIds],
-        displacedIds: [...settlement.displacedIds],
-        buildings: settlement.buildings.map(building => ({ ...building })),
-        visualPlacement: { ...settlement.visualPlacement }
+        // 방어: registerSettlement가 외부(OldLanternInnSystem 등)에서 만든
+        // settlement를 받으므로 배열 필드가 없을 수 있다.
+        residentIds: [...(settlement.residentIds ?? [])],
+        presentIds: [...(settlement.presentIds ?? [])],
+        displacedIds: [...(settlement.displacedIds ?? [])],
+        buildings: (settlement.buildings ?? []).map(building => ({ ...building })),
+        visualPlacement: { ...(settlement.visualPlacement ?? {}) }
       }))
     };
   }
