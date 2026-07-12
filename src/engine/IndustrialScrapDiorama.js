@@ -48,7 +48,16 @@ export function buildIronScrapRoom(state) {
   bell.userData = { animation: 'bell-tremble', phase: 1.1 };
   root.add(bell);
 
-  if (state === 'stripped') bins.scale.set(0.3, 0.3, 0.3);
+  if (state === 'stripped') {
+    bins.children = bins.children.filter(child => child.name !== 'sorted-scrap');
+    for (let i = 0; i < 4; i += 1) {
+      bins.add(box(1.7, 0.1, 1.4, 'ironDark', 'empty-bin-shadow', [-3 + i * 2.0, 0.05, 0]));
+    }
+    nest.children = nest.children.filter((_, index) => index % 2 === 0);
+    const strippedTarp = box(0.9, 0.06, 0.6, 'canvas', 'stripped-tarp', [-4.6, 0.03, -2.8]);
+    strippedTarp.rotation.y = 0.3;
+    root.add(strippedTarp);
+  }
   if (state === 'weaponized') {
     for (const x of [-5.7, 5.7]) root.add(beam([x, 0.2, -4.5], [x, 3.6, -4.5], 0.08, 'iron', 'scrap-spear'));
     root.add(gear(1.2, 0.18, 'rust', 'rolling-scrap-trap', [0, 1.2, -4.2]));
