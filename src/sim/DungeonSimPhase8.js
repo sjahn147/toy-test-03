@@ -1,5 +1,6 @@
 import { DungeonSim as Phase7DungeonSim } from './DungeonSimPhase7.js';
 import { SettlementSystem } from './SettlementSystem.js';
+import './installSettlementCollapseGuard.js';
 import { ExpeditionSystem } from './ExpeditionSystem.js';
 import { LogisticsSystem } from './LogisticsSystem.js';
 import { ConstructionSiegeSystem } from './ConstructionSiegeSystem.js';
