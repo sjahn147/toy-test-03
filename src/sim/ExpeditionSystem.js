@@ -3,6 +3,8 @@ import { graphDistance, nextStep } from './Pathfinding.js';
 const ADVENTURER_FACTION = 'adventurer-expedition';
 const ACTIVE_SETTLEMENT_STATES = new Set(['active', 'threatened', 'damaged']);
 const CAMP_COST = { provisions: 2, water: 1, materials: 2 };
+const MAX_ACTIVE_FIELD_CAMPS = 2;
+const MIN_RELAY_DISTANCE = 3;
 
 export class ExpeditionSystem {
   constructor({ rooms, props, graph, partySystem, settlementSystem, territorySystem, occupancy, onEvent = () => {} }) {
@@ -39,6 +41,7 @@ export class ExpeditionSystem {
     party.baseSettlementId ??= this.settlementSystem.safeSettlementId;
     party.lastSupplyWarningAt ??= -999;
     party.campCooldown ??= 0;
+    party.plan ??= null;
   }
 
   update(dt, sim) {
@@ -156,8 +159,13 @@ export class ExpeditionSystem {
       || average(members.map(member => member.hp / Math.max(1, member.maxHp))) < 0.72;
   }
 
-  canEstablishCamp(party, members, roomId, sim) {
-    if (party.campCooldown > 0 || party.baseSettlementId !== this.settlementSystem.safeSettlementId) return false;
+  canEstablishCamp(party, members, roomId, sim, options = {}) {
+    const allowRelay = options.allowRelay === true;
+    if (party.campCooldown > 0) return false;
+    if (!allowRelay && party.baseSettlementId !== this.settlementSystem.safeSettlementId) return false;
+    const activeCamps = this.activePartyCamps(party);
+    if (activeCamps.length >= MAX_ACTIVE_FIELD_CAMPS) return false;
+    if (activeCamps.some(camp => graphDistance(this.graph, camp.roomId, roomId) < MIN_RELAY_DISTANCE)) return false;
     if (party.provisions < CAMP_COST.provisions || party.water < CAMP_COST.water || party.materials < CAMP_COST.materials) return false;
     const gathered = members.filter(member => !member.travel && projectedRoom(member) === roomId && !member.downed);
     if (gathered.length < Math.min(3, members.length)) return false;
@@ -170,15 +178,15 @@ export class ExpeditionSystem {
     if (territory?.contested) return false;
     const control = territory?.owner === ADVENTURER_FACTION ? territory.control : territory?.owner ? 0 : territory?.control ?? 0;
     const exploredDeepEnough = graphDistance(this.graph, this.safeHub()?.roomId, roomId) >= 3;
-    const exhaustedEnough = party.endurance < party.maxExpeditionTime * 0.68 || party.expeditionTime >= 55;
+    const exhaustedEnough = allowRelay || party.endurance < party.maxExpeditionTime * 0.68 || party.expeditionTime >= 55;
     return exploredDeepEnough && exhaustedEnough && (!territory?.owner || territory.owner === ADVENTURER_FACTION || control >= 55);
   }
 
-  establishCamp(agent, roomId, sim) {
+  establishCamp(agent, roomId, sim, options = {}) {
     const party = this.partySystem.getParty(agent);
     if (!party) return true;
     const members = this.activeMembers(party, sim);
-    if (!this.canEstablishCamp(party, members, roomId, sim)) return true;
+    if (!this.canEstablishCamp(party, members, roomId, sim, options)) return true;
 
     party.provisions -= CAMP_COST.provisions;
     party.water -= CAMP_COST.water;
@@ -211,6 +219,7 @@ export class ExpeditionSystem {
       id: `settlement-${prop.id}`,
       anchorPropId: prop.id,
       factionId: ADVENTURER_FACTION,
+      partyId: party.id,
       species: null,
       allowedSpecies: ['fighter', 'rogue', 'cleric', 'wizard', 'archer'],
       type: 'field-camp',
@@ -314,6 +323,12 @@ export class ExpeditionSystem {
     return this.settlementSystem.settlements.get(this.settlementSystem.safeSettlementId) ?? null;
   }
 
+  activePartyCamps(party) {
+    return [...this.settlementSystem.settlements.values()].filter(settlement =>
+      settlement.type === 'field-camp' && settlement.partyId === party.id && ACTIVE_SETTLEMENT_STATES.has(settlement.state)
+    );
+  }
+
   activeAdventurerSettlement(roomId) {
     return [...this.settlementSystem.settlements.values()].find(settlement =>
       settlement.roomId === roomId && settlement.factionId === ADVENTURER_FACTION && ACTIVE_SETTLEMENT_STATES.has(settlement.state)
@@ -345,7 +360,8 @@ export class ExpeditionSystem {
         endurance: round(party.endurance),
         maxExpeditionTime: party.maxExpeditionTime,
         expeditionState: party.expeditionState,
-        baseSettlementId: party.baseSettlementId
+        baseSettlementId: party.baseSettlementId,
+        plan: party.plan ? { ...party.plan } : null
       }))
     };
   }

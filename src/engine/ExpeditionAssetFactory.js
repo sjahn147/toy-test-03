@@ -24,6 +24,7 @@ export class ExpeditionAssetFactory {
     group.add(ground);
 
     const tent = new THREE.Group();
+    tent.name = 'field-camp-tent';
     const tentLeft = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.07, 1.05), canvas);
     tentLeft.rotation.z = 0.63;
     tentLeft.position.set(-0.28, 0.58, -0.22);
@@ -44,6 +45,7 @@ export class ExpeditionAssetFactory {
     group.add(tent);
 
     const fire = new THREE.Group();
+    fire.name = 'field-camp-fire';
     for (const rotation of [-0.72, 0.72]) {
       const log = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.075, 0.58, 7), darkWood);
       log.rotation.z = Math.PI / 2;
@@ -58,12 +60,22 @@ export class ExpeditionAssetFactory {
       fire.add(stone);
     }
     const flameA = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.46, 7), ember);
+    flameA.name = 'field-camp-flame-a';
     flameA.position.y = 0.34;
     const flameB = new THREE.Mesh(new THREE.ConeGeometry(0.085, 0.33, 6), this.mat('field-camp-flame', 0xffcc6b, { emissive: 0xb45a17, roughness: 0.16 }));
+    flameB.name = 'field-camp-flame-b';
     flameB.position.set(0.07, 0.38, 0.02);
     fire.add(flameA, flameB);
     fire.position.set(0.56, 0, 0.22);
     group.add(fire);
+
+    for (let index = 0; index < 3; index += 1) {
+      const steam = new THREE.Mesh(new THREE.TorusGeometry(0.045 + index * 0.01, 0.008, 4, 10, Math.PI * 1.1), this.mat(`field-camp-steam-${index}`, 0xd6d9d4, { transparent: true, opacity: 0.25 }));
+      steam.name = `field-camp-steam-${index}`;
+      steam.rotation.x = Math.PI / 2;
+      steam.position.set(0.56 + (index - 1) * 0.05, 0.62 + index * 0.08, 0.22);
+      group.add(steam);
+    }
 
     for (const [x, z, r] of [[-0.74, 0.54, -0.2], [-0.16, 0.68, 0.12], [0.46, 0.67, -0.08]]) {
       const bed = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.1, 0.25), wood);
@@ -96,6 +108,7 @@ export class ExpeditionAssetFactory {
       group.add(ring);
     }
     const waterTop = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.025, 12), water);
+    waterTop.name = 'field-camp-water';
     waterTop.position.set(0.86, 0.55, 0.46);
     group.add(barrel, waterTop);
 
@@ -117,6 +130,7 @@ export class ExpeditionAssetFactory {
     const markerPole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 1.28, 7), wood);
     markerPole.position.set(-1.0, 0.66, 0.28);
     const pennant = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.55, 3), blanket);
+    pennant.name = 'field-camp-pennant';
     pennant.rotation.z = -Math.PI / 2;
     pennant.rotation.y = Math.PI / 2;
     pennant.position.set(-0.78, 1.05, 0.28);
@@ -125,6 +139,39 @@ export class ExpeditionAssetFactory {
     group.add(markerPole, pennant, crest);
 
     return group;
+  }
+
+  animateFieldCamp(group, time) {
+    if (!group) return;
+    const flameA = group.getObjectByName('field-camp-flame-a');
+    const flameB = group.getObjectByName('field-camp-flame-b');
+    if (flameA) {
+      const pulse = 1 + Math.sin(time * 9.1) * 0.11 + Math.sin(time * 4.7) * 0.05;
+      flameA.scale.set(0.92 + Math.sin(time * 7.4) * 0.06, pulse, 0.92 + Math.cos(time * 8.2) * 0.05);
+      flameA.rotation.y = time * 1.7;
+    }
+    if (flameB) {
+      const pulse = 1 + Math.cos(time * 10.3 + 0.8) * 0.14;
+      flameB.scale.set(0.9 + Math.sin(time * 8.7) * 0.07, pulse, 0.9 + Math.cos(time * 7.6) * 0.06);
+      flameB.rotation.y = -time * 2.1;
+    }
+    group.traverse(child => {
+      if (!child.name?.startsWith('field-camp-steam-')) return;
+      const index = Number(child.name.split('-').pop()) || 0;
+      child.position.y = 0.62 + index * 0.08 + ((time * 0.12 + index * 0.17) % 0.2);
+      child.rotation.z = time * 0.25 + index * 0.7;
+      child.scale.setScalar(0.85 + ((time * 0.12 + index * 0.17) % 0.2) * 1.1);
+    });
+    const waterTop = group.getObjectByName('field-camp-water');
+    if (waterTop) {
+      waterTop.scale.x = 1 + Math.sin(time * 2.1) * 0.015;
+      waterTop.scale.z = 1 + Math.cos(time * 1.8) * 0.015;
+    }
+    const pennant = group.getObjectByName('field-camp-pennant');
+    if (pennant) {
+      pennant.rotation.x = Math.sin(time * 2.6) * 0.035;
+      pennant.rotation.y = Math.PI / 2 + Math.sin(time * 1.9) * 0.045;
+    }
   }
 
   mat(key, color, options = {}) {

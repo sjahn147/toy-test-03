@@ -1,7 +1,9 @@
 import { beginAnimationFrame, resolveAttackTimeline, smoothingAlpha } from './MiniatureAnimationTiming.js';
+import { CampActivityAnimator } from './CampActivityAnimator.js';
 
 const HIT_EFFECTS = new Set(['attack', 'siege-hit', 'structure-break']);
 const HEAL_EFFECTS = new Set(['heal', 'settlement-rehome']);
+const CAMP_ACTIVITY_ANIMATOR = new CampActivityAnimator();
 
 export class MiniatureAnimator {
   update(mesh, agent, time, effects = []) {
@@ -14,6 +16,7 @@ export class MiniatureAnimator {
 
     if (!rig) {
       this.animateCreatureFallback(mesh, agent, time, seed, dt, alpha, localEffects, effects);
+      CAMP_ACTIVITY_ANIMATOR.update(mesh, agent, time);
       return;
     }
 
@@ -75,6 +78,7 @@ export class MiniatureAnimator {
     const baseScale = model.userData.baseScale ?? model.scale.x;
     const breathScale = 1 + ((skeletal || shambling) ? 0 : idleBreath * (heavy ? 0.0025 : 0.004)) + healPulse * 0.014;
     dampScale(model, baseScale * breathScale, baseScale * (1 + ((skeletal || shambling) ? 0 : idleBreath * 0.007) + healPulse * 0.02), baseScale * breathScale, alpha);
+    CAMP_ACTIVITY_ANIMATOR.update(mesh, agent, time);
   }
 
   animateCreatureFallback(mesh, agent, time, seed, dt, alpha, effects, allEffects) {

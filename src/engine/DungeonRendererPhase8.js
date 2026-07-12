@@ -15,6 +15,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.structureSignatures = new Map();
     this.landmarkMeshes = new Map();
     this.landmarkSignatures = new Map();
+    this.activityMeshes = new Map();
     this.lastRenderTime = null;
   }
 
@@ -30,12 +31,14 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     super.renderState(filtered);
     const deltaSeconds = this.lastRenderTime == null ? 0 : Math.max(0, Math.min(0.1, snapshot.time - this.lastRenderTime));
     this.lastRenderTime = snapshot.time;
-    this.animateMiniatures(visualAgents, snapshot.effects ?? [], snapshot.time);
     this.renderCampaignLandmarks(snapshot.rooms, snapshot.time, deltaSeconds);
     this.renderFieldCamps(fieldCamps, snapshot.rooms, snapshot.time);
     this.renderStructures(structures, snapshot.rooms, snapshot.time);
-    const settlements = (snapshot.settlement?.settlements ?? []).filter(settlement => settlement.type !== 'field-camp');
-    this.renderSettlements(settlements, snapshot.rooms, snapshot.time);
+    const settlements = snapshot.settlement?.settlements ?? [];
+    this.applyActivityAnchors(visualAgents, settlements, snapshot.props, snapshot.rooms);
+    this.animateMiniatures(visualAgents, snapshot.effects ?? [], snapshot.time);
+    this.renderActivityProps(visualAgents, settlements, snapshot.props, snapshot.rooms, snapshot.time);
+    this.renderSettlements(settlements.filter(settlement => settlement.type !== 'field-camp'), snapshot.rooms, snapshot.time);
     this.renderCargo(snapshot.logistics?.cargo ?? [], snapshot.agents, snapshot.rooms, snapshot.time);
   }
 
@@ -64,6 +67,58 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       if ((!agent.alive && !agent.corpse) || agent.hidden || agent.departed) continue;
       const mesh = this.agentMeshes.get(agent.id);
       if (mesh) this.miniatureAnimator.update(mesh, agent, time, effects);
+    }
+  }
+
+  applyActivityAnchors(agents, settlements, props, rooms) {
+    const settlementById = new Map(settlements.map(settlement => [settlement.id, settlement]));
+    const propById = new Map(props.map(prop => [prop.id, prop]));
+    const roomById = new Map(rooms.map(room => [room.id, room]));
+    for (const agent of agents) {
+      const activity = agent.activity;
+      if (!activity?.anchor || agent.travel || agent.combat || agent.corpse) continue;
+      const mesh = this.agentMeshes.get(agent.id);
+      const settlement = settlementById.get(activity.targetSettlementId ?? activity.settlementId);
+      const room = roomById.get(activity.targetRoomId ?? activity.roomId ?? settlement?.roomId ?? agent.roomId);
+      if (!mesh || !room) continue;
+      const transform = resolveActivityTransform(activity.anchor, settlement, propById);
+      mesh.position.set(room.x + transform.ox, this.roomY(room) + (activity.type === 'sleeping' || activity.type === 'monster-resting' ? 0.04 : 0.08), room.z + transform.oz);
+      mesh.rotation.y = transform.facing;
+      mesh.userData.activityAnchored = true;
+    }
+  }
+
+  renderActivityProps(agents, settlements, props, rooms, time) {
+    const live = new Set();
+    const settlementById = new Map(settlements.map(settlement => [settlement.id, settlement]));
+    const propById = new Map(props.map(prop => [prop.id, prop]));
+    const roomById = new Map(rooms.map(room => [room.id, room]));
+    for (const agent of agents) {
+      const activity = agent.activity;
+      if (!activity?.prop || !activity.anchor || agent.travel || agent.combat || agent.corpse || agent.hidden || agent.departed) continue;
+      const key = `${agent.id}:${activity.id}:${activity.prop}`;
+      live.add(key);
+      let mesh = this.activityMeshes.get(key);
+      if (!mesh) {
+        mesh = this.assets.activity.create(activity, agent);
+        if (!mesh) continue;
+        this.activityMeshes.set(key, mesh);
+        this.group.add(mesh);
+      }
+      const settlement = settlementById.get(activity.targetSettlementId ?? activity.settlementId);
+      const room = roomById.get(activity.targetRoomId ?? activity.roomId ?? settlement?.roomId ?? agent.roomId);
+      if (!room) continue;
+      const transform = resolveActivityTransform(activity.anchor, settlement, propById);
+      mesh.position.set(room.x + transform.ox, this.roomY(room) + activityPropHeight(activity.prop), room.z + transform.oz);
+      mesh.rotation.y = transform.facing;
+      mesh.scale.setScalar(Math.max(0.72, transform.scale));
+      this.assets.activity.animate(mesh, activity, time);
+    }
+    for (const [key, mesh] of [...this.activityMeshes]) {
+      if (live.has(key)) continue;
+      this.group.remove(mesh);
+      disposeTree(mesh);
+      this.activityMeshes.delete(key);
     }
   }
 
@@ -167,7 +222,8 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       const placement = camp.placement ?? {};
       mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.035, room.z + (placement.oz ?? 0));
       mesh.rotation.y = placement.rotation ?? 0;
-      mesh.scale.setScalar((placement.scale ?? 0.82) * (1 + Math.sin(time * 3.4 + camp.id.length) * 0.008));
+      mesh.scale.setScalar(placement.scale ?? 0.82);
+      this.assets.expedition.animateFieldCamp(mesh, time);
     }
   }
 
@@ -244,14 +300,46 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
 
   destroy() {
     for (const [key, mesh] of [...this.landmarkMeshes]) this.removeLandmark(key, mesh);
+    for (const mesh of this.activityMeshes.values()) disposeTree(mesh);
     this.settlementMeshes.clear();
     this.settlementSignatures.clear();
     this.fieldCampMeshes.clear();
     this.cargoMeshes.clear();
     this.structureMeshes.clear();
     this.structureSignatures.clear();
+    this.activityMeshes.clear();
     super.destroy();
   }
+}
+
+function resolveActivityTransform(anchor, settlement, propById) {
+  if (Number.isFinite(anchor.ox) && Number.isFinite(anchor.oz)) {
+    return { ox: anchor.ox, oz: anchor.oz, facing: anchor.facing ?? 0, scale: settlement?.visualPlacement?.scale ?? 1 };
+  }
+  const anchorProp = propById.get(settlement?.anchorPropId);
+  const placement = anchorProp?.placement ?? settlement?.visualPlacement ?? {};
+  const local = rotatePoint(anchor.x ?? 0, anchor.z ?? 0, placement.rotation ?? 0);
+  const scale = placement.scale ?? 1;
+  return {
+    ox: (placement.ox ?? 0) + local.x * scale,
+    oz: (placement.oz ?? 0) + local.z * scale,
+    facing: (placement.rotation ?? 0) + (anchor.facing ?? 0),
+    scale
+  };
+}
+
+function rotatePoint(x, z, rotation) {
+  const cosine = Math.cos(rotation);
+  const sine = Math.sin(rotation);
+  return { x: x * cosine - z * sine, z: x * sine + z * cosine };
+}
+
+function activityPropHeight(prop) {
+  if (prop === 'bedroll-blanket' || prop === 'rough-bedroll') return 0.055;
+  if (prop === 'bowl-spoon') return 0.04;
+  if (prop === 'cookpot-ladle') return 0.04;
+  if (prop === 'hammer-plank') return 0.04;
+  return 0.04;
 }
 
 function landmarkKey(roomId, assetId) {

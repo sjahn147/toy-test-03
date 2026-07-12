@@ -35,7 +35,8 @@ function statusOf(agent) {
   if (agent.alive === false) return agent.resurrectable ? 'awaiting return' : 'fallen';
   if (agent.combat?.phase) return agent.combat.phase;
   if (agent.travel?.phase) return agent.travel.phase;
-  return firstString(agent.personalityState, agent.partyState, agent.mood, agent.status, agent.state, agent.task, agent.activity) ?? 'active';
+  if (agent.activity?.type) return `${activityName(agent.activity.type)} · ${agent.activity.phase ?? 'active'}`;
+  return firstString(agent.personalityState, agent.partyState, agent.mood, agent.status, agent.state, agent.task) ?? 'active';
 }
 
 function thoughtOf(agent) {
@@ -49,6 +50,7 @@ function thoughtOf(agent) {
   if (agent.alive === false) return 'I have become useful documentation.';
   if ((agent.webbed ?? 0) > 0) return 'The silk is tighter than the employment contract.';
   if (Object.values(agent.equipment ?? {}).some(item => item?.broken)) return 'Something important is making the wrong metal noise.';
+  if (agent.activity?.source === 'camp-life') return campThought(agent.activity.type);
   if ((agent.hunger ?? 0) >= 82) return 'Everything nearby has become a menu category.';
   if (agent.carryingHostId) return 'The brood chamber is this way. The package is still breathing.';
   if ((agent.resurrectionSickness ?? 0) > 0) return 'Being alive again is more tiring than advertised.';
@@ -137,6 +139,20 @@ export function selectAgentInspector(state, agentId) {
     memories: Array.isArray(agent.memories) ? agent.memories.slice(0, 6).map(memory => memory && typeof memory === 'object' ? { ...memory } : memory) : []
   };
 
+  const activity = agent.activity && typeof agent.activity === 'object' ? agent.activity : null;
+  result.activity = activity ? {
+    id: firstString(activity.id),
+    type: firstString(activity.type) ?? 'activity',
+    label: firstString(activity.label) ?? activityName(activity.type),
+    phase: firstString(activity.phase) ?? 'active',
+    progress: Math.max(0, Math.min(1, firstNumber(activity.progress) ?? 0)),
+    prop: firstString(activity.prop),
+    assignedBy: firstString(activity.assignedBy, activity.source) ?? 'self',
+    interruptible: activity.interruptible !== false,
+    targetSettlementId: firstString(activity.targetSettlementId, activity.settlementId),
+    remaining: firstNumber(activity.endsAt) != null && firstNumber(state?.time) != null ? Math.max(0, activity.endsAt - state.time) : null
+  } : null;
+
   const traits = agent.personality && typeof agent.personality === 'object' ? agent.personality : {};
   const relationships = agent.relationships && typeof agent.relationships === 'object' ? agent.relationships : {};
   result.personality = {
@@ -189,4 +205,21 @@ export function selectAgentInspector(state, agentId) {
   } : null;
 
   return result;
+}
+
+function activityName(type) {
+  return String(type ?? 'activity').replaceAll('-', ' ');
+}
+
+function campThought(type) {
+  return ({
+    cooking: 'Keep the pot moving. Everyone is pretending not to watch it.',
+    eating: 'Hot food makes this place feel briefly defensible.',
+    sleeping: 'Someone else has the watch. For now.',
+    resting: 'Boots off, weapon close, eyes still on the corridor.',
+    guarding: 'Count the exits. Listen for the step that does not belong.',
+    'monster-feeding': 'The outpost eats because the frontier eats first.',
+    'monster-resting': 'The stones remember our weight now.',
+    'maintaining-outpost': 'A loose stake becomes a dead sentry.'
+  })[type] ?? 'The routine is part of holding the ground.';
 }

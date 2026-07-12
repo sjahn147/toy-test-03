@@ -4,6 +4,7 @@ import { SettlementAssetFactory } from './SettlementAssetFactory.js';
 import { ExpeditionAssetFactory } from './ExpeditionAssetFactory.js';
 import { LogisticsAssetFactory } from './LogisticsAssetFactory.js';
 import { ConstructionAssetFactory } from './ConstructionAssetFactory.js';
+import { ActivityPropFactory } from './ActivityPropFactory.js';
 import { PolishedMiniatureFactory } from './PolishedMiniatureFactory.js';
 import { Phase8AssetResolver } from './Phase8AssetResolver.js';
 
@@ -17,6 +18,7 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
     this.expedition = new ExpeditionAssetFactory();
     this.logistics = new LogisticsAssetFactory();
     this.construction = new ConstructionAssetFactory();
+    this.activity = new ActivityPropFactory();
     this.phase8Resolver = new Phase8AssetResolver();
   }
 
@@ -48,6 +50,10 @@ export class AssetRegistryPhase8 extends AssetRegistryPhase7 {
     if (effect.type === 'settlement-ruin') return shardEffect(0x746d78, 0x332e36, 14);
     if (effect.type === 'settlement-rehome') return ringEffect(0x84c4ef, 0x9dd58b, 3);
     if (effect.type === 'expedition-camp-build') return ringEffect(0x7bb7e8, 0xe4c66b, 3);
+    if (effect.type === 'expansion-outpost-build') return ringEffect(0xd16b55, 0xe0b85d, 4);
+    if (effect.type === 'camp-meal-ready') return ringEffect(0xf0a85b, 0xd8c47a, 2);
+    if (effect.type === 'camp-eat') return ringEffect(0xd7b36e, 0x8fc98b, 2);
+    if (effect.type === 'camp-wake') return ringEffect(0x91b8dc, 0xd2d7cc, 2);
     if (effect.type === 'cargo-pickup') return ringEffect(0xe3c66c, 0x7bb7e8, 2);
     if (effect.type === 'cargo-delivery') return ringEffect(0x8ed18a, 0xe3c66c, 3);
     if (effect.type === 'cargo-drop') return shardEffect(0xb8874d, 0x6e5040, 7);
