@@ -66,6 +66,7 @@ try {
   assert.equal(new Set(assigned.map(activity => activity.anchor.slotId)).size, assigned.length, 'camp activities overlapped the same semantic anchor');
 
   const cook = members.find(member => member.activity?.type === 'cooking');
+  assert.ok(cook, 'camp routine did not provide a cook fixture');
   const provisionsBefore = party.provisions;
   const waterBefore = party.water;
   sim.time = cook.activity.endsAt + 0.01;
@@ -73,29 +74,33 @@ try {
   assert.ok((camp.mealServings ?? 0) >= 3, 'cooking did not produce meal servings');
   assert.ok(party.provisions < provisionsBefore && party.water < waterBefore, 'cooking did not consume expedition supplies');
 
-  const eater = members.find(member => member.activity?.type === 'eating') ?? members.find(member => member.activity == null && member.id !== cook.id);
-  if (!eater.activity) sim.campLifeSystem.assignActivity(eater, 'eating', camp, sim, { group: 'party', partyId: party.id });
+  const eater = members.find(member => member.id !== cook.id) ?? cook;
+  sim.campLifeSystem.clearActivity(eater, 'test-reassign');
+  sim.campLifeSystem.assignActivity(eater, 'eating', camp, sim, { group: 'party', partyId: party.id });
   const hungerBefore = eater.hunger;
   sim.time = eater.activity.endsAt + 0.01;
   sim.campLifeSystem.updateActivities(sim);
   assert.ok(eater.hunger < hungerBefore, 'eating did not reduce hunger');
 
-  const sleeper = members.find(member => member.activity?.type === 'sleeping') ?? members.find(member => member.activity == null && member.id !== cook.id && member.id !== eater.id);
-  if (!sleeper.activity) sim.campLifeSystem.assignActivity(sleeper, 'sleeping', camp, sim, { group: 'party', partyId: party.id });
+  const sleeper = members.find(member => member.id !== cook.id && member.id !== eater.id) ?? members[0];
+  sim.campLifeSystem.clearActivity(sleeper, 'test-reassign');
+  sim.campLifeSystem.assignActivity(sleeper, 'sleeping', camp, sim, { group: 'party', partyId: party.id });
   const fatigueBefore = sleeper.fatigue;
   const hpBefore = sleeper.hp;
   sim.time = sleeper.activity.endsAt + 0.01;
   sim.campLifeSystem.updateActivities(sim);
   assert.ok(sleeper.fatigue < fatigueBefore && sleeper.hp >= hpBefore, 'sleeping did not restore the agent');
 
-  const guard = members.find(member => member.activity?.type === 'guarding') ?? members.find(member => member.activity == null);
-  if (!guard.activity) sim.campLifeSystem.assignActivity(guard, 'guarding', camp, sim, { group: 'party', partyId: party.id });
+  const guard = members.find(member => member.id !== sleeper.id) ?? leader;
+  sim.campLifeSystem.clearActivity(guard, 'test-reassign');
+  sim.campLifeSystem.assignActivity(guard, 'guarding', camp, sim, { group: 'party', partyId: party.id });
   const controlBefore = territory.control;
   sim.time = guard.activity.endsAt + 0.01;
   sim.campLifeSystem.updateActivities(sim);
   assert.ok(territory.control > controlBefore, 'sentry duty did not stabilize occupation control');
   assert.ok((camp.guardReadiness ?? 0) > 0.35, 'sentry duty did not improve guard readiness');
 
+  sim.campLifeSystem.clearActivity(leader, 'test-reassign');
   sim.campLifeSystem.assignActivity(leader, 'resting', camp, sim, { group: 'party', partyId: party.id });
   leader.combat = { phase: 'windup' };
   sim.campLifeSystem.updateActivities(sim);
