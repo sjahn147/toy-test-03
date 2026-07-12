@@ -1,5 +1,5 @@
 import {
-  group, box, cylinder, sphere, wornTileFloor,
+  group, box, beam, cylinder, sphere, wornTileFloor,
   cookRange, workTable, flame, fungusCluster, rubblePile, RESIDENTIAL_COLORS
 } from './ResidentialQuarterGeometry.js';
 
@@ -22,12 +22,8 @@ export function buildCommunalKitchen(state) {
 
   const lockers = group('food-locker');
   lockers.position.set(5.8, 0, -2.2);
-  for (let shelf = 0; shelf < 3; shelf += 1) {
-    lockers.add(box(2.6, 0.16, 0.72, 'timber', 'food-locker-shelf', [0, 0.55 + shelf * 0.86, 0]));
-  }
-  for (let i = 0; i < 12; i += 1) {
-    lockers.add(cylinder(0.12 + (i % 3) * 0.03, 0.38 + (i % 2) * 0.16, i % 2 ? 'copper' : 'linenDirty', 'food-storage-jar', [-0.95 + (i % 4) * 0.62, 0.8 + Math.floor(i / 4) * 0.86, 0], 10));
-  }
+  for (let shelf = 0; shelf < 3; shelf += 1) lockers.add(box(2.6, 0.16, 0.72, 'timber', 'food-locker-shelf', [0, 0.55 + shelf * 0.86, 0]));
+  for (let i = 0; i < 12; i += 1) lockers.add(cylinder(0.12 + (i % 3) * 0.03, 0.38 + (i % 2) * 0.16, i % 2 ? 'copper' : 'linenDirty', 'food-storage-jar', [-0.95 + (i % 4) * 0.62, 0.8 + Math.floor(i / 4) * 0.86, 0], 10));
   root.add(lockers);
 
   const drying = group('drying-rack');
@@ -58,7 +54,6 @@ export function buildCommunalKitchen(state) {
   flue.add(box(1.25, 3.7, 1.0, 'brickDark', 'flue-stack', [0, 4.0, 0]));
   root.add(flue);
 
-  // Story prop: the interrupted final meal remains laid for six residents.
   const lastMeal = group('last-supper-place-setting');
   lastMeal.position.set(-2.5, 0, 0.2);
   for (let i = 0; i < 6; i += 1) {
@@ -78,25 +73,19 @@ export function buildCommunalKitchen(state) {
 function addColdState(root) {
   const cold = group('cold');
   cold.add(rubblePile('cold-ash-heap', 0, -3.9, 10, 'soot'));
-  for (const [x, z, r] of [[-5.7, -0.5, 0.2], [4.6, 3.4, -0.25], [0.7, 3.7, 0.4]]) {
-    const pot = cylinder(0.38, 0.35, 'iron', 'overturned-pot', [x, 0.25, z], 12, [Math.PI / 2, r, 0]);
-    cold.add(pot);
-  }
+  for (const [x, z, r] of [[-5.7, -0.5, 0.2], [4.6, 3.4, -0.25], [0.7, 3.7, 0.4]]) cold.add(cylinder(0.38, 0.35, 'iron', 'overturned-pot', [x, 0.25, z], 12, [Math.PI / 2, r, 0]));
   root.add(cold);
 }
 
 function addWorkingState(root) {
   const working = group('working');
-  const soup = cylinder(0.62, 0.52, 'copper', 'working-stockpot', [0, 1.82, -3.6], 14);
-  working.add(soup);
+  working.add(cylinder(0.62, 0.52, 'copper', 'working-stockpot', [0, 1.82, -3.6], 14));
   for (let i = 0; i < 8; i += 1) {
     const steam = sphere(0.14 + (i % 3) * 0.05, 'steam', 'kitchen-steam', [-0.25 + (i % 4) * 0.18, 2.2 + Math.floor(i / 4) * 0.35, -3.6], [1, 1.4, 1], { transparent: true, opacity: 0.28 });
     steam.userData = { animation: 'steam-drift', phase: i * 0.53 };
     working.add(steam);
   }
-  for (const [x, z] of [[4.7, 1.8], [5.5, 0.8], [-4.5, 4.0]]) {
-    working.add(box(0.9, 0.7, 0.75, 'timber', 'ration-crate', [x, 0.36, z]));
-  }
+  for (const [x, z] of [[4.7, 1.8], [5.5, 0.8], [-4.5, 4.0]]) working.add(box(0.9, 0.7, 0.75, 'timber', 'ration-crate', [x, 0.36, z]));
   working.add(flame(-5.4, 0.12, 3.9, 0.55));
   root.add(working);
 }
@@ -105,13 +94,10 @@ function addInfestedState(root) {
   const infestation = group('infested');
   for (const [x, z, count] of [[-5.6, -3.8, 8], [4.8, -3.5, 7], [-5.0, 4.1, 9], [4.8, 4.0, 6]]) infestation.add(fungusCluster(x, z, count, 0.85));
   for (let i = 0; i < 10; i += 1) {
-    const blob = sphere(0.28 + (i % 3) * 0.08, 'slime', 'slime-infestation', [-4.8 + (i % 5) * 2.25, 0.18, 3.2 + Math.floor(i / 5) * 0.8], [1.3, 0.45, 1.0], {
-      transparent: true, opacity: 0.72, emissive: RESIDENTIAL_COLORS.slime, emissiveIntensity: 0.12
-    });
+    const blob = sphere(0.28 + (i % 3) * 0.08, 'slime', 'slime-infestation', [-4.8 + (i % 5) * 2.25, 0.18, 3.2 + Math.floor(i / 5) * 0.8], [1.3, 0.45, 1.0], { transparent: true, opacity: 0.72, emissive: RESIDENTIAL_COLORS.slime, emissiveIntensity: 0.12 });
     blob.userData = { animation: 'fungus-pulse', phase: i * 0.61 };
     infestation.add(blob);
   }
-  const blockedFlue = box(1.4, 1.0, 1.15, 'fungus', 'blocked-smoke-flue', [0, 4.0, -4.4]);
-  infestation.add(blockedFlue);
+  infestation.add(box(1.4, 1.0, 1.15, 'fungus', 'blocked-smoke-flue', [0, 4.0, -4.4]));
   root.add(infestation);
 }
