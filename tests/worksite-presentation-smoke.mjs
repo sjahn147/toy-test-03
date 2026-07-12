@@ -15,19 +15,25 @@ for (const token of [
   'worksite-platform',
   'worksite-material',
   'worksite-pulley',
+  'worksite-rope',
   'worksite-lift-load',
   'animateScaffold'
 ]) assert.ok(assetSource.includes(token), `missing ${token}`);
 
 for (const token of [
   'renderScaffolds',
-  'renderUnloadingCargo',
-  "prop.underConstruction",
-  "activity.type !== 'unloading'",
-  'cargoMeshes.get(activity.cargoId)',
+  'positionUnloadingCargo',
+  'prop.underConstruction',
+  "activity.type === 'unloading'",
+  'cargoMeshes.get(cargo.id)',
   'activity.anchor',
+  'smoothstep',
   'disposeTree'
 ]) assert.ok(rendererSource.includes(token), `missing ${token}`);
+
+assert.match(rendererSource, /this\.assets\.makeWorksiteScaffold\?\.\(prop\)/);
+assert.match(rendererSource, /this\.assets\.animateWorksiteScaffold\?\.\(mesh, prop, time\)/);
+assert.doesNotMatch(rendererSource, /assets\.worksite\?\./);
 
 assert.match(registrySource, /new WorksiteAssetFactory/);
 assert.match(registrySource, /makeWorksiteScaffold/);
@@ -35,5 +41,6 @@ assert.match(registrySource, /animateWorksiteScaffold/);
 assert.match(strategyRendererSource, /new WorksitePresentationRenderer/);
 assert.match(strategyRendererSource, /worksitePresentation\.render/);
 assert.match(strategyRendererSource, /worksitePresentation\.destroy/);
+assert.match(strategyRendererSource, /cargoMeshes: this\.cargoMeshes/);
 
 console.log('worksite presentation smoke: ok');
