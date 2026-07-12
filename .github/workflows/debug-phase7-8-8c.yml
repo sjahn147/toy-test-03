@@ -1,0 +1,34 @@
+name: Debug Phase 7 8 8C
+
+on:
+  pull_request:
+
+jobs:
+  debug-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run regression tests with captured logs
+        shell: bash
+        run: |
+          set +e
+          npm run test:phase7 > phase7.log 2>&1
+          echo $? > phase7.exit
+          npm run test:phase8 > phase8.log 2>&1
+          echo $? > phase8.exit
+          npm run test:phase8c > phase8c.log 2>&1
+          echo $? > phase8c.exit
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase7-8-8c-debug
+          path: |
+            phase7.log
+            phase7.exit
+            phase8.log
+            phase8.exit
+            phase8c.log
+            phase8c.exit
