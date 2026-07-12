@@ -1,8 +1,8 @@
 # Technical Debt Register
 
-_Last verified against `main` at `8aecc06dfaddbc381ceffd82e0bcf068bc63a60d` on 2026-07-12._
+_Last verified against `main` at merge of PR #42 on 2026-07-13._
 
-This document records debt that remains after the committed strategic-expansion, camp-life, logistics, world-status, faction-outpost, regression-repair, worksite-presentation, and Industrial Corridor/Ossuary Cathedral landmark slices. It intentionally separates finished work from active debt so completed features are not repeatedly reimplemented.
+This document records debt that remains after the committed strategic-expansion, camp-life, logistics, world-status, faction-outpost, regression-repair, worksite-presentation, Residential Quarter, Industrial Corridor, Ossuary Cathedral, Central Cross-Market, and Red-Tusk Barracks landmark slices. It intentionally separates finished work from active debt so completed features are not repeatedly reimplemented.
 
 ## Status legend
 
@@ -24,36 +24,20 @@ The following capabilities are already on `main` and should be extended rather t
 - World ownership/control fields, contested overlays, supply-route rendering, and activity beacons.
 - Faction-specific forward-outpost dioramas.
 - Physical worksite presentation: scaffolds, stored materials, pulley/load motion, and cargo lowering at unloading anchors.
-- Industrial Corridor (D16, D17, D18, D20) and Ossuary Cathedral (E21–E25) dedicated landmark recipes.
+- Industrial Corridor (D16, D17, D18, D20), Ossuary Cathedral (E21–E25), Residential Quarter (B06–B10), Central Cross-Market (I41–I45), and Red-Tusk Barracks (J46–J48) dedicated landmark recipes — all 63/63 Sleeping Citadel rooms now resolve to a dedicated recipe (verified by `tests/campaign-map-integration-audit.mjs`, which now dynamically checks every registered zone pack instead of a hardcoded baseline).
 - Frame-rate-independent miniature damping and species-specific movement, attack, and death presentation for the currently supported families.
 
 ## P0 — Campaign map completion
 
-### TD-CAMPAIGN-01: Dedicated landmark coverage is incomplete
+### TD-CAMPAIGN-01: Dedicated landmark coverage — RESOLVED
 
-**Current state**
+**Status: closed 2026-07-13.** All 63/63 Sleeping Citadel rooms now resolve to a dedicated landmark recipe. `tests/campaign-map-integration-audit.mjs` asserts `missing.length === 0` and `dedicated.length === 63` as a hard regression gate (it previously hardcoded a stale 46-dedicated/17-missing baseline from before Industrial Corridor, Ossuary Cathedral, Central Cross-Market, and Red-Tusk Barracks existed, and silently kept "passing" against that stale number because it didn't import those packs' recipe lists — fixed alongside this closure so the test now dynamically reflects every registered zone pack).
 
-- The Sleeping Citadel manifest contains 63 rooms.
-- The committed baseline now has 50 dedicated landmark recipes (Industrial Corridor and Ossuary Cathedral landed by integrating the orphaned `agent/resolver-recovery` branch).
-- Draft PR #29 adds B06–B10 (Residential Quarter) and would advance dedicated coverage to 55/63.
-- Eight rooms remain after that slice:
-  - I41–I45 — Central Cross-Market
-  - J46–J48 — Red-Tusk Barracks
+**Completion condition (met)**
 
-**Debt**
-
-Rooms without dedicated recipes can silently fall back to generic architecture and fail to carry their authored state, story prop, interaction sockets, and system connections.
-
-**Owner / tracker**
-
-- Issue #28
-- Draft PR #29 for WP0 and Residential Quarter B06–B10
-
-**Completion condition**
-
-- 63/63 manifest bundles resolve to dedicated runtime recipes.
-- No production room silently omits its authored landmark.
-- Every declared state has a visibly distinct, reachable runtime presentation.
+- 63/63 manifest bundles resolve to dedicated runtime recipes. ✓
+- No production room silently omits its authored landmark. ✓ (verified via `Phase8AssetResolver` + the audit's own manifest walk)
+- Every declared state has a visibly distinct, reachable runtime presentation — verified per-pack by each zone's own smoke test; not independently re-verified in a live browser across all 63 rooms simultaneously (see TD-QA-02).
 
 ### TD-CAMPAIGN-02: Physical layout is generated, not authored
 
@@ -329,8 +313,8 @@ Issue #24.
 
 ## Recommended execution order
 
-1. Integrate PR #29 onto the current main and land Residential Quarter B06–B10.
-2. Complete the remaining 8 landmark recipes (Central Cross-Market I41–I45, Red-Tusk Barracks J46–J48).
+1. ~~Integrate PR #29 onto the current main and land Residential Quarter B06–B10.~~ Done.
+2. ~~Complete the remaining 8 landmark recipes (Central Cross-Market I41–I45, Red-Tusk Barracks J46–J48).~~ Done — 63/63 landmark coverage reached.
 3. Implement authored layout, ports, corridors, and shared placement clearance.
 4. Implement conditional/secret route state and active graph rebuilding.
 5. Wire live campaign state into room visuals.
