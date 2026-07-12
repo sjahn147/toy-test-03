@@ -1,0 +1,23 @@
+name: Worksite Presentation Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  worksite-presentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate worksite presentation
+        run: npm run test:worksites
+      - name: Validate operations behavior
+        run: npm run test:operations
+      - name: Validate world status rendering
+        run: npm run test:world-status
+      - name: Validate miniature presentation
+        run: npm run test:miniatures

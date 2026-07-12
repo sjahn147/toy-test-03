@@ -23,6 +23,7 @@
     "test:camp-life": "node tests/camp-life-immersion-smoke.mjs",
     "test:operations": "node tests/operations-activity-smoke.mjs",
     "test:world-status": "node tests/world-status-outposts-smoke.mjs",
+    "test:worksites": "node tests/worksite-presentation-smoke.mjs",
     "test:content": "node tests/content-pipeline-smoke.mjs",
     "test:facade": "node tests/runtime-facade-smoke.mjs",
     "test:presentation": "node tests/presentation-boundary-smoke.mjs",
