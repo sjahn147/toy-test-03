@@ -72,6 +72,8 @@ export class DungeonSim extends Phase7DungeonSim {
     });
 
     this.campLifeSystem = new CampLifeSystem({
+      rooms: this.rooms,
+      props: this.props,
       partySystem: this.partySystem,
       settlementSystem: this.settlementSystem,
       territorySystem: this.territorySystem,
@@ -117,14 +119,14 @@ export class DungeonSim extends Phase7DungeonSim {
         if (this.strategicExpansionSystem.resolve(agent, expansionAction, this)) return;
       }
 
+      const campLifeAction = this.campLifeSystem.decide(agent, this);
+      if (campLifeAction && this.campLifeSystem.resolve(agent, campLifeAction, this)) return;
+
       const constructionAction = this.constructionSystem.decide(agent, this);
       if (constructionAction) {
         if (constructionAction.text) this.event(constructionAction.text);
         if (this.constructionSystem.resolve(agent, constructionAction, this)) return;
       }
-
-      const campLifeAction = this.campLifeSystem.decide(agent, this);
-      if (campLifeAction && this.campLifeSystem.resolve(agent, campLifeAction, this)) return;
     }
 
     if (agent?.faction === 'party' && this.isActive(agent) && !agent.travel && !agent.combat) {
