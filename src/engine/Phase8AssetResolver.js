@@ -4,6 +4,7 @@ import { createFungalGardenAssetPack } from './FungalGardenAssetPack.js';
 import { FungalGardenAssetAnimator } from './FungalGardenAssetAnimator.js';
 import { SpiderColonyAssetPack } from './SpiderColonyAssetPack.js';
 import { WaystationAssetPack } from './WaystationAssetPack.js';
+import { ResidentialQuarterAssetPack } from './ResidentialQuarterAssetPack.js';
 import { createFloodedStorehouseAssetPack } from './FloodedStorehouseAssetPack.js';
 import { createLaboratoryAssetPack } from './LaboratoryAssetPack.js';
 import { LaboratoryAssetAnimator } from './LaboratoryAssetAnimator.js';
@@ -36,6 +37,10 @@ export class Phase8AssetResolver {
     });
     this.register(new WaystationAssetPack(), {
       priority: 100,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
+    });
+    this.register(new ResidentialQuarterAssetPack(), {
+      priority: 110,
       animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
     });
     this.register(createFloodedStorehouseAssetPack(), {
