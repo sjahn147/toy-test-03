@@ -1,4 +1,5 @@
 import { graphDistance, nextStep } from './Pathfinding.js';
+import { resolveOutpostProfile } from '../domain/OutpostProfiles.js';
 
 const ADVENTURER_FACTION = 'adventurer-expedition';
 const ACTIVE_STATES = new Set(['active', 'threatened', 'damaged']);
@@ -286,6 +287,7 @@ export class StrategicExpansionSystem {
     const factionAgents = sim.agents.filter(agent => agent.alive && !agent.departed && agent.faction === 'dungeon' && agent.ecologyFaction === plan.factionId);
     const allowedSpecies = [...new Set(factionAgents.map(agent => agent.role))];
     const primaryRole = mostCommon(factionAgents.map(agent => agent.role)) ?? pioneer.role;
+    const profile = resolveOutpostProfile(plan.factionId);
     const placement = {
       ox: room.w * (this.sequence % 2 ? 0.24 : -0.24),
       oz: room.d * (this.sequence % 3 ? -0.22 : 0.22),
@@ -294,8 +296,9 @@ export class StrategicExpansionSystem {
     };
     const prop = {
       id: `monster-forward-outpost-${this.sequence++}`,
-      type: 'territory_banner',
-      label: `${prettyFaction(plan.factionId)} Forward Outpost`,
+      type: 'forward_outpost',
+      outpostProfile: profile.id,
+      label: `${prettyFaction(plan.factionId)} ${profile.label}`,
       roomId: room.id,
       ecologyFaction: plan.factionId,
       structureFaction: plan.factionId,
@@ -314,6 +317,8 @@ export class StrategicExpansionSystem {
       species: null,
       allowedSpecies,
       type: 'forward-outpost',
+      outpostProfile: profile.id,
+      restBehavior: profile.restBehavior,
       roomId: room.id,
       tier: 1,
       state: 'active',
@@ -366,7 +371,7 @@ export class StrategicExpansionSystem {
     this.settlementSystem.sync(sim);
     this.occupancy.blockArea(room.id, room.x + placement.ox, room.z + placement.oz, 0.68 * placement.scale, prop.id);
     sim.emitEffect?.('expansion-outpost-build', { roomId: room.id, agentId: pioneer.id, duration: 1.4 });
-    this.onEvent(`${prettyFaction(plan.factionId)} established a forward outpost in ${sim.roomName(room.id)}.`);
+    this.onEvent(`${prettyFaction(plan.factionId)} established ${profile.label} in ${sim.roomName(room.id)}.`);
     this.completePlan(plan, pioneer, settlement.id, sim);
     return true;
   }
