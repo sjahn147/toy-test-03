@@ -1,6 +1,6 @@
 import { ObserveScreen as Phase6ObserveScreen } from './ObserveScreen.js';
-import { DungeonRendererPhase8 } from '../engine/DungeonRendererPhase8.js';
-import { AssetRegistryPhase8 } from '../engine/AssetRegistryPhase8.js';
+import { StrategyDungeonRenderer } from '../engine/StrategyDungeonRenderer.js';
+import { StrategyAssetRegistry } from '../engine/StrategyAssetRegistry.js';
 import { DungeonSimulation } from '../sim/DungeonSimulation.js';
 import { applyPhase7Territories } from '../data/applyPhase7Territories.js';
 import { applyPhase8SpatialScale } from '../data/applyPhase8SpatialScale.js';
@@ -32,9 +32,9 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.runtimeUnsubscribe?.();
     this.runtime?.destroy();
 
-    this.assets = new AssetRegistryPhase8();
+    this.assets = new StrategyAssetRegistry();
     this.assets.loadManifest();
-    this.renderer = new DungeonRendererPhase8(this.three, this.scenario, this.assets);
+    this.renderer = new StrategyDungeonRenderer(this.three, this.scenario, this.assets);
     this.sim = new DungeonSimulation(this.scenario);
     this.runtime = createLegacyGameRuntime({ sim: this.sim });
     this.runtimeUnsubscribe = this.runtime.subscribe(() => { this.viewModelClock = 0; });
@@ -78,5 +78,84 @@ export class ObserveScreen extends Phase6ObserveScreen {
       partyId: type === 'party' ? id : null,
       factionId: type === 'faction' ? id : null
     };
+  }
+
+  refreshViewModel(force = false) {
+    if (!this.runtime || !this.shell) return;
+    if (!force && this.viewModelClock > 0) return;
+    this.viewModelClock = 0.16;
+    this.viewModel = this.runtime.getViewModel({
+      observerFactionId: this.observerFactionId,
+      timelineFilter: this.timelineFilter,
+      pinnedEventIds: this.pinnedEventIds,
+      ...this.selectionContext()
+    });
+    this.shell.render(this.viewModel);
+    renderStrategyInspector(this.inspectEl, this.viewModel.inspector);
+  }
+
+  update(delta) {
+    if (!this.runtime) return;
+    this.viewModelClock -= delta;
+    this.runtime.tick(delta);
+    this.renderer.renderState(this.runtime.getSnapshot());
+    this.updateFollowCamera();
+    this.refreshViewModel();
+  }
+
+  togglePinnedEvent(eventId) {
+    if (this.pinnedEventIds.has(eventId)) this.pinnedEventIds.delete(eventId);
+    else this.pinnedEventIds.add(eventId);
+    this.refreshViewModel(true);
+  }
+
+  focusTimelineEvent(event) {
+    if (event.roomId) this.focusRoom(event.roomId, true, 30);
+    if (event.agentId) this.selectEntity({ type: 'agent', id: event.agentId, roomId: event.roomId });
+  }
+
+  setCameraMode(mode) {
+    this.cameraMode = mode;
+    this.shell?.setCameraMode(mode);
+    if (mode !== 'follow') this.followAgentId = null;
+  }
+
+  handleCameraAction(action) {
+    if (action === 'zoom-in') this.camera.position.y = Math.max(9, this.camera.position.y - 3);
+    if (action === 'zoom-out') this.camera.position.y = Math.min(60, this.camera.position.y + 3);
+    if (action === 'reset') this.resetCamera();
+  }
+
+  handleShortcut(event) {
+    if (event.target?.matches?.('input, textarea, select')) return;
+    if (event.code === 'Space') {
+      event.preventDefault();
+      this.runtime?.dispatch({ type: this.runtime.isPaused() ? 'clock.resume' : 'clock.pause' });
+    }
+    if (event.key === '1') this.runtime?.dispatch({ type: 'clock.set-speed', speed: 1 });
+    if (event.key === '2') this.runtime?.dispatch({ type: 'clock.set-speed', speed: 2 });
+    if (event.key === '3') this.runtime?.dispatch({ type: 'clock.set-speed', speed: 4 });
+    if (event.key.toLowerCase() === 'f' && this.selectedAgentId) this.setCameraMode('follow');
+    if (event.key === 'Escape') {
+      this.selection = null;
+      this.selectedAgentId = null;
+      this.followAgentId = null;
+      this.refreshViewModel(true);
+    }
+  }
+
+  updateFollowCamera() {
+    if (!this.followAgentId || this.cameraMode !== 'follow') return;
+    const mesh = this.renderer.agentMeshes.get(this.followAgentId);
+    if (!mesh) return;
+    this.cameraTarget.lerp(mesh.position, 0.12);
+  }
+
+  destroy() {
+    window.removeEventListener('keydown', this.onKeyDown);
+    this.runtimeUnsubscribe?.();
+    this.runtime?.destroy();
+    this.shell?.destroy();
+    super.destroy();
   }
 }
