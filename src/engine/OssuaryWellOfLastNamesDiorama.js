@@ -1,4 +1,4 @@
-import { group, box, cylinder, sphere, cone, torus, beam, frustum, ossuaryFloor, boneColumn, soulMist, candle } from './OssuaryCathedralGeometry.js';
+import { group, box, cylinder, sphere, cone, torus, beam, frustum, ossuaryFloor, boneColumn, bonePile, soulMist, candle } from './OssuaryCathedralGeometry.js';
 
 export function buildWellOfLastNames(state) {
   const root = group('well-of-last-names');
