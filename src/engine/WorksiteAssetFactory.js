@@ -1,20 +1,16 @@
 import { THREE } from './ThreeScene.js';
 
 export class WorksiteAssetFactory {
-  constructor() {
-    this.materials = new Map();
-  }
-
   createScaffold(prop) {
     const group = new THREE.Group();
     group.name = `worksite-scaffold:${prop.id}`;
     group.userData.structureType = prop.type;
 
-    const timber = this.mat('timber', 0x67462f, { roughness: 0.96 });
-    const lightTimber = this.mat('light-timber', 0x8a6742, { roughness: 0.94 });
-    const rope = this.mat('rope', 0xb49a68, { roughness: 1 });
-    const iron = this.mat('iron', 0x747c7f, { roughness: 0.48, metalness: 0.3 });
-    const cloth = this.mat('cloth', 0xb89b63, { roughness: 0.92 });
+    const timber = this.mat(0x67462f, { roughness: 0.96 });
+    const lightTimber = this.mat(0x8a6742, { roughness: 0.94 });
+    const rope = this.mat(0xb49a68, { roughness: 1 });
+    const iron = this.mat(0x747c7f, { roughness: 0.48, metalness: 0.3 });
+    const cloth = this.mat(0xb89b63, { roughness: 0.92 });
 
     for (const x of [-0.78, 0.78]) for (const z of [-0.62, 0.62]) {
       const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.065, 1.65, 7), timber);
@@ -96,18 +92,14 @@ export class WorksiteAssetFactory {
     });
   }
 
-  mat(key, color, options = {}) {
-    const cacheKey = `${key}:${color}:${JSON.stringify(options)}`;
-    if (this.materials.has(cacheKey)) return this.materials.get(cacheKey);
-    const material = new THREE.MeshStandardMaterial({
+  mat(color, options = {}) {
+    return new THREE.MeshStandardMaterial({
       color,
       roughness: options.roughness ?? 0.8,
       metalness: options.metalness ?? 0,
       transparent: options.transparent ?? false,
       opacity: options.opacity ?? 1
     });
-    this.materials.set(cacheKey, material);
-    return material;
   }
 }
 
