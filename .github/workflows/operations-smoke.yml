@@ -1,0 +1,19 @@
+name: Operations Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [agent/immersive-logistics-operations]
+
+jobs:
+  operations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:operations
+      - run: npm run test:camp-life
+      - run: npm run test:expansion
+      - run: npm run test:miniatures

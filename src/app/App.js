@@ -1,6 +1,6 @@
 import { TitleScreen } from '../screens/TitleScreen.js';
 import { BuildScreen } from '../screens/BuildScreen.js';
-import { ObserveScreen } from '../screens/ObserveScreenPhase8.js';
+import { StrategyObserverScreen } from '../screens/StrategyObserverScreen.js';
 import { SCENARIOS } from '../data/scenarios.js';
 
 export class App {
@@ -71,7 +71,7 @@ export class App {
 
   showObserve() {
     const scenario = SCENARIOS.find(s => s.id === this.state.scenarioId) ?? SCENARIOS[0];
-    this.setScreen(new ObserveScreen({
+    this.setScreen(new StrategyObserverScreen({
       scenario,
       state: this.state,
       onBack: () => this.showBuild()
