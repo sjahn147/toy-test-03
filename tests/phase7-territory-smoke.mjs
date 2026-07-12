@@ -42,18 +42,26 @@ try {
   assert.ok(resource.stock < stockBefore, 'controlled resource was not harvested');
   assert.ok((sim.territorySystem.factionSupply.get(factionAgent.ecologyFaction) ?? 0) > supplyBefore, 'harvest did not create faction supply');
 
-  const rival = sim.agents.find(agent =>
-    agent.alive && agent.faction === 'dungeon' && agent.ecologyFaction && agent.ecologyFaction !== factionAgent.ecologyFaction
-  );
-  assert.ok(rival, 'missing rival faction agent');
-  placeInRoom(sim, rival, resource.roomId);
+  const rivalGroups = new Map();
+  for (const agent of sim.agents) {
+    if (!agent.alive || agent.faction !== 'dungeon' || !agent.ecologyFaction || agent.ecologyFaction === factionAgent.ecologyFaction) continue;
+    if (!rivalGroups.has(agent.ecologyFaction)) rivalGroups.set(agent.ecologyFaction, []);
+    rivalGroups.get(agent.ecologyFaction).push(agent);
+  }
+  const [rivalFaction, raiders] = [...rivalGroups.entries()]
+    .sort((a, b) => factionPower(b[1]) - factionPower(a[1]))[0] ?? [];
+  assert.ok(rivalFaction && raiders?.length, 'missing rival faction agents');
+  for (const raider of raiders) placeInRoom(sim, raider, resource.roomId);
   for (let i = 0; i < 3; i += 1) sim.territorySystem.updateControl(sim);
-  assert.equal(sim.territorySystem.roomStates.get(resource.roomId).contested, true, 'rival factions did not contest the room');
+  assert.equal(sim.territorySystem.roomStates.get(resource.roomId).contested, true, 'comparable rival force did not contest the room');
 
-  sim.occupancy.release(rival.id);
-  rival.hidden = true;
-  state.owner = rival.ecologyFaction;
+  for (const raider of raiders) {
+    sim.occupancy.release(raider.id);
+    raider.hidden = true;
+  }
+  state.owner = rivalFaction;
   state.control = 1;
+  state.contested = false;
   for (let i = 0; i < 3; i += 1) sim.territorySystem.updateControl(sim);
   assert.equal(state.owner, factionAgent.ecologyFaction, 'dominant faction failed to capture weakened territory');
 
@@ -78,6 +86,17 @@ try {
   console.log(`phase7 territory smoke passed with ${resources.length} resources, ${built.length} fortifications and ${events.length} events`);
 } finally {
   Math.random = originalRandom;
+}
+
+function factionPower(agents) {
+  return agents.reduce((sum, agent) => sum + rolePower(agent.role), 0);
+}
+
+function rolePower(role) {
+  if (role === 'ogre') return 4;
+  if (role === 'wraith') return 2.4;
+  if (role === 'rat') return 0.25;
+  return 1;
 }
 
 function placeInRoom(sim, agent, roomId) {
