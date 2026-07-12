@@ -37,9 +37,9 @@ export class StrategyObserverShell {
     legacyHud?.remove();
 
     screenEl.classList.add('strategy-observer');
-    // 디자인 핸드오프(Route A): 이머시브 데스크톱 레이아웃(≥1051px, 모바일·도킹 뷰 불변).
-    // 사용자 선택으로 활성. 도킹으로 되돌리려면 이 줄을 주석 처리하세요.
-    screenEl.dataset.shellLayout = 'immersive';
+    // 디자인 핸드오프(Route A)의 이머시브 데스크톱 레이아웃은 실사용 중 상태 관리 지연/버벅임과
+    // 패널이 늘어져 못생겨지는 문제가 확인되어 중단하고 도킹 레이아웃으로 되돌렸다(2026-07-12).
+    // 재검토 시 아래 줄의 주석을 해제하면 된다: screenEl.dataset.shellLayout = 'immersive';
     screenEl.innerHTML = '';
     screenEl.insertAdjacentHTML('beforeend', `
       <header class="strategy-topbar" data-strategy-topbar>
@@ -114,7 +114,7 @@ export class StrategyObserverShell {
         <button data-shell-camera-action="next" aria-label="Next follow target">›</button>
       </div>
       <div class="strategy-world-title"><b data-shell-world-title>Dungeon ecosystem</b><span data-shell-camera-status>overview · drag or arrows to pan · scroll to zoom</span></div>
-      <div class="strategy-shortcut-hint">F follow · R overview · WASD/arrows pan · [ ] cycle · / search · Esc clear</div>
+      <div class="strategy-shortcut-hint">F follow · R overview · WASD/arrows pan · Q/E rotate · Shift+W/S tilt · [ ] cycle · / search · Esc clear</div>
     `);
   }
 
@@ -212,8 +212,8 @@ export class StrategyObserverShell {
       item.setAttribute('aria-pressed', String(active));
     });
     const status = mode === 'follow'
-      ? 'follow · drag to orbit · scroll to zoom'
-      : `${mode} · drag or arrows to pan · scroll to zoom`;
+      ? 'follow · drag to orbit · idle to auto-orbit · scroll to zoom'
+      : `${mode} · drag or arrows to pan · Q/E to rotate · scroll to zoom`;
     setText(this.screenEl, '[data-shell-camera-status]', status);
   }
 
