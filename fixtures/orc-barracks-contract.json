@@ -1,0 +1,7 @@
+{
+  "rooms": [
+    {"id":"J46","zoneId":"J","name":"Drill Yard","size":[22,17],"landmarkBundle":"orc.drill-yard","stateVariants":["training","war-muster","captured"]},
+    {"id":"J47","zoneId":"J","name":"War Armory","size":[18,14],"landmarkBundle":"orc.armory.war","stateVariants":["stocked","looted","exploded"]},
+    {"id":"J48","zoneId":"J","name":"Meat Store","size":[16,13],"landmarkBundle":"orc.store.meat","stateVariants":["stocked","starved","infested"]}
+  ]
+}

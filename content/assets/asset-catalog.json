@@ -172,9 +172,9 @@
     { "id": "market.well.neutral", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/market-neutral-well.glb" } },
     { "id": "market.smuggler.way", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/market-smuggler-way.glb" } },
 
-    { "id": "orc.drill-yard", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-drill-yard.glb" } },
-    { "id": "orc.armory.war", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-war-armory.glb" } },
-    { "id": "orc.store.meat", "template": "campaign-landmark", "status": "author", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-meat-store.glb" } },
+    { "id": "orc.drill-yard", "template": "campaign-landmark", "status": "active-procedural", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-drill-yard.glb" }, "proceduralFallback": { "factory": "OrcBarracksAssetPack", "recipe": "orc.drill-yard" }, "variants": ["training", "war-muster", "captured"] },
+    { "id": "orc.armory.war", "template": "campaign-landmark", "status": "active-procedural", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-war-armory.glb" }, "proceduralFallback": { "factory": "OrcBarracksAssetPack", "recipe": "orc.armory.war" }, "variants": ["stocked", "looted", "exploded"] },
+    { "id": "orc.store.meat", "template": "campaign-landmark", "status": "active-procedural", "priority": "P1", "authored": { "model": "assets/models/props/campaign/orc-meat-store.glb" }, "proceduralFallback": { "factory": "OrcBarracksAssetPack", "recipe": "orc.store.meat" }, "variants": ["stocked", "starved", "infested"] },
     { "id": "orc.arena.red-pit", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/orc-red-pit-arena.glb" }, "footprint": { "radius": 3.8 } },
     { "id": "orc.hall.chieftain", "template": "campaign-landmark", "status": "author", "priority": "P0", "authored": { "model": "assets/models/props/campaign/orc-chieftain-hall.glb" } },
 

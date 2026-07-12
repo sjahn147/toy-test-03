@@ -9,6 +9,10 @@ import { listSpiderColonyLandmarkRecipes } from '../src/engine/SpiderColonyLandm
 import { listLaboratoryLandmarkRecipes } from '../src/engine/LaboratoryLandmarkRecipes.js';
 import { listRoyalSanctumLandmarkRecipes } from '../src/engine/RoyalSanctumLandmarkRecipes.js';
 import { listCampaignCompletionRecipes } from '../src/engine/CampaignCompletionLandmarkRecipes.js';
+import { listIndustrialCorridorLandmarkRecipes } from '../src/engine/IndustrialCorridorLandmarkRecipes.js';
+import { listOssuaryCathedralLandmarkRecipes } from '../src/engine/OssuaryCathedralLandmarkRecipes.js';
+import { listCentralMarketLandmarkRecipes } from '../src/engine/CentralMarketLandmarkRecipes.js';
+import { listOrcBarracksLandmarkRecipes } from '../src/engine/OrcBarracksLandmarkRecipes.js';
 
 const manifest = JSON.parse(await source('../content/campaigns/sleeping-citadel/campaign.manifest.json'));
 const catalog = JSON.parse(await source('../content/assets/asset-catalog.json'));
@@ -23,7 +27,11 @@ const importedRecipes = [
   ...listSpiderColonyLandmarkRecipes(),
   ...listLaboratoryLandmarkRecipes(),
   ...listRoyalSanctumLandmarkRecipes(),
-  ...listCampaignCompletionRecipes()
+  ...listCampaignCompletionRecipes(),
+  ...listIndustrialCorridorLandmarkRecipes(),
+  ...listOssuaryCathedralLandmarkRecipes(),
+  ...listCentralMarketLandmarkRecipes(),
+  ...listOrcBarracksLandmarkRecipes()
 ];
 
 const recipeByBundle = new Map(importedRecipes.map(recipe => [recipe.id, recipe]));
@@ -59,16 +67,8 @@ for (const room of manifest.rooms) {
   dedicated.push({ roomId: room.id, zoneId: room.zoneId, bundleId: room.landmarkBundle });
 }
 
-assert.equal(dedicated.length, 46, 'dedicated landmark coverage changed; update the Developer #3 anchor deliberately');
-assert.equal(missing.length, 17, 'missing-landmark count changed; update the Developer #3 tracker deliberately');
-
-const expectedMissing = [
-  'D16','D17','D18','D20',
-  'E21','E22','E23','E24','E25',
-  'I41','I42','I43','I44','I45',
-  'J46','J47','J48'
-];
-assert.deepEqual(missing.map(entry => entry.roomId), expectedMissing, 'missing-room baseline drifted');
+assert.equal(missing.length, 0, `all 63 Sleeping Citadel rooms must resolve to a dedicated landmark recipe; still missing: ${missing.map(entry => entry.roomId).join(', ')}`);
+assert.equal(dedicated.length, 63, 'dedicated landmark coverage must equal the full 63-room manifest once every zone pack is registered');
 
 const { scenario, report } = compileCampaign({ manifest, assetCatalog: catalog });
 assert.equal(scenario.rooms.length, 63, 'compiler must preserve all campaign rooms');
@@ -102,7 +102,11 @@ for (const contract of [
   'createLaboratoryAssetPack',
   'createRoyalSanctumAssetPack',
   'createOldLanternAssetPack',
-  'createCampaignCompletionAssetPack'
+  'createCampaignCompletionAssetPack',
+  'IndustrialCorridorAssetPack',
+  'OssuaryCathedralAssetPack',
+  'CentralMarketAssetPack',
+  'OrcBarracksAssetPack'
 ]) {
   assert.ok(resolverSource.includes(contract), `Phase8AssetResolver is missing pack registration contract ${contract}`);
 }
