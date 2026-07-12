@@ -9,6 +9,7 @@ import {
 const manifest = JSON.parse(await source('../content/campaigns/sleeping-citadel/campaign.manifest.json'));
 const catalog = JSON.parse(await source('../content/assets/asset-catalog.json'));
 const resolver = await source('../src/engine/Phase8AssetResolver.js');
+const packageJson = JSON.parse(await source('../package.json'));
 const pack = await source('../src/engine/ResidentialQuarterAssetPack.js');
 const factory = await source('../src/engine/ResidentialQuarterLandmarkAssetFactory.js');
 const animator = await source('../src/engine/ResidentialQuarterAssetAnimator.js');
@@ -25,6 +26,10 @@ const dioramas = dioramaSources.join('\n');
 const recipes = listResidentialQuarterLandmarkRecipes();
 const roomById = new Map(manifest.rooms.map(room => [room.id, room]));
 const catalogIds = new Set(catalog.entries.map(entry => entry.id));
+const authoredLinks = [
+  ...manifest.connections,
+  ...manifest.secretConnections.map(link => [link.from, link.to])
+];
 
 assert.equal(recipes.length, 5, 'Residential Quarter must provide five dedicated landmarks');
 assert.equal(Object.keys(RESIDENTIAL_QUARTER_LANDMARK_RECIPES).length, 5);
@@ -49,6 +54,11 @@ for (const recipe of recipes) {
   assert.equal(getResidentialQuarterLandmarkRecipe(recipe.id), recipe);
   assert.ok(factory.includes(`'${recipe.id}'`), `factory does not explicitly claim ${recipe.id}`);
   assert.ok(dioramas.includes(`'${recipe.storyNode}'`), `${recipe.id} story node is not modeled`);
+
+  const expectedNeighbors = authoredLinks.flatMap(([a, b]) => a === recipe.roomId ? [b] : b === recipe.roomId ? [a] : []);
+  const declaredNeighbors = recipe.traversal.portals.map(portal => portal.replace('-secret', ''));
+  assert.deepEqual([...declaredNeighbors].sort(), [...expectedNeighbors].sort(), `${recipe.roomId} portal intent must mirror authored map links`);
+
   for (const socket of recipe.sockets) {
     assert.ok(dioramas.includes(`'${socket}'`), `${recipe.id} missing socket node ${socket}`);
   }
@@ -56,7 +66,7 @@ for (const recipe of recipes) {
 
 for (const required of [
   'central-traversal-aisle', 'communal-range', 'raised-dry-walkway',
-  'cross-traversal-lane', 'ossuary-threshold',
+  'cross-traversal-lane', 'ossuary-threshold', 'smuggler-drain',
   'child-map-mural', 'last-supper-place-setting', 'smuggler-route-scratch',
   'tenant-key-mosaic', 'hidden-prayer-scroll'
 ]) assert.ok(dioramas.includes(`'${required}'`), `missing Residential Quarter narrative/spatial node ${required}`);
@@ -81,6 +91,8 @@ assert.ok(resolver.includes('ResidentialQuarterAssetPack'));
 assert.ok(resolver.includes('priority: 110'));
 assert.ok(!animator.includes('position.y +='), 'animation must not accumulate drift');
 assert.ok(!animator.includes('scale.multiplyScalar'), 'animation must restore stable scale');
+assert.equal(packageJson.scripts['test:residential'], 'node tests/residential-quarter-assets-smoke.mjs');
+assert.ok(packageJson.scripts['test:assets'].includes('test:residential'));
 assert.equal(getResidentialQuarterLandmarkRecipe('missing.residential.landmark'), null);
 
 console.log('Residential Quarter asset smoke passed: 5 coherent living-quarter landmarks');
