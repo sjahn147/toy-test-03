@@ -103,7 +103,9 @@ export function resolveOutpostProfile(factionId, species = null) {
 }
 
 export function isForwardOutpostProp(prop) {
-  if (!prop || prop.type !== 'territory_banner') return false;
+  if (!prop) return false;
+  if (prop.type === 'forward_outpost') return true;
+  if (prop.type !== 'territory_banner') return false;
   return Boolean(
     prop.outpostArchetype ||
     prop.outpostProfile ||
