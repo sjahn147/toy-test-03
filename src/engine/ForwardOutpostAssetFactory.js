@@ -4,15 +4,15 @@ import { factionColor } from './TerritoryAssetFactory.js';
 
 export class ForwardOutpostAssetFactory {
   create(prop) {
-    const profile = resolveOutpostProfile(prop.ecologyFaction);
+    const profile = resolveOutpostProfile(prop.ecologyFaction, prop.species);
     const group = new THREE.Group();
     group.userData.outpostProfile = profile.id;
     group.add(this.base(prop));
     if (profile.id === 'bone-reliquary') this.addBoneReliquary(group, prop);
-    else if (profile.id === 'scrap-palisade') this.addScrapPalisade(group, prop);
-    else if (profile.id === 'war-totem-camp') this.addWarTotemCamp(group, prop);
-    else if (profile.id === 'spore-nest') this.addSporeNest(group, prop);
-    else if (profile.id === 'silk-watchpost') this.addSilkWatchpost(group, prop);
+    else if (profile.id === 'scrap-palisade' || profile.id === 'scavenger-workyard') this.addScrapPalisade(group, prop);
+    else if (profile.id === 'war-totem-camp' || profile.id === 'stone-cairn') this.addWarTotemCamp(group, prop);
+    else if (profile.id === 'spore-garden') this.addSporeNest(group, prop);
+    else if (profile.id === 'brood-nest') this.addSilkWatchpost(group, prop);
     else this.addFrontierCamp(group, prop);
     return group;
   }
