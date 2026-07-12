@@ -19,6 +19,8 @@ for (const token of [
   'worksite-lift-load',
   'animateScaffold'
 ]) assert.ok(assetSource.includes(token), `missing ${token}`);
+assert.doesNotMatch(assetSource, /this\.materials/);
+assert.match(assetSource, /return new THREE\.MeshStandardMaterial/);
 
 for (const token of [
   'renderScaffolds',
