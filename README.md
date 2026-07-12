@@ -18,7 +18,7 @@ You do not directly control every adventurer or monster. Parties explore, split,
 - Fixed, free and unit-follow camera modes
 - Procedural multi-part dioramas and miniature fallbacks
 
-The current runtime remains a prototype composition built through `Phase*` compatibility layers. New production work must not extend that inheritance chain. The migration target is documented below.
+The current runtime remains a prototype composition built through `Phase*` compatibility layers. New production work must not extend that inheritance chain. The migration target and current debt are documented below.
 
 ## Run
 
@@ -40,6 +40,10 @@ The repository can also be served through GitHub Pages.
 
 Start with [`docs/README.md`](docs/README.md).
 
+Current implementation status:
+
+- [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md) — verified committed baseline, prioritized debt, active PR integration risks and completion conditions
+
 Authoritative design documents:
 
 - [`docs/architecture/production-layering.md`](docs/architecture/production-layering.md) — target layering, runtime façade, content and asset contracts
@@ -57,7 +61,7 @@ Machine-readable design contracts:
 - [`content/ui/surface-manifest.json`](content/ui/surface-manifest.json)
 - [`content/README.md`](content/README.md)
 
-These manifests are design contracts and are not yet loaded by the current runtime. A future `ContentRegistry`, `ScenarioCompiler` and `AssetResolver` will consume them while the existing simulation remains available through a compatibility adapter.
+The Sleeping Citadel manifest and asset catalog are now compiled into the compatibility runtime through `ScenarioCompiler`. The compiler still supplements manifest data through `legacyMappings`, and not every UI or authored-asset contract is consumed directly yet, so the migration to a fully data-driven runtime remains incomplete.
 
 ## Content, assets and procedural fallback
 
@@ -80,16 +84,17 @@ The largely empty binary `assets/` directories are therefore a production backlo
 
 ## Current and target architecture
 
-Current compatibility path:
+Current stable entry path:
 
 ```text
 App
-→ ObserveScreenPhase8
-→ DungeonSimPhase8
+→ StrategyObserverScreen
+→ DungeonSimulation
 → feature systems
-→ DungeonRendererPhase8
-→ AssetRegistryPhase8
-→ procedural factories
+→ StrategyDungeonRenderer
+→ StrategyAssetRegistry
+→ Phase* compatibility internals
+→ procedural factories and authored asset resolver
 ```
 
 Target dependency direction:
@@ -114,16 +119,20 @@ New functionality should be added as named modules and contracts rather than new
 
 ## Tests
 
-The repository contains smoke tests for the implemented feature phases.
+The repository contains focused smoke tests for implemented feature contracts.
 
 ```bash
 npm run test:phase1
 npm run test:phase4
 npm run test:phase8
 npm run test:phase8e
+npm run test:expansion
+npm run test:operations
+npm run test:world-status
+npm run test:worksites
 ```
 
-The production migration will add content schema validation, selector fixtures, campaign graph validation, asset coverage checks and long-running soak tests.
+The remaining browser, campaign traversal, screenshot and long-running soak coverage is tracked in [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md).
 
 ## Product direction
 

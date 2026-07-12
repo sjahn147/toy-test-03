@@ -2,6 +2,15 @@
 
 이 디렉터리는 현재 프로토타입을 프로덕션형 던전 생태 시뮬레이션으로 확장하기 위한 기준 문서 모음입니다.
 
+## 현재 상태와 부채
+
+- [`TECHNICAL_DEBT.md`](TECHNICAL_DEBT.md)
+  - 최신 `main` 커밋 기준 완료 기능과 실제 잔여 부채의 구분
+  - 캠페인 맵, 열린 PR 통합, 시뮬레이션·프레젠테이션, 아키텍처, QA, 성능 부채
+  - 우선순위, 담당 트래커, 완료 조건과 권장 실행 순서
+
+새 작업을 시작하기 전에 이 문서의 검증 기준 SHA와 해당 부채 ID를 확인합니다.
+
 ## 문서의 우선순위
 
 다음 문서는 이후 구현의 기준이 되는 **authoritative design documents**입니다.
@@ -34,12 +43,12 @@
    - 알려진 기술 부채, 후속 우선순위와 acceptance 기준
 9. [`handoff/developer-3-campaign-landmarks.md`](handoff/developer-3-campaign-landmarks.md)
    - Developer #3 캠페인 랜드마크 책임 범위와 완료 매트릭스
-   - 남은 16개 절차적 hero/zone-completion asset의 PR·배선·배치 상태
+   - 남은 절차적 hero/zone-completion asset의 PR·배선·배치 상태
    - 최종 캠페인 맵 placement/wiring audit 완료 조건
 
 ## 기계 판독 가능한 설계 자료
 
-문서와 함께 다음 `content/` 자료가 미래 런타임의 콘텐츠 계약을 정의합니다.
+문서와 함께 다음 `content/` 자료가 런타임 콘텐츠 계약을 정의합니다.
 
 - [`../content/campaigns/sleeping-citadel/campaign.manifest.json`](../content/campaigns/sleeping-citadel/campaign.manifest.json)
 - [`../content/assets/asset-catalog.json`](../content/assets/asset-catalog.json)
@@ -49,7 +58,7 @@
 - [`../content/schemas/ui-surface.schema.json`](../content/schemas/ui-surface.schema.json)
 - [`../content/README.md`](../content/README.md)
 
-현재 런타임은 manifest를 직접 로드하지 않습니다. 이들은 이후 `ContentRegistry`, `ScenarioCompiler`, `AssetResolver`가 읽을 기준 데이터이며 기존 시뮬레이션을 깨지 않고 마이그레이션하기 위한 명세입니다.
+Sleeping Citadel manifest와 asset catalog는 현재 `ScenarioCompiler`가 레거시 시나리오 shape로 결정론적으로 컴파일합니다. 다만 manifest에 없는 런타임 바인딩과 공간 규칙을 `legacyMappings` 및 호환 계층이 보강하고 있으므로, 완전한 데이터 중심 런타임으로의 마이그레이션은 아직 진행 중입니다. UI surface manifest와 일부 authored asset 경로 역시 아직 모든 런타임 화면에서 직접 소비되지는 않습니다.
 
 ## 계약 검증
 
@@ -83,23 +92,24 @@ npm run validate:production-content
 
 ## 현재 코드베이스를 읽는 순서
 
-현재 작업자가 런타임을 이해할 때는 다음 순서가 가장 안전합니다.
+애플리케이션 작업자는 안정 facade에서 시작하고, 필요한 경우에만 호환 구현으로 내려갑니다.
 
 ```text
 App
-→ ObserveScreenPhase8
-→ DungeonSimPhase8
-→ 개별 시스템(정착지, 원정, 물류, 건설·공성, 성격)
-→ DungeonRendererPhase8
-→ AssetRegistryPhase8
-→ 절차적 AssetFactory 및 MiniatureFactory
+→ StrategyObserverScreen
+→ DungeonSimulation
+→ 개별 시스템(정착지, 원정, 물류, 건설·공성, 확장, 캠프 생활, 작업 활동)
+→ StrategyDungeonRenderer
+→ StrategyAssetRegistry
+→ Phase* compatibility internals
+→ 절차적 factory와 authored asset resolver
 ```
 
-`Phase*` 파일 이름은 구현 역사에 따른 임시 구조입니다. 새 기능은 더 이상 새로운 `Phase9`, `Phase10` 계층으로 추가하지 않고 명시적인 기능 모듈과 조합 루트로 추가하는 것을 원칙으로 합니다.
+`Phase*` 파일 이름은 구현 역사에 따른 호환 구조입니다. 새 기능은 새로운 `Phase9`, `Phase10` 계층으로 추가하지 않고 명시적인 기능 모듈과 안정 조합 루트로 추가합니다.
 
 ## 인계 원칙
 
-- 설계 의도와 런타임 동작이 충돌하면 이 문서의 계약을 우선 검토합니다.
+- 설계 의도와 런타임 동작이 충돌하면 실제 `main` 동작과 `TECHNICAL_DEBT.md`의 검증 SHA를 먼저 확인합니다.
 - 캠페인 방이나 어셋을 추가할 때는 먼저 `content/` manifest를 갱신합니다.
 - manifest, schema, 설계 문서는 같은 변경에서 함께 유지합니다.
 - 시뮬레이션 시스템은 Three.js 객체를 직접 참조하지 않습니다.
