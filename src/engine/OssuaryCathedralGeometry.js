@@ -17,7 +17,13 @@ export const OSSUARY_COLORS = Object.freeze({
   void: 0x17161b,
   holy: 0x9fc8d4,
   blood: 0x6d1f28,
-  ghost: 0xa7c8bf
+  ghost: 0xa7c8bf,
+  silver: 0x9aa1a8,
+  silverTarnish: 0x5f6469,
+  ichor: 0x2c1a33,
+  verdigris: 0x4f7a68,
+  crystal: 0x7b3fae,
+  royalCloth: 0x4a2438
 });
 
 export function group(name) {
@@ -74,6 +80,14 @@ export function torus(radius, tube, materialName, name, position = [0, 0, 0], ro
   mesh.name = name;
   mesh.position.set(...position);
   mesh.rotation.set(...rotation);
+  return mesh;
+}
+
+export function frustum(radiusTop, radiusBottom, height, materialName, name, position = [0, 0, 0], segments = 12, rotation = null, options = {}) {
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radiusTop, radiusBottom, height, segments), material(materialName, options));
+  mesh.name = name;
+  mesh.position.set(...position);
+  if (rotation) mesh.rotation.set(...rotation);
   return mesh;
 }
 
@@ -168,4 +182,35 @@ export function soulMist(name, x, y, z, count = 8, scale = 1) {
 
 export function traversalLane(name, width, depth, position = [0, 0.025, 0]) {
   return box(width, 0.035, depth, 'holy', name, position, { transparent: true, opacity: 0.045 });
+}
+
+// A hanging cloth banner bearing a tarnished-silver noble sigil, torn and faded by decay.
+// Reused wherever royal heraldry needs to read as "once holy/noble, now abandoned".
+export function heraldicBanner(x, y, z, rotationY, tornLevel = 1, options = {}) {
+  const root = group('royal-heraldry-banner');
+  root.position.set(x, y, z);
+  root.rotation.y = rotationY;
+  root.add(cylinder(0.035, 1.15, 'silverTarnish', 'banner-rod', [0, 0.58, 0], 8, [0, 0, Math.PI / 2]));
+  root.add(box(1.0, 1.9, 0.03, 'royalCloth', 'banner-cloth', [0, -0.5, 0.02], { roughness: 0.94, ...options }));
+  root.add(cylinder(0.42, 0.06, 'silverTarnish', 'banner-sigil-ring', [0, -0.35, 0.045], 16, [Math.PI / 2, 0, 0]));
+  root.add(beam([-0.28, -0.35, 0.05], [0.28, -0.35, 0.05], 0.03, 'silver', 'banner-sigil-crossbar'));
+  root.add(beam([0, -0.62, 0.05], [0, -0.08, 0.05], 0.03, 'silver', 'banner-sigil-spine'));
+  for (let i = 0; i < tornLevel; i += 1) {
+    const flap = box(0.24 - i * 0.05, 0.5 + i * 0.2, 0.025, 'royalCloth', 'banner-tear-flap', [-0.32 + i * 0.34, -1.55 - i * 0.1, 0.02]);
+    flap.rotation.z = i % 2 ? 0.22 : -0.18;
+    root.add(flap);
+  }
+  return root;
+}
+
+// A wall-mounted crest medallion, cracked and dulled — the noble sigil that once marked this as a royal chapel.
+export function royalCrest(x, y, z, rotationY) {
+  const root = group('royal-heraldic-crest');
+  root.position.set(x, y, z);
+  root.rotation.y = rotationY;
+  root.add(cylinder(0.52, 0.07, 'stone', 'crest-medallion', [0, 0, 0], 20, [Math.PI / 2, 0, 0]));
+  root.add(cylinder(0.4, 0.03, 'silverTarnish', 'crest-inlay-ring', [0, 0, 0.045], 20, [Math.PI / 2, 0, 0]));
+  root.add(beam([-0.22, -0.22, 0.06], [0.22, 0.22, 0.06], 0.025, 'void', 'crest-crack'));
+  root.add(beam([-0.3, 0.08, 0.06], [0.05, -0.28, 0.06], 0.018, 'void', 'crest-crack'));
+  return root;
 }
