@@ -1,3 +1,14 @@
+// Production strategy observer — context inspector renderer.
+// Route A handoff (stage 2): adds "layered depth" — the agent dossier now leads
+// with essentials (vitals, thought, location) and folds the deep sections
+// (home/logistics, personality, expedition, loadout, memories) into a native
+// <details> so the first read stays calm and density is available on demand.
+//
+// Drop-in replacement for src/ui/renderStrategyInspector.js. No selector, view-
+// model, or shell change is required — same function signature, same data.
+// Party rosters and room-occupant lists (the per-party / per-room unit lists)
+// are unchanged and continue to use .strategy-related-row.
+
 export function renderStrategyInspector(host, selection, { onClear = () => {}, onSelectAgent = () => {} } = {}) {
   if (!host) return;
   if (!selection?.inspector) {
@@ -22,14 +33,16 @@ function header(title, subtitle) {
 function renderAgent(value) {
   const { identity, vitals, intent, flags, personality, home, cargo, party } = value;
   const traits = personality.strongestTraits.length ? personality.strongestTraits.map(item => `${item.name} ${Math.round(item.value * 100)}`).join(' · ') : 'unformed';
-  return `${header(identity.name, `${identity.role ?? 'unknown'} · ${identity.faction ?? 'unaffiliated'} · ${intent.status}`)}
+  // ---- essentials (always visible) ----
+  const essentials = `${header(identity.name, `${identity.role ?? 'unknown'} · ${identity.faction ?? 'unaffiliated'} · ${intent.status}`)}
     <div class="inspect-grid">
       ${stat(`${Math.max(0, vitals.hp)}/${vitals.maxHp}`, 'HP')}${stat(vitals.attack, 'attack')}${stat(vitals.defense, 'defense')}
       ${stat(Math.round(vitals.fatigue), 'fatigue')}${stat(Math.round(vitals.hunger), 'hunger')}${stat(value.inventory.length, 'inventory')}
     </div>
     <div class="thought">“${esc(intent.thought)}”</div>
-    <div class="inspect-room">${esc(intent.roomName ?? intent.roomId ?? 'unknown')} ${intent.destinationRoomName ? `→ ${esc(intent.destinationRoomName)}` : ''}</div>
-    ${section('Home & logistics', [
+    <div class="inspect-room">${esc(intent.roomName ?? intent.roomId ?? 'unknown')} ${intent.destinationRoomName ? `→ ${esc(intent.destinationRoomName)}` : ''}</div>`;
+  // ---- deep sections (folded into a dossier) ----
+  const deep = `${section('Home & logistics', [
       row('home', home?.name ?? (flags.displaced ? 'No viable habitat' : 'Unassigned'), home?.state ?? 'none'),
       row('supply', home?.supplyStatus ?? 'open', `${Math.round((home?.supplyEfficiency ?? 1) * 100)}% efficiency`),
       row('cargo', cargo?.resourceType ?? 'none', cargo ? `${Math.round(cargo.routeRisk * 100)}% risk` : 'available')
@@ -37,12 +50,13 @@ function renderAgent(value) {
     ${section('Personality & memory', [row('state', personality.state, traits), row('relationships', `${personality.bonds} bonds`, `${personality.grudges} grudges`), row('movement', flags.overflowLanding ? 'targeted landing' : 'normal', `${flags.blockedMoveCount} blocked`)])}
     ${party ? section('Expedition', [row('state', party.state, party.baseName ?? 'No base'), row('provisions', `${fmt(party.provisions)}/${party.maxProvisions}`, `water ${fmt(party.water)}/${party.maxWater}`), row('endurance', `${Math.round(party.endurance)}/${party.maxExpeditionTime}`, `${Math.round(party.expeditionTime)} elapsed`)]) : ''}
     ${renderEquipment(value)}${renderMemories(value.memories)}`;
+  return `${essentials}${dossier('Full dossier', deep)}`;
 }
 
 function renderParty(value) {
   return `${header(value.identity.name, `${value.identity.state} · ${value.roster.length} members`)}
     ${section('Expedition', [row('leader', value.identity.leaderName ?? 'none', value.target.roomName ?? 'no target'), row('cohesion', value.cohesion == null ? '—' : `${Math.round(value.cohesion * 100)}%`, value.base?.name ?? 'No base'), row('supply', `${fmt(value.expedition.provisions)}/${value.expedition.maxProvisions}`, `water ${fmt(value.expedition.water)}/${value.expedition.maxWater}`)])}
-    <section class="equipment-panel"><strong>Roster</strong>${value.roster.map(member => `<button class="strategy-related-row" data-inspect-agent="${esc(member.id)}"><span>${esc(member.name)}</span><b>${esc(member.role)}</b><em>${Math.max(0, member.hp)}/${member.maxHp}${member.orphaned ? ' · orphaned' : ''}</em></button>`).join('')}</section>`;
+    <section class="equipment-panel"><strong>Roster · ${value.roster.length} units</strong>${value.roster.map(member => `<button class="strategy-related-row" data-inspect-agent="${esc(member.id)}"><span>${esc(member.name)}</span><b>${esc(member.role)}</b><em>${Math.max(0, member.hp)}/${member.maxHp}${member.orphaned ? ' · orphaned' : ''}</em></button>`).join('')}</section>`;
 }
 
 function renderSettlement(value) {
@@ -56,7 +70,7 @@ function renderRoom(value) {
   return `${header(value.identity.name, `${value.identity.kind ?? 'room'}${value.identity.zoneCode ? ` · ${value.identity.zoneCode}` : ''}`)}
     <div class="inspect-grid">${stat(`${value.size.w}×${value.size.d}`, 'size')}${stat(value.occupants.length, 'occupants')}${stat(value.props.length, 'props')}${stat(value.connections.length, 'connections')}</div>
     ${value.ownership ? section('Ownership', [row('faction', value.ownership.factionId ?? 'none', value.ownership.control == null ? '' : `${Math.round(value.ownership.control)} control`)]) : ''}
-    ${section('Occupants', value.occupants.length ? value.occupants.map(agent => `<button class="strategy-related-row" data-inspect-agent="${esc(agent.id)}"><span>${esc(agent.name)}</span><b>${esc(agent.role ?? '')}</b></button>`) : ['<div class="strategy-empty">No occupants</div>'])}`;
+    ${section(`Occupants · ${value.occupants.length}`, value.occupants.length ? value.occupants.map(agent => `<button class="strategy-related-row" data-inspect-agent="${esc(agent.id)}"><span>${esc(agent.name)}</span><b>${esc(agent.role ?? '')}</b></button>`) : ['<div class="strategy-empty">No occupants</div>'])}`;
 }
 
 function renderEquipment(value) {
@@ -71,6 +85,9 @@ function renderMemories(memories) {
   return `<div class="memory-list">${recent.length ? recent.map(memory => `<div>${esc((memory?.type ?? 'memory').replaceAll('-', ' '))} · ${Math.round((memory?.currentIntensity ?? memory?.intensity ?? 0) * 100)}%</div>`).join('') : '<div>No recent persistent memories.</div>'}</div>`;
 }
 
+function dossier(title, innerHtml) {
+  return `<details class="inspect-dossier"><summary><span>${esc(title)}</span><em aria-hidden="true"></em></summary><div class="inspect-dossier-body">${innerHtml}</div></details>`;
+}
 function section(title, rows) { return `<section class="equipment-panel"><strong>${esc(title)}</strong>${rows.join ? rows.join('') : rows}</section>`; }
 function stat(value, label) { return `<div><b>${esc(value)}</b><span>${esc(label)}</span></div>`; }
 function row(label, value, detail = '') { return `<div class="equipment-row"><span>${esc(label)}</span><b>${esc(value)}</b><em>${esc(detail)}</em></div>`; }

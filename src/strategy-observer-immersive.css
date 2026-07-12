@@ -1,0 +1,111 @@
+/* ============================================================================
+   Strategy Observer — stage 2 supplement
+   Route A handoff · load AFTER strategy-observer.css in index.html
+   ----------------------------------------------------------------------------
+   Adds two things, both reversible and non-destructive:
+     1. .inspect-dossier — styling for the collapsible "Full dossier" the updated
+        renderStrategyInspector.js emits (layered depth: calm first, density on tap).
+     2. [data-shell-layout="immersive"] — an OPT-IN desktop layout that floats the
+        navigator / inspector / chronicle as glass panels over a full-bleed world,
+        matching the immersive mockup direction. Enable by setting the attribute
+        on the shell root (see HANDOFF-stage2.md). Mobile is untouched.
+   ============================================================================ */
+
+/* ---------- 1. Layered dossier ---------- */
+.strategy-observer .inspect-dossier { margin-top: 12px; }
+.strategy-observer .inspect-dossier > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 34px;
+  border: 1px dashed rgba(232,196,106,.4);
+  border-radius: 10px;
+  background: rgba(232,196,106,.06);
+  color: var(--obs-gold-hi, #ffe6a0);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s ease, border-color .15s ease;
+}
+.strategy-observer .inspect-dossier > summary::-webkit-details-marker { display: none; }
+.strategy-observer .inspect-dossier > summary:hover { background: rgba(232,196,106,.12); }
+.strategy-observer .inspect-dossier > summary em {
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transition: transform .18s ease;
+}
+.strategy-observer .inspect-dossier[open] > summary {
+  border-style: solid;
+  border-radius: 10px 10px 0 0;
+  margin-bottom: -1px;
+}
+.strategy-observer .inspect-dossier[open] > summary em { transform: rotate(180deg); }
+.strategy-observer .inspect-dossier-body {
+  border: 1px solid rgba(232,196,106,.2);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  padding: 4px 11px 11px;
+}
+/* the deep sections already carry .equipment-panel spacing; tighten the first */
+.strategy-observer .inspect-dossier-body > .equipment-panel:first-child { margin-top: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .strategy-observer .inspect-dossier > summary em { transition: none; }
+}
+
+/* ---------- 2. Optional immersive desktop layout ---------- */
+@media (min-width: 1051px) {
+  .strategy-observer[data-shell-layout="immersive"] {
+    position: relative;
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px minmax(0, 1fr);
+    grid-template-areas: "top" "world";
+  }
+  /* world fills the frame; panels float above it */
+  .strategy-observer[data-shell-layout="immersive"] .strategy-viewport { grid-area: world; }
+
+  .strategy-observer[data-shell-layout="immersive"] .strategy-navigator,
+  .strategy-observer[data-shell-layout="immersive"] .strategy-inspector,
+  .strategy-observer[data-shell-layout="immersive"] .strategy-timeline {
+    position: absolute;
+    z-index: 8;
+    border-radius: 16px;
+    border: 1px solid var(--obs-line, rgba(255,255,255,.09));
+    background: rgba(9,12,20,.72);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 50px rgba(0,0,0,.5);
+  }
+  .strategy-observer[data-shell-layout="immersive"] .strategy-navigator {
+    grid-area: auto;
+    left: 16px; top: 72px; bottom: 162px; width: 292px;
+    border-right: 1px solid var(--obs-line, rgba(255,255,255,.09));
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .strategy-observer[data-shell-layout="immersive"] .strategy-inspector {
+    grid-area: auto;
+    right: 16px; top: 72px; bottom: 162px; width: 372px;
+    border-left: 1px solid var(--obs-line, rgba(255,255,255,.09));
+    overflow: hidden;
+  }
+  .strategy-observer[data-shell-layout="immersive"] .strategy-timeline {
+    grid-area: auto;
+    left: 324px; right: 404px; bottom: 16px; height: 134px;
+    border-top: 1px solid var(--obs-line, rgba(255,255,255,.09));
+  }
+  /* topbar becomes a translucent floating band rather than an opaque bar */
+  .strategy-observer[data-shell-layout="immersive"] .strategy-topbar {
+    background: linear-gradient(180deg, rgba(13,17,32,.82), rgba(10,13,24,.5));
+    backdrop-filter: blur(16px);
+    border-bottom-color: transparent;
+    box-shadow: none;
+  }
+  /* keep the camera rig clear of the floating chronicle */
+  .strategy-observer[data-shell-layout="immersive"] .strategy-camera-controls { bottom: 162px; }
+  .strategy-observer[data-shell-layout="immersive"] .strategy-inspector-scroll { height: calc(100% - 44px); }
+}
