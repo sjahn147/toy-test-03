@@ -219,6 +219,10 @@ export function instanceCylinders(name, items, materialName, options = {}) {
   return instanced(name, cachedGeometry('unit-cylinder:10', () => new THREE.CylinderGeometry(1, 1, 1, 10)), material(materialName, options), items, options);
 }
 
+export function instanceTorus(name, items, materialName, options = {}) {
+  return instanced(name, cachedGeometry('unit-torus:0.16', () => new THREE.TorusGeometry(1, 0.16, 6, 14)), material(materialName, options), items, options);
+}
+
 export function marketFloor(width, depth, options = {}) {
   const root = group(options.name ?? 'market-floor');
   root.add(box(width, 0.32, depth, options.material ?? 'stone', 'market-floor-slab', [0, -0.16, 0], { role: 'structure', blocksTraversal: false }));
