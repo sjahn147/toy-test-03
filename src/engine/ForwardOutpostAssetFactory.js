@@ -10,20 +10,22 @@ export class ForwardOutpostAssetFactory {
     group.add(this.base(prop));
     if (profile.id === 'bone-reliquary') this.addBoneReliquary(group, prop);
     else if (profile.id === 'scrap-palisade') this.addScrapPalisade(group, prop);
-    else if (profile.id === 'war-totem-camp') this.addWarTotem(group, prop);
+    else if (profile.id === 'war-totem-camp') this.addWarTotemCamp(group, prop);
     else if (profile.id === 'spore-nest') this.addSporeNest(group, prop);
     else if (profile.id === 'silk-watchpost') this.addSilkWatchpost(group, prop);
     else this.addFrontierCamp(group, prop);
     return group;
   }
 
-  animate(root, time) {
+  animate(root, prop, time) {
+    const elapsed = Number.isFinite(time) ? time : 0;
     root.traverse(node => {
-      if (node.name === 'outpost-flame') node.scale.y = 0.82 + Math.sin(time * 8 + node.id) * 0.18;
-      if (node.name === 'outpost-spore') node.position.y = node.userData.baseY + (time * 0.12 + node.userData.phase) % 0.65;
-      if (node.name === 'outpost-banner') node.rotation.y = Math.sin(time * 2.1 + node.id) * 0.08;
-      if (node.name === 'outpost-silk') node.rotation.z = Math.sin(time * 1.5 + node.id) * 0.035;
-      if (node.name === 'soul-flame') node.material.emissiveIntensity = 0.55 + Math.sin(time * 4 + node.id) * 0.18;
+      if (node.name === 'outpost-flame') node.scale.y = 0.82 + Math.sin(elapsed * 8 + node.id) * 0.18;
+      if (node.name === 'outpost-spore') node.position.y = node.userData.baseY + (elapsed * 0.12 + node.userData.phase) % 0.65;
+      if (node.name === 'outpost-banner') node.rotation.y = Math.sin(elapsed * 2.1 + node.id) * 0.08;
+      if (node.name === 'outpost-silk') node.rotation.z = node.userData.baseRotationZ + Math.sin(elapsed * 1.5 + node.id) * 0.035;
+      if (node.name === 'soul-flame') node.material.emissiveIntensity = 0.55 + Math.sin(elapsed * 4 + node.id) * 0.18;
+      if (node.name === 'spore-cap') node.scale.y = node.userData.baseScaleY * (0.94 + Math.sin(elapsed * 1.7 + node.id) * 0.06);
     });
   }
 
@@ -72,7 +74,7 @@ export class ForwardOutpostAssetFactory {
     this.addBanner(group, prop, 0.55, -0.4);
   }
 
-  addWarTotem(group, prop) {
+  addWarTotemCamp(group, prop) {
     const dark = mat(0x4f3027, 0.9);
     const ivory = mat(0xd4c3a0, 0.72);
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 1.55, 7), dark);
@@ -97,7 +99,9 @@ export class ForwardOutpostAssetFactory {
       const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, height, 7), stem);
       stalk.position.set(Math.cos(angle) * 0.55, height / 2 + 0.12, Math.sin(angle) * 0.55);
       const mushroom = new THREE.Mesh(new THREE.SphereGeometry(0.2 + (i % 2) * 0.05, 9, 6), cap);
+      mushroom.name = 'spore-cap';
       mushroom.scale.y = 0.48;
+      mushroom.userData.baseScaleY = mushroom.scale.y;
       mushroom.position.set(stalk.position.x, height + 0.13, stalk.position.z);
       group.add(stalk, mushroom);
     }
@@ -122,14 +126,18 @@ export class ForwardOutpostAssetFactory {
     const platform = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.12, 0.98), wood);
     platform.position.y = 1.18;
     group.add(platform);
+    const web = new THREE.Group();
+    web.name = 'silk-web';
     for (let i = 0; i < 5; i += 1) {
       const strand = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.45, 5), silk);
       strand.name = 'outpost-silk';
       strand.rotation.z = Math.PI / 2;
+      strand.userData.baseRotationZ = strand.rotation.z;
       strand.rotation.y = i * Math.PI / 5;
       strand.position.y = 0.62 + (i % 2) * 0.14;
-      group.add(strand);
+      web.add(strand);
     }
+    group.add(web);
     this.addBanner(group, prop, 0.35, -0.48);
   }
 
