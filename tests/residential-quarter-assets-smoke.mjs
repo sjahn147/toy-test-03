@@ -59,9 +59,7 @@ for (const recipe of recipes) {
   const declaredNeighbors = recipe.traversal.portals.map(portal => portal.replace('-secret', ''));
   assert.deepEqual([...declaredNeighbors].sort(), [...expectedNeighbors].sort(), `${recipe.roomId} portal intent must mirror authored map links`);
 
-  for (const socket of recipe.sockets) {
-    assert.ok(dioramas.includes(`'${socket}'`), `${recipe.id} missing socket node ${socket}`);
-  }
+  for (const socket of recipe.sockets) assert.ok(dioramas.includes(`'${socket}'`), `${recipe.id} missing socket node ${socket}`);
 }
 
 for (const required of [
@@ -81,8 +79,8 @@ for (const state of [
 
 assert.ok(dioramas.includes('MeshStandardMaterial'), 'Residential Quarter must use lit materials');
 assert.ok(dioramas.includes("'bunk-frame'"), 'dormitory needs articulated bunk construction');
-assert.ok(dioramas.includes("'kitchen-pot'"), 'kitchen needs recognizable cookware');
-assert.ok(dioramas.includes("'laundry-line'"), 'laundry needs overhead domestic dressing');
+assert.ok(dioramas.includes("'prep-pot'"), 'kitchen needs recognizable cookware');
+assert.ok(dioramas.includes("'laundry-lines'"), 'laundry needs overhead domestic dressing');
 assert.ok(dioramas.includes("'tenement-balcony'"), 'court needs vertical residential silhouette');
 assert.ok(dioramas.includes("'family-icon-wall'"), 'chapel needs domestic devotional identity');
 assert.ok(pack.includes('ResidentialQuarterLandmarkAssetFactory'));
