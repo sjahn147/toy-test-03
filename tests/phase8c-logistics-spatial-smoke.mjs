@@ -31,8 +31,20 @@ try {
   const sim = new DungeonSim(scenario, { onEvent: event => events.push(event.text) });
   const resource = sim.props.find(prop => prop.type === 'territory_resource');
   assert.ok(resource, 'no territorial resource node was available');
-  const worker = sim.agents.find(agent => agent.alive && agent.faction === 'dungeon' && agent.ecologyFaction && !agent.hidden);
-  assert.ok(worker, 'no logistics worker was available');
+  const worker = sim.agents.find(agent =>
+    agent.alive && agent.faction === 'dungeon' && agent.ecologyFaction && !agent.hidden && !agent.cargoId
+  );
+  assert.ok(worker, 'no unencumbered logistics worker was available');
+  const rival = sim.agents.find(agent =>
+    agent.alive && agent.ecologyFaction && agent.ecologyFaction !== worker.ecologyFaction && !agent.hidden && !agent.cargoId
+  );
+  assert.ok(rival, 'no rival raider was available');
+
+  for (const agent of sim.agents) {
+    if (agent.id === worker.id) continue;
+    sim.occupancy.release(agent.id);
+    agent.hidden = true;
+  }
 
   placeInRoom(sim, worker, resource.roomId);
   const territory = sim.territorySystem.roomStates.get(resource.roomId);
@@ -44,30 +56,34 @@ try {
 
   const supplyBefore = sim.territorySystem.factionSupply.get(worker.ecologyFaction) ?? 0;
   const stockBefore = resource.stock;
+  const cargoCountBefore = sim.logisticsSystem.cargo.length;
   sim.harvestPhysicalResources(sim);
   assert.ok(resource.stock < stockBefore, 'physical harvest did not consume resource stock');
-  assert.equal(sim.logisticsSystem.cargo.length, 1, 'physical cargo was not created');
+  assert.equal(sim.logisticsSystem.cargo.length, cargoCountBefore + 1, 'isolated physical harvest did not add exactly one cargo shipment');
+  const harvestedCargo = sim.logisticsSystem.cargo.find(cargo => cargo.id === worker.cargoId);
+  assert.ok(harvestedCargo, 'new physical cargo was not assigned to the harvesting worker');
   assert.equal(sim.territorySystem.factionSupply.get(worker.ecologyFaction) ?? 0, supplyBefore, 'supply was credited before delivery');
 
   placeInRoom(sim, worker, destination.roomId);
   const delivery = sim.logisticsSystem.decide(worker, sim);
   assert.equal(delivery?.type, 'logistics-deliver', 'carrier did not recognize destination settlement');
   sim.logisticsSystem.resolve(worker, delivery, sim);
-  assert.equal(sim.logisticsSystem.cargo.length, 0, 'delivered cargo remained in transit');
+  assert.equal(sim.logisticsSystem.cargo.some(cargo => cargo.id === harvestedCargo.id), false, 'delivered cargo remained in transit');
+  assert.equal(sim.logisticsSystem.cargo.length, cargoCountBefore, 'delivery did not restore the pre-harvest cargo count');
   assert.ok((sim.territorySystem.factionSupply.get(worker.ecologyFaction) ?? 0) > supplyBefore, 'delivery did not credit faction supply');
 
   placeInRoom(sim, worker, resource.roomId);
   resource.stock = Math.max(2, resource.stock);
+  const secondCargoCountBefore = sim.logisticsSystem.cargo.length;
   sim.harvestPhysicalResources(sim);
-  const dropped = sim.logisticsSystem.cargo[0];
-  assert.ok(dropped, 'second cargo was not created');
+  assert.equal(sim.logisticsSystem.cargo.length, secondCargoCountBefore + 1, 'second isolated physical harvest did not add cargo');
+  const dropped = sim.logisticsSystem.cargo.find(cargo => cargo.id === worker.cargoId);
+  assert.ok(dropped, 'second cargo was not assigned to the worker');
   sim.logisticsSystem.dropForAgent(worker, sim);
   assert.equal(dropped.state, 'dropped', 'carrier loss did not leave physical cargo on the floor');
   sim.occupancy.release(worker.id);
   worker.hidden = true;
 
-  const rival = sim.agents.find(agent => agent.alive && agent.ecologyFaction && agent.ecologyFaction !== worker.ecologyFaction && !agent.hidden);
-  assert.ok(rival, 'no rival raider was available');
   placeInRoom(sim, rival, dropped.roomId);
   sim.logisticsSystem.collectDroppedCargo(sim);
   assert.equal(dropped.state, 'carried', 'rival failed to collect dropped cargo');

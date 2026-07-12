@@ -13,6 +13,11 @@ export function installSettlementCollapseGuard() {
       settlement.structuralIntegrity = 0;
       this.setState(settlement, 'ruined', sim);
       this.displaceSettlement(settlement, sim);
+      settlement.residentIds = [];
+      settlement.presentIds = [];
+      settlement.population = 0;
+      settlement.presentPopulation = 0;
+      settlement.overcrowded = 0;
     }
     return updateSettlementStates.call(this, dt, sim);
   };
