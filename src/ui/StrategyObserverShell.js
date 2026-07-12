@@ -37,11 +37,9 @@ export class StrategyObserverShell {
     legacyHud?.remove();
 
     screenEl.classList.add('strategy-observer');
-    // 디자인 핸드오프(Route A): 이머시브 데스크톱 레이아웃(≥1051px, 모바일·도킹 뷰 불변)은
-    // opt-in입니다. 도킹 레이아웃은 헤드리스로 검증 완료(프로덕션 수준)했지만, 이머시브의
-    // 플로팅 글래스 패널(backdrop-filter)은 헤드리스 스크린샷으로 검증 불가라 기본 비활성입니다.
-    // 실제 브라우저에서 확인 후 켜려면 아래 한 줄의 주석을 해제하세요.
-    // screenEl.dataset.shellLayout = 'immersive';
+    // 디자인 핸드오프(Route A): 이머시브 데스크톱 레이아웃(≥1051px, 모바일·도킹 뷰 불변).
+    // 사용자 선택으로 활성. 도킹으로 되돌리려면 이 줄을 주석 처리하세요.
+    screenEl.dataset.shellLayout = 'immersive';
     screenEl.innerHTML = '';
     screenEl.insertAdjacentHTML('beforeend', `
       <header class="strategy-topbar" data-strategy-topbar>
