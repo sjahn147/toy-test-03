@@ -1,0 +1,30 @@
+name: Debug Phase 8C and Production
+
+on:
+  pull_request:
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Capture failing checks
+        shell: bash
+        run: |
+          set +e
+          npm run test:phase8c > phase8c.log 2>&1
+          echo $? > phase8c.exit
+          npm run test:production > production.log 2>&1
+          echo $? > production.exit
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase8c-production-debug
+          path: |
+            phase8c.log
+            phase8c.exit
+            production.log
+            production.exit
