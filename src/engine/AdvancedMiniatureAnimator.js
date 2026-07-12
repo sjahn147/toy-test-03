@@ -1,4 +1,6 @@
 import { MiniatureAnimator } from './MiniatureAnimator.js';
+import { applyMiniatureDeathPose } from './MiniatureDeathAnimator.js';
+import { corpseProgress, getAnimationDelta, resolveAttackTimeline, smoothingAlpha } from './MiniatureAnimationTiming.js';
 
 let installed = false;
 
@@ -20,13 +22,19 @@ export class AdvancedMiniatureAnimator extends MiniatureAnimator {
 }
 
 function applyAdvancedLayer(mesh, agent, time, effects) {
-  const alpha = 0.24;
-  const attack = attackTimeline(agent, time, mesh.userData.animationSeed ?? 0, effects);
+  const dt = getAnimationDelta(mesh);
+  const alpha = smoothingAlpha(14, dt);
+  const attack = resolveAttackTimeline(agent, time, mesh.userData.animationSeed ?? 0, effects);
   const rig = mesh.userData.rig;
   const style = mesh.userData.weaponStyle ?? 'natural';
-  if (rig) animateWeaponStyle(rig, style, attack, alpha);
-  animatePresentation(mesh, agent, time, effects, attack, style, alpha);
 
+  animatePresentation(mesh, agent, time, effects, attack, style, alpha);
+  if (agent.corpse) {
+    applyMiniatureDeathPose(mesh, agent, time, smoothingAlpha(18, dt));
+    return;
+  }
+
+  if (rig) animateWeaponStyle(rig, style, attack, alpha);
   const model = mesh.getObjectByName('miniature-model');
   const parts = model?.userData?.creatureParts;
   if (!parts) return;
@@ -71,6 +79,7 @@ function animateWeaponStyle(rig, style, attack, alpha) {
     dampRotation(rig.upperArmR, 'y', -0.22 * attack.windup + 0.3 * attack.strike, alpha);
     dampRotation(rig.forearmR, 'x', 0.36 + attack.windup * 0.44, alpha);
     dampRotation(rig.chest, 'y', -0.22 * attack.windup + 0.38 * attack.strike, alpha);
+    dampRotation(rig.spine, 'x', 0.07 - attack.windup * 0.1 + attack.strike * 0.18, alpha);
     return;
   }
   if (style === 'heavy-club') {
@@ -78,14 +87,16 @@ function animateWeaponStyle(rig, style, attack, alpha) {
     dampRotation(rig.upperArmL, 'x', 0.48 * attack.windup - 0.9 * attack.strike, alpha);
     dampRotation(rig.forearmR, 'x', 0.58 + attack.windup * 0.38, alpha);
     dampRotation(rig.forearmL, 'x', 0.5 + attack.windup * 0.3, alpha);
+    dampRotation(rig.chest, 'x', 0.08 - attack.windup * 0.16 + attack.strike * 0.28, alpha);
   }
 }
 
 function animatePresentation(mesh, agent, time, effects, attack, style, alpha) {
   const presentation = mesh.userData.presentation;
   if (!presentation) return;
-  const moving = Boolean(agent.travel);
-  const gait = Math.sin(time * (moving ? 7.5 : 1.5) + presentation.seed * 6.28);
+  const moving = Boolean(agent.travel) && !agent.corpse;
+  const pace = agent.role === 'orc' ? 6 : agent.role === 'ogre' ? 5.2 : agent.role === 'goblin' || agent.role === 'kobold' ? 9.1 : 7.5;
+  const gait = Math.sin(time * (moving ? pace : 1.5) + presentation.seed * Math.PI * 2);
   const hit = effects.some(effect => effect.agentId === agent.id && ['attack', 'siege-hit'].includes(effect.type));
   const heal = effects.some(effect => effect.agentId === agent.id && effect.type === 'heal');
   const lift = agent.role === 'stirge' || agent.role === 'wraith' ? 0.6 : moving ? 0.08 : 0;
@@ -93,7 +104,7 @@ function animatePresentation(mesh, agent, time, effects, attack, style, alpha) {
   if (presentation.shadow) {
     const spread = 1 - lift * 0.22 + (hit ? 0.1 : 0);
     dampScale(presentation.shadow, spread, spread, spread, alpha);
-    const corpseFade = agent.corpse ? Math.max(0.18, 1 - corpseProgress(agent, time) * 0.72) : 1;
+    const corpseFade = agent.corpse ? Math.max(0.08, 1 - corpseProgress(agent, time) * 0.92) : 1;
     presentation.shadow.material.opacity += ((presentation.baseShadowOpacity * (1 - lift * 0.45) * corpseFade) - presentation.shadow.material.opacity) * alpha;
   }
 
@@ -109,104 +120,79 @@ function animatePresentation(mesh, agent, time, effects, attack, style, alpha) {
   if (presentation.topknot) dampRotation(presentation.topknot, 'z', 0.12 + gait * 0.08 - attack.strike * 0.06, alpha);
   if (presentation.arrow) presentation.arrow.visible = !(style === 'bow' && attack.strike > 0.16 && attack.strike < 0.92);
 
-  const downed = Boolean(agent.downed) || agent.mood === 'downed' || Boolean(agent.corpse);
+  if (agent.corpse) return;
+  const downed = Boolean(agent.downed) || agent.mood === 'downed';
   const fallDirection = presentation.seed > 0.5 ? 1 : -1;
-  const death = corpseProgress(agent, time);
-  dampRotation(mesh, 'z', downed ? fallDirection * (1.12 + death * 0.22) : 0, downed ? 0.18 : 0.1);
-  dampRotation(mesh, 'x', downed ? -0.18 - death * 0.12 : 0, downed ? 0.18 : 0.1);
-  dampPosition(mesh, 'y', downed ? -0.2 - death * 0.06 : 0, downed ? 0.18 : 0.1);
-  const corpseScale = agent.corpse ? 1 - death * 0.08 : 1;
-  dampScale(mesh, corpseScale, corpseScale, corpseScale, 0.12);
+  dampRotation(mesh, 'z', downed ? fallDirection * 1.05 : 0, alpha);
+  dampRotation(mesh, 'x', downed ? -0.16 : 0, alpha);
+  dampPosition(mesh, 'y', downed ? -0.18 : 0, alpha);
 }
 
 function animateSpider(parts, agent, time, attack, alpha) {
   const pace = agent.travel ? 10.5 : 2.1;
-  parts.root.position.y = 0.01 + Math.sin(time * pace) * (agent.travel ? 0.025 : 0.008);
+  const bodyPulse = Math.sin(time * pace * 2);
+  dampPosition(parts.root, 'y', 0.01 + bodyPulse * (agent.travel ? 0.025 : 0.008) - attack.windup * 0.025 + attack.strike * 0.045, alpha);
+  dampPosition(parts.root, 'z', attack.windup * -0.08 + attack.strike * 0.18, alpha);
   for (const leg of parts.legs) {
     const phase = time * pace + leg.index * Math.PI / 2 + (leg.side < 0 ? Math.PI : 0);
     const stride = agent.travel ? Math.sin(phase) * 0.42 : Math.sin(phase * 0.35) * 0.04;
-    dampRotation(leg.hip, 'x', stride + attack.windup * -0.12 + attack.strike * 0.28, alpha);
-    dampRotation(leg.hip, 'z', leg.side * (0.2 + Math.cos(phase) * 0.08), alpha);
-    dampRotation(leg.knee, 'x', Math.max(0, -stride) * 0.55, alpha);
+    const frontLunge = leg.index < 2 ? attack.strike * 0.34 : 0;
+    dampRotation(leg.hip, 'x', stride - attack.windup * 0.12 + frontLunge, alpha);
+    dampRotation(leg.hip, 'z', leg.side * (0.2 + Math.cos(phase) * 0.08 - attack.strike * 0.05), alpha);
+    dampRotation(leg.knee, 'x', Math.max(0, -stride) * 0.55 + attack.windup * 0.12, alpha);
   }
-  parts.fangs.forEach((fang, index) => dampRotation(fang, 'x', attack.strike * 0.5 + Math.sin(time * 3 + index) * 0.05, alpha));
+  parts.fangs.forEach((fang, index) => dampRotation(fang, 'x', attack.strike * 0.62 + Math.sin(time * 3 + index) * 0.05, alpha));
   dampScale(parts.abdomen, 1.08 + attack.windup * 0.05, 0.72 - attack.strike * 0.08, 1.2 + attack.strike * 0.12, alpha);
 }
 
 function animateWraith(parts, agent, time, attack, alpha) {
-  const float = Math.sin(time * 1.8) * 0.08;
-  parts.root.position.y = 0.08 + float;
-  parts.root.rotation.y = Math.sin(time * 0.42) * 0.08;
+  const travel = agent.travel ? 1 : 0;
+  const float = Math.sin(time * (travel ? 2.6 : 1.8)) * (travel ? 0.12 : 0.08);
+  dampPosition(parts.root, 'y', 0.08 + float + attack.windup * 0.08 - attack.strike * 0.04, alpha);
+  dampPosition(parts.root, 'z', travel * 0.08 + attack.strike * 0.24, alpha);
+  dampRotation(parts.root, 'y', Math.sin(time * 0.42) * 0.08 + attack.strike * 0.12, alpha);
   parts.arms.forEach((arm, index) => {
     const side = index === 0 ? -1 : 1;
-    dampRotation(arm, 'x', -0.28 - attack.strike * 0.62, alpha);
-    dampRotation(arm, 'z', side * (0.28 + Math.sin(time * 1.5 + index) * 0.12), alpha);
+    dampRotation(arm, 'x', -0.28 - attack.windup * 0.22 - attack.strike * 0.72, alpha);
+    dampRotation(arm, 'z', side * (0.28 + Math.sin(time * 1.5 + index) * 0.12 + attack.strike * 0.16), alpha);
   });
   parts.tatters.forEach((tatter, index) => {
-    dampRotation(tatter, 'z', Math.sin(time * 2 + index * 0.8) * 0.18, alpha);
-    dampRotation(tatter, 'x', Math.cos(time * 1.6 + index) * 0.12, alpha);
+    dampRotation(tatter, 'z', Math.sin(time * (travel ? 3.1 : 2) + index * 0.8) * (travel ? 0.26 : 0.18), alpha);
+    dampRotation(tatter, 'x', Math.cos(time * 1.6 + index) * 0.12 - travel * 0.14, alpha);
   });
-  dampScale(parts.face, 0.72 + attack.strike * 0.18, 1 + attack.windup * 0.08, 0.45, alpha);
+  dampScale(parts.face, 0.72 + attack.strike * 0.22, 1 + attack.windup * 0.08 + attack.strike * 0.12, 0.45, alpha);
 }
 
 function animateMyconid(parts, agent, time, attack, alpha) {
   const sway = Math.sin(time * (agent.travel ? 4.2 : 1.2));
-  parts.root.rotation.z = sway * (agent.travel ? 0.06 : 0.025);
+  dampRotation(parts.root, 'z', sway * (agent.travel ? 0.08 : 0.025), alpha);
+  dampPosition(parts.root, 'y', agent.travel ? Math.abs(Math.sin(time * 4.2)) * 0.025 : 0, alpha);
   dampRotation(parts.cap, 'y', sway * 0.08 + attack.strike * 0.16, alpha);
+  dampRotation(parts.cap, 'x', attack.windup * -0.12 + attack.strike * 0.24, alpha);
   parts.arms.forEach((arm, index) => {
     const side = index === 0 ? -1 : 1;
     dampRotation(arm, 'x', -0.18 - attack.windup * 0.22 - attack.strike * 0.42, alpha);
     dampRotation(arm, 'z', side * (0.24 + attack.strike * 0.18), alpha);
   });
-  parts.sprouts.forEach((sprout, index) => dampRotation(sprout, 'z', Math.sin(time * 2.2 + index) * 0.12, alpha));
+  parts.sprouts.forEach((sprout, index) => dampRotation(sprout, 'z', Math.sin(time * 2.2 + index) * 0.12 + attack.strike * 0.06, alpha));
   dampScale(parts.sporeSac, 0.8 + attack.windup * 0.15, 1.18 + attack.windup * 0.25 - attack.strike * 0.18, 0.72 + attack.strike * 0.12, alpha);
 }
 
 function animateStirge(parts, agent, time, attack, alpha) {
   const speed = agent.travel ? 18 : 11;
   const flap = Math.sin(time * speed);
-  parts.root.position.y = 0.08 + Math.sin(time * 3.4) * 0.06;
+  dampPosition(parts.root, 'y', 0.08 + Math.sin(time * 3.4) * 0.06 + attack.windup * 0.08 - attack.strike * 0.06, alpha);
+  dampPosition(parts.root, 'z', attack.windup * -0.1 + attack.strike * 0.28, alpha);
   parts.wings.forEach((wing, index) => {
     const side = index === 0 ? -1 : 1;
-    dampRotation(wing, 'z', side * (0.3 + flap * 0.62), alpha);
-    dampRotation(wing, 'x', flap * 0.12, alpha);
+    const attackFold = attack.strike * 0.42;
+    dampRotation(wing, 'z', side * (0.3 + flap * 0.62 - attackFold), alpha);
+    dampRotation(wing, 'x', flap * 0.12 + attack.windup * 0.18, alpha);
   });
-  dampRotation(parts.root, 'x', agent.travel ? -0.18 : 0, alpha);
-  dampScale(parts.proboscis, 1, 1 + attack.strike * 0.65, 1, alpha);
+  dampRotation(parts.root, 'x', agent.travel ? -0.18 - attack.strike * 0.28 : -attack.strike * 0.22, alpha);
+  dampScale(parts.proboscis, 1, 1 + attack.strike * 0.72, 1, alpha);
 }
 
-function attackTimeline(agent, time, seed, effects) {
-  const sourceHit = effects
-    .filter(effect => effect.sourceAgentId === agent.id && effect.type === 'attack')
-    .sort((a, b) => b.createdAt - a.createdAt)[0];
-  if (sourceHit) {
-    const age = Math.max(0, time - sourceHit.createdAt);
-    const duration = Math.max(0.18, sourceHit.duration ?? 0.58);
-    const progress = Math.min(1, age / duration);
-    return {
-      active: true,
-      windup: 0,
-      strike: 1 - smoothstep(Math.min(1, progress / 0.36)),
-      recover: progress < 0.28 ? 0 : 1 - smoothstep((progress - 0.28) / 0.72)
-    };
-  }
-  if (!agent.combat) return { active: false, windup: 0, strike: 0, recover: 0 };
-  const cycle = ((time + seed * 0.37) % 1 + 1) % 1;
-  return {
-    active: true,
-    windup: cycle < 0.36 ? pulse(cycle / 0.36) : 0,
-    strike: cycle >= 0.36 && cycle < 0.53 ? pulse((cycle - 0.36) / 0.17) : 0,
-    recover: cycle >= 0.53 ? 1 - smoothstep((cycle - 0.53) / 0.47) : 0
-  };
-}
-
-function corpseProgress(agent, time) {
-  if (!agent.corpse || agent.deathAt === undefined || agent.deathAt === null) return 0;
-  return Math.max(0, Math.min(1, (time - agent.deathAt) / Math.max(0.01, agent.corpseLinger ?? 2.4)));
-}
-
-function pulse(value) { return Math.sin(Math.max(0, Math.min(1, value)) * Math.PI / 2); }
-function smoothstep(value) { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); }
 function dampRotation(node, axis, target, alpha) { if (node) node.rotation[axis] += (target - node.rotation[axis]) * alpha; }
 function dampPosition(node, axis, target, alpha) { if (node) node.position[axis] += (target - node.position[axis]) * alpha; }
 function dampScale(node, x, y, z, alpha) {

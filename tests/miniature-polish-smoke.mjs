@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { MINIATURE_RECIPES } from '../src/miniatures/recipes.js';
 import { MINIATURE_PARTS } from '../src/miniatures/partCatalog.js';
+import { resolveAttackTimeline, smoothingAlpha } from '../src/engine/MiniatureAnimationTiming.js';
 
 const read = relative => readFile(new URL(relative, import.meta.url), 'utf8');
 const [
@@ -17,6 +18,8 @@ const [
   presentation,
   animator,
   advanced,
+  timing,
+  death,
   bridge,
   registry,
   renderer,
@@ -34,6 +37,8 @@ const [
   read('../src/engine/MiniaturePresentationPolish.js'),
   read('../src/engine/MiniatureAnimator.js'),
   read('../src/engine/AdvancedMiniatureAnimator.js'),
+  read('../src/engine/MiniatureAnimationTiming.js'),
+  read('../src/engine/MiniatureDeathAnimator.js'),
   read('../src/engine/CombatPresentationBridge.js'),
   read('../src/engine/AssetRegistryPhase8.js'),
   read('../src/engine/DungeonRendererPhase8.js'),
@@ -80,13 +85,39 @@ assert.match(phase3Equipment, /buildKiteShield/);
 assert.match(presentation, /applyMiniaturePresentationPolish/);
 assert.match(presentation, /miniature_contact_shadow/);
 
-assert.match(animator, /attackTimeline/);
+assert.match(animator, /beginAnimationFrame/);
+assert.match(animator, /smoothingAlpha\(15, dt\)/);
+assert.doesNotMatch(animator, /dt > 0 \? 15 : 1/);
+assert.match(advanced, /getAnimationDelta/);
+assert.match(advanced, /smoothingAlpha\(14, dt\)/);
+assert.doesNotMatch(advanced, /const alpha = 0\.24/);
 assert.match(advanced, /animateWeaponStyle/);
 assert.match(advanced, /animatePresentation/);
-assert.match(advanced, /sourceAgentId/);
-assert.match(advanced, /corpseProgress/);
-assert.match(advanced, /presentation\.arrow\.visible/);
+assert.match(advanced, /applyMiniatureDeathPose/);
 assert.match(advanced, /style === 'axe-shield'/);
+assert.match(timing, /resolveAttackTimeline/);
+assert.match(timing, /sourceAgentId/);
+assert.match(death, /function humanoid/);
+assert.match(death, /function skeleton/);
+assert.match(death, /function slime/);
+assert.match(death, /function mimic/);
+assert.match(death, /function spider/);
+assert.match(death, /function wraith/);
+assert.match(death, /function myconid/);
+assert.match(death, /function stirge/);
+
+const oneSecondAt = fps => {
+  let value = 0;
+  for (let frame = 0; frame < fps; frame += 1) value += (1 - value) * smoothingAlpha(15, 1 / fps);
+  return value;
+};
+assert.ok(Math.abs(oneSecondAt(30) - oneSecondAt(60)) < 1e-9);
+assert.ok(Math.abs(oneSecondAt(60) - oneSecondAt(144)) < 1e-9);
+
+const attacker = { id: 'orc-a', role: 'orc', combat: true };
+const liveEffect = [{ type: 'attack', sourceAgentId: 'orc-a', createdAt: 10, duration: 0.6 }];
+assert.equal(resolveAttackTimeline(attacker, 10.05, 0.2, liveEffect).eventDriven, true);
+assert.equal(resolveAttackTimeline(attacker, 11, 0.2, liveEffect).eventDriven, false);
 
 assert.match(bridge, /installCombatPresentationBridge/);
 assert.match(bridge, /DungeonSim\.prototype\.resolve/);

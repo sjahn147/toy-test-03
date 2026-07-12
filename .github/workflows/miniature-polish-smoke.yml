@@ -12,6 +12,8 @@ on:
       - 'src/engine/MiniatureWeaponBuilders.js'
       - 'src/engine/MiniatureAnimator.js'
       - 'src/engine/AdvancedMiniatureAnimator.js'
+      - 'src/engine/MiniatureAnimationTiming.js'
+      - 'src/engine/MiniatureDeathAnimator.js'
       - 'src/engine/OrcMiniaturePolish.js'
       - 'src/engine/MiniaturePhase3Equipment.js'
       - 'src/engine/MiniaturePresentationPolish.js'
@@ -35,6 +37,8 @@ on:
       - 'src/engine/MiniatureWeaponBuilders.js'
       - 'src/engine/MiniatureAnimator.js'
       - 'src/engine/AdvancedMiniatureAnimator.js'
+      - 'src/engine/MiniatureAnimationTiming.js'
+      - 'src/engine/MiniatureDeathAnimator.js'
       - 'src/engine/OrcMiniaturePolish.js'
       - 'src/engine/MiniaturePhase3Equipment.js'
       - 'src/engine/MiniaturePresentationPolish.js'
@@ -68,6 +72,8 @@ jobs:
           node --check src/engine/MiniatureWeaponBuilders.js
           node --check src/engine/MiniatureAnimator.js
           node --check src/engine/AdvancedMiniatureAnimator.js
+          node --check src/engine/MiniatureAnimationTiming.js
+          node --check src/engine/MiniatureDeathAnimator.js
           node --check src/engine/OrcMiniaturePolish.js
           node --check src/engine/MiniaturePhase3Equipment.js
           node --check src/engine/MiniaturePresentationPolish.js
