@@ -1,1 +1,16 @@
-export { ObserveScreen as StrategyObserverScreen, ObserveScreen } from './ObserveScreenPhase8.js';
+import { ObserveScreen as Phase8ObserveScreen } from './ObserveScreenPhase8.js';
+import { StrategyDungeonRenderer } from '../engine/StrategyDungeonRenderer.js';
+import { StrategyAssetRegistry } from '../engine/StrategyAssetRegistry.js';
+
+export class StrategyObserverScreen extends Phase8ObserveScreen {
+  mount(root) {
+    super.mount(root);
+    this.renderer?.destroy();
+    this.assets = new StrategyAssetRegistry();
+    this.assets.loadManifest();
+    this.renderer = new StrategyDungeonRenderer(this.three, this.scenario, this.assets);
+    this.renderer.renderState(this.sim.snapshot());
+  }
+}
+
+export { StrategyObserverScreen as ObserveScreen };
