@@ -59,8 +59,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.selection = { type, id };
     this.selectedAgentId = type === 'agent' ? id : null;
     if (type === 'faction') {
+      // 세력 클릭 = 관찰 세력 전환 + 소속 유닛 로스터 표시 (기존엔 selection을 비워 아무 것도 안 나왔다).
       this.observerFactionId = id;
-      this.selection = null;
       this.shell?.announce(`Observing faction ${id}.`);
     }
     if (roomId) this.focusRoom(roomId, true, 28);
@@ -74,7 +74,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
       agentId: type === 'agent' ? id : null,
       roomId: type === 'room' ? id : null,
       settlementId: type === 'settlement' ? id : null,
-      partyId: type === 'party' ? id : null
+      partyId: type === 'party' ? id : null,
+      factionId: type === 'faction' ? id : null
     };
   }
 

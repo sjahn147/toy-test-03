@@ -13,5 +13,6 @@ export {
   selectSettlementList,
   selectRoomList,
   selectFollowRoster,
-  selectObserverFactionSummary
+  selectObserverFactionSummary,
+  selectFactionInspector
 } from './selectNavigatorCollections.js';

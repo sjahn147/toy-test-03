@@ -143,3 +143,40 @@ export function selectObserverFactionSummary(state, observerFactionId = null) {
     threatenedSettlements: settlements.filter(settlement => ['threatened', 'damaged', 'collapsing'].includes(settlement.state)).length
   };
 }
+
+// faction 인스펙터: 세력 클릭 시 소속 유닛 로스터를 보여준다.
+// (기존엔 세력 클릭이 관찰 세력 전환만 하고 selection을 비워 아무 것도 안 나왔다.)
+export function selectFactionInspector(state, id) {
+  if (!id) return null;
+  const agents = Object.values(table(state, 'agents'));
+  const settlements = Object.values(table(state, 'settlements'));
+  const rooms = Object.values(table(state, 'rooms'));
+  const records = table(state, 'factions');
+  const roster = agents.filter(agent => alive(agent) && factionId(agent) === id);
+  // 세력 id가 스냅샷 어디에도 없으면 null (bogus id 방어).
+  if (!roster.length && !records[id]) return null;
+
+  const members = roster
+    .filter(agent => agent.hidden !== true)
+    .map(agent => ({
+      id: agent.id,
+      name: agent.name ?? agent.id,
+      role: agent.role ?? agent.kind ?? 'agent',
+      hp: Math.max(0, Math.round(agent.hp ?? agent.health ?? 0)),
+      maxHp: Math.round(agent.maxHp ?? agent.maxHealth ?? agent.hp ?? 0),
+      roomId: agent.travel?.toRoomId ?? agent.roomId ?? null,
+      status: agent.mood ?? agent.combat?.state ?? (agent.orphaned ? 'orphaned' : null)
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const owned = settlements.filter(settlement => settlement.factionId === id && !['ruined', 'abandoned'].includes(settlement.state));
+  return {
+    identity: { id, name: records[id]?.name ?? id.replaceAll('-', ' ') },
+    stats: {
+      population: roster.length,
+      settlements: owned.length,
+      territories: rooms.filter(room => (room.factionId ?? room.ownerFactionId ?? room.ownership?.factionId) === id).length
+    },
+    members
+  };
+}

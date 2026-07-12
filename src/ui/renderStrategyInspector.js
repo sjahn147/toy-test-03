@@ -11,6 +11,9 @@
 
 export function renderStrategyInspector(host, selection, { onClear = () => {}, onSelectAgent = () => {} } = {}) {
   if (!host) return;
+  // 인스펙터는 뷰모델 갱신마다 innerHTML을 재구성한다. 네이티브 <details>(Full dossier)의
+  // 열림 상태가 매 프레임 리셋되어 "0.1초 켜졌다 닫힘"이 발생하므로, 재구성 전에 상태를 보존한다.
+  const dossierOpen = host.querySelector('.inspect-dossier')?.open ?? false;
   if (!selection?.inspector) {
     host.innerHTML = '<div class="strategy-empty inspector-empty">Select an agent, party, settlement or room from the world.</div>';
     return;
@@ -20,10 +23,24 @@ export function renderStrategyInspector(host, selection, { onClear = () => {}, o
   else if (type === 'party') host.innerHTML = renderParty(inspector);
   else if (type === 'settlement') host.innerHTML = renderSettlement(inspector);
   else if (type === 'room') host.innerHTML = renderRoom(inspector);
+  else if (type === 'faction') host.innerHTML = renderFaction(inspector);
   else host.innerHTML = '<div class="strategy-empty">No inspector surface for this selection.</div>';
 
+  const dossier = host.querySelector('.inspect-dossier');
+  if (dossier) dossier.open = dossierOpen;
   host.querySelector('[data-clear-inspect]')?.addEventListener('click', onClear);
   host.querySelectorAll('[data-inspect-agent]').forEach(button => button.addEventListener('click', () => onSelectAgent(button.dataset.inspectAgent)));
+}
+
+function renderFaction(value) {
+  if (!value) return '<div class="strategy-empty">No data for this faction.</div>';
+  const { identity, stats, members } = value;
+  const roster = members.length
+    ? members.map(member => `<button class="strategy-related-row" data-inspect-agent="${esc(member.id)}"><span>${esc(member.name)}</span><b>${esc(member.role)}</b><em>${member.hp}/${member.maxHp}${member.status ? ` · ${esc(member.status)}` : ''}</em></button>`).join('')
+    : '<div class="strategy-empty">No living members.</div>';
+  return `${header(identity.name, `faction · ${members.length} units`)}
+    <div class="inspect-grid">${stat(stats.population, 'population')}${stat(stats.settlements, 'settlements')}${stat(stats.territories, 'territories')}</div>
+    <section class="equipment-panel"><strong>Roster · ${members.length} units</strong>${roster}</section>`;
 }
 
 function header(title, subtitle) {
