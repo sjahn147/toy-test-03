@@ -15,4 +15,8 @@ jobs:
           node-version: 20
       - run: npm run test:expansion
       - run: npm run test:phase8b
-      - run: npm run test:phase8
+      - name: Phase 8 settlement regression
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test:phase8 2>&1 | tail -n 100
