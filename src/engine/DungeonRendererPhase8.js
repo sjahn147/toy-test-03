@@ -78,19 +78,12 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       const activity = agent.activity;
       if (!activity?.anchor || agent.travel || agent.combat || agent.corpse) continue;
       const mesh = this.agentMeshes.get(agent.id);
-      const settlement = settlementById.get(activity.targetSettlementId);
-      const room = roomById.get(activity.targetRoomId ?? settlement?.roomId ?? agent.roomId);
+      const settlement = settlementById.get(activity.targetSettlementId ?? activity.settlementId);
+      const room = roomById.get(activity.targetRoomId ?? activity.roomId ?? settlement?.roomId ?? agent.roomId);
       if (!mesh || !room) continue;
-      const anchorProp = propById.get(settlement?.anchorPropId);
-      const placement = anchorProp?.placement ?? settlement?.visualPlacement ?? {};
-      const local = rotatePoint(activity.anchor.x ?? 0, activity.anchor.z ?? 0, placement.rotation ?? 0);
-      const scale = placement.scale ?? 1;
-      mesh.position.set(
-        room.x + (placement.ox ?? 0) + local.x * scale,
-        this.roomY(room) + (activity.type === 'sleeping' || activity.type === 'monster-resting' ? 0.04 : 0.08),
-        room.z + (placement.oz ?? 0) + local.z * scale
-      );
-      mesh.rotation.y = (placement.rotation ?? 0) + (activity.anchor.facing ?? 0);
+      const transform = resolveActivityTransform(activity.anchor, settlement, propById);
+      mesh.position.set(room.x + transform.ox, this.roomY(room) + (activity.type === 'sleeping' || activity.type === 'monster-resting' ? 0.04 : 0.08), room.z + transform.oz);
+      mesh.rotation.y = transform.facing;
       mesh.userData.activityAnchored = true;
     }
   }
@@ -107,25 +100,18 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       live.add(key);
       let mesh = this.activityMeshes.get(key);
       if (!mesh) {
-        mesh = this.assets.activity.create(activity.prop, activity, agent);
+        mesh = this.assets.activity.create(activity, agent);
         if (!mesh) continue;
         this.activityMeshes.set(key, mesh);
         this.group.add(mesh);
       }
-      const settlement = settlementById.get(activity.targetSettlementId);
-      const room = roomById.get(activity.targetRoomId ?? settlement?.roomId ?? agent.roomId);
+      const settlement = settlementById.get(activity.targetSettlementId ?? activity.settlementId);
+      const room = roomById.get(activity.targetRoomId ?? activity.roomId ?? settlement?.roomId ?? agent.roomId);
       if (!room) continue;
-      const anchorProp = propById.get(settlement?.anchorPropId);
-      const placement = anchorProp?.placement ?? settlement?.visualPlacement ?? {};
-      const local = rotatePoint(activity.anchor.x ?? 0, activity.anchor.z ?? 0, placement.rotation ?? 0);
-      const scale = placement.scale ?? 1;
-      mesh.position.set(
-        room.x + (placement.ox ?? 0) + local.x * scale,
-        this.roomY(room) + activityPropHeight(activity.prop),
-        room.z + (placement.oz ?? 0) + local.z * scale
-      );
-      mesh.rotation.y = (placement.rotation ?? 0) + (activity.anchor.facing ?? 0);
-      mesh.scale.setScalar(Math.max(0.72, scale));
+      const transform = resolveActivityTransform(activity.anchor, settlement, propById);
+      mesh.position.set(room.x + transform.ox, this.roomY(room) + activityPropHeight(activity.prop), room.z + transform.oz);
+      mesh.rotation.y = transform.facing;
+      mesh.scale.setScalar(Math.max(0.72, transform.scale));
       this.assets.activity.animate(mesh, activity, time);
     }
     for (const [key, mesh] of [...this.activityMeshes]) {
@@ -326,6 +312,22 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   }
 }
 
+function resolveActivityTransform(anchor, settlement, propById) {
+  if (Number.isFinite(anchor.ox) && Number.isFinite(anchor.oz)) {
+    return { ox: anchor.ox, oz: anchor.oz, facing: anchor.facing ?? 0, scale: settlement?.visualPlacement?.scale ?? 1 };
+  }
+  const anchorProp = propById.get(settlement?.anchorPropId);
+  const placement = anchorProp?.placement ?? settlement?.visualPlacement ?? {};
+  const local = rotatePoint(anchor.x ?? 0, anchor.z ?? 0, placement.rotation ?? 0);
+  const scale = placement.scale ?? 1;
+  return {
+    ox: (placement.ox ?? 0) + local.x * scale,
+    oz: (placement.oz ?? 0) + local.z * scale,
+    facing: (placement.rotation ?? 0) + (anchor.facing ?? 0),
+    scale
+  };
+}
+
 function rotatePoint(x, z, rotation) {
   const cosine = Math.cos(rotation);
   const sine = Math.sin(rotation);
@@ -333,11 +335,11 @@ function rotatePoint(x, z, rotation) {
 }
 
 function activityPropHeight(prop) {
-  if (prop === 'bedroll') return 0.055;
-  if (prop === 'meal-bowl') return 0.28;
-  if (prop === 'cook-pot') return 0.22;
-  if (prop === 'repair-kit') return 0.16;
-  return 0.52;
+  if (prop === 'bedroll-blanket' || prop === 'rough-bedroll') return 0.055;
+  if (prop === 'bowl-spoon') return 0.04;
+  if (prop === 'cookpot-ladle') return 0.04;
+  if (prop === 'hammer-plank') return 0.04;
+  return 0.04;
 }
 
 function landmarkKey(roomId, assetId) {
