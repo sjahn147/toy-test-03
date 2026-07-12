@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { compileCampaign } from '../src/content/ScenarioCompiler.js';
 import { listWaystationLandmarkRecipes } from '../src/engine/WaystationLandmarkRecipes.js';
+import { listResidentialQuarterLandmarkRecipes } from '../src/engine/ResidentialQuarterLandmarkRecipes.js';
 import { listFloodedStorehouseLandmarkRecipes } from '../src/engine/FloodedStorehouseLandmarkRecipes.js';
 import { listFungalGardenLandmarkRecipes } from '../src/engine/FungalGardenLandmarkRecipes.js';
 import { listSpiderColonyLandmarkRecipes } from '../src/engine/SpiderColonyLandmarkRecipes.js';
@@ -16,6 +17,7 @@ const resolverSource = await source('../src/engine/Phase8AssetResolver.js');
 
 const importedRecipes = [
   ...listWaystationLandmarkRecipes(),
+  ...listResidentialQuarterLandmarkRecipes(),
   ...listFloodedStorehouseLandmarkRecipes(),
   ...listFungalGardenLandmarkRecipes(),
   ...listSpiderColonyLandmarkRecipes(),
@@ -57,11 +59,10 @@ for (const room of manifest.rooms) {
   dedicated.push({ roomId: room.id, zoneId: room.zoneId, bundleId: room.landmarkBundle });
 }
 
-assert.equal(dedicated.length, 41, 'baseline dedicated landmark coverage changed; update the Developer #3 anchor and target deliberately');
-assert.equal(missing.length, 22, 'baseline missing-landmark count changed; update the Developer #3 tracker deliberately');
+assert.equal(dedicated.length, 46, 'dedicated landmark coverage changed; update the Developer #3 anchor deliberately');
+assert.equal(missing.length, 17, 'missing-landmark count changed; update the Developer #3 tracker deliberately');
 
 const expectedMissing = [
-  'B06','B07','B08','B09','B10',
   'D16','D17','D18','D20',
   'E21','E22','E23','E24','E25',
   'I41','I42','I43','I44','I45',
@@ -93,7 +94,8 @@ while (queue.length) {
 assert.equal(visited.size, 63, `compiled graph leaves rooms unreachable: ${scenario.rooms.filter(room => !visited.has(room.id)).map(room => room.id).join(', ')}`);
 
 for (const contract of [
-  'createWaystation',
+  'WaystationAssetPack',
+  'ResidentialQuarterAssetPack',
   'createFloodedStorehouseAssetPack',
   'createFungalGardenAssetPack',
   'SpiderColonyAssetPack',
