@@ -1,5 +1,6 @@
 import { AssetRegistryPhase8 } from './AssetRegistryPhase8.js';
 import { ForwardOutpostAssetFactory } from './ForwardOutpostAssetFactory.js';
+import { isForwardOutpostProp } from '../domain/OutpostProfiles.js';
 
 export class StrategyAssetRegistry extends AssetRegistryPhase8 {
   constructor() {
@@ -18,5 +19,5 @@ export class StrategyAssetRegistry extends AssetRegistryPhase8 {
 }
 
 export function isForwardOutpost(prop) {
-  return Boolean(prop && (
-    prop.type === 'forward
+  return isForwardOutpostProp(prop);
+}
