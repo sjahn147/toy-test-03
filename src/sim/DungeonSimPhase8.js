@@ -287,7 +287,7 @@ export class DungeonSim extends Phase7DungeonSim {
       logistics: this.logisticsSystem.snapshot(),
       construction: this.constructionSystem.snapshot(),
       expansion: this.strategicExpansionSystem.snapshot(),
-      campLife: this.campLifeSystem.snapshot(),
+      campLife: this.campLifeSystem.snapshot(this.agents),
       personality: this.personalitySystem.snapshot(this.agents)
     };
   }
@@ -300,7 +300,7 @@ export class DungeonSim extends Phase7DungeonSim {
       ...this.logisticsSystem.metrics(),
       ...this.constructionSystem.metrics(),
       ...this.strategicExpansionSystem.metrics(),
-      ...this.campLifeSystem.metrics(),
+      ...this.campLifeSystem.metrics(this.agents),
       ...this.personalitySystem.metrics(this.agents)
     };
   }
