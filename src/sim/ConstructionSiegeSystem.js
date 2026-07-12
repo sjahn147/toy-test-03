@@ -211,7 +211,7 @@ export class ConstructionSiegeSystem {
       .map(roomId => this.enemySettlementInRoom(faction, roomId))
       .find(Boolean);
     if (adjacentTarget && Math.random() < 0.46) {
-      return { type: 'siege-move', roomId: adjacentTarget.roomId, text: `${agent.name} advanced on ${this.settlementSystem.label(adjacentTarget)} to cut its supplies and breach its defenses.` };
+      return { type: 'siege-move', roomId: adjacentTarget.roomId, text: `${agent.name} advanced on ${this.settlementSystem.label(adjacentTarget)} to cut its supplies and breach its defenses.`, interactionType: 'siege' };
     }
 
     const ambush = this.props.find(prop => prop.type === 'ambush_post' && prop.roomId === agent.roomId && prop.structureFaction === faction && !prop.underConstruction);
@@ -221,7 +221,7 @@ export class ConstructionSiegeSystem {
 
   resolve(agent, action, sim) {
     if (action?.type === 'construction-move' || action?.type === 'siege-move') {
-      sim.beginTravel(agent, action.roomId);
+      sim.beginTravel(agent, action.roomId, { interactionType: action.interactionType ?? null });
       return true;
     }
     if (action?.type === 'construction-work') {
@@ -253,7 +253,7 @@ export class ConstructionSiegeSystem {
 
   isAttackableStructure(prop) {
     if (this.isStructure(prop)) return (prop.integrity ?? 1) > 0;
-    return Boolean(prop.settlementId && prop.species);
+    return Boolean(prop.settlementId);
   }
 
   targetPriority(prop) {
@@ -283,6 +283,29 @@ export class ConstructionSiegeSystem {
     sim.emitEffect?.('siege-hit', { roomId: prop.roomId, agentId: agent.id, duration: 0.75, amount: damage });
     this.onEvent(`${agent.name} dealt ${damage} siege damage to ${prop.label ?? prop.type}.`);
     if (prop.integrity <= 0) this.destroyStructure(prop, faction, sim);
+    return true;
+  }
+
+  attackAdjacentRoomFromDoor(agent, roomId, sim) {
+    if (!this.graph.get(agent.roomId)?.includes(roomId)) return false;
+    const target = this.chooseSiegeTarget(this.agentFaction(agent), roomId);
+    if (!target) return false;
+    const faction = this.agentFaction(agent);
+    if (!faction) return false;
+    const workshop = this.props.some(candidate => candidate.type === 'siege_workshop' && candidate.structureFaction === faction && !candidate.underConstruction && ACTIVE_STATES.has(this.settlementForProp(candidate)?.state));
+    const damage = Math.max(1, Math.round(this.siegePower(agent) * 0.72 * (workshop ? 1.2 : 1) + Math.random() * 2));
+    target.maxIntegrity ??= this.profileFor(target.type).integrity;
+    target.integrity = Math.max(0, (target.integrity ?? target.maxIntegrity) - damage);
+    agent.siegeCooldown = Math.max(1.2, 2.6 - this.siegePower(agent) * 0.06);
+    agent.mood = `doorway-siege-${target.type}`;
+    const settlement = this.settlementForProp(target);
+    if (settlement) {
+      settlement.lastAttackedAt = sim.time;
+      if (target.id === settlement.anchorPropId) settlement.structuralIntegrity = Math.max(0, settlement.structuralIntegrity - damage * 0.82);
+    }
+    sim.emitEffect?.('siege-hit', { roomId, agentId: agent.id, duration: 0.72, amount: damage });
+    this.onEvent(`${agent.name} hammered ${target.label ?? target.type} from the doorway for ${damage} siege damage.`);
+    if (target.integrity <= 0) this.destroyStructure(target, faction, sim);
     return true;
   }
 

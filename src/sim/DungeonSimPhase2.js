@@ -81,11 +81,20 @@ export class DungeonSim extends Phase1DungeonSim {
   }
 
   beginTravel(agent, toRoomId, options = {}) {
-    if (agent.faction === 'dungeon' && this.recoverySystem.isSafeRoom(toRoomId)) {
+    if (agent.faction === 'dungeon' && this.recoverySystem.isSafeRoom(toRoomId) && !this.canBreachSafeRoom(agent, toRoomId)) {
       agent.mood = 'repelled-by-sanctuary';
       return false;
     }
     return super.beginTravel(agent, toRoomId, options);
+  }
+
+  canBreachSafeRoom(agent, roomId) {
+    if (!this.settlementSystem || !this.constructionSystem) return false;
+    const hostileSettlement = [...this.settlementSystem.settlements.values()].find(settlement =>
+      settlement.roomId === roomId && !settlement.indestructible && settlement.factionId !== (agent.faction === 'party' ? 'adventurer-expedition' : agent.ecologyFaction)
+    );
+    if (hostileSettlement) return true;
+    return Boolean(this.constructionSystem.chooseSiegeTarget?.(agent.ecologyFaction, roomId));
   }
 
   onDeath(killer, target) {

@@ -73,6 +73,10 @@ export class DungeonSim extends BaseDungeonSim {
     });
 
     if (!destinationCell) {
+      if (options.interactionType === 'siege' && this.constructionSystem?.attackAdjacentRoomFromDoor?.(agent, toRoomId, this)) {
+        agent.mood = 'doorway-siege';
+        return true;
+      }
       this.markBlockedMove(agent, toRoomId);
       this.event(`${agent.name} waited at the door because ${this.roomName(toRoomId)} had no safe floor space.`);
       agent.mood = validInteractionTarget ? 'interaction-door-blocked' : 'waiting-at-door';
@@ -109,8 +113,8 @@ export class DungeonSim extends BaseDungeonSim {
 
   markBlockedMove(agent, roomId) {
     agent.blockedMoveRoomId = roomId;
-    agent.blockedMoveUntilTurn = this.turn + 2;
     agent.blockedMoveCount = (agent.blockedMoveCount ?? 0) + 1;
+    agent.blockedMoveUntilTurn = this.turn + 2 + Math.min(5, agent.blockedMoveCount - 1);
   }
 
   advanceTravel(dt) {
@@ -154,6 +158,10 @@ export class DungeonSim extends BaseDungeonSim {
         const overflow = Boolean(travel.destinationCell.overflow);
         agent.travel = null;
         agent.mood = overflow ? `arrived-to-${travel.interactionType ?? 'interact'}` : 'curious';
+        agent.recentRooms = [...(agent.recentRooms ?? []), toRoomId].slice(-6);
+        if (agent.previousRoomId && agent.previousRoomId === toRoomId) {
+          agent.mood = 'oscillating';
+        }
         this.event(
           overflow
             ? `${agent.name} squeezed into ${this.roomName(toRoomId)} to reach an interaction target.`

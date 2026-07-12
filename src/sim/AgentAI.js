@@ -42,7 +42,8 @@ export function hydrateAgent(raw, i) {
     orphaned: false,
     blockedMoveRoomId: null,
     blockedMoveUntilTurn: -1,
-    previousRoomId: null
+    previousRoomId: null,
+    recentRooms: Array.isArray(raw.recentRooms) ? [...raw.recentRooms].slice(-6) : [raw.roomId].filter(Boolean)
   };
 }
 
@@ -118,8 +119,13 @@ export function decideAction(agent, sim) {
 
   const neighbors = sim.graph.get(agent.roomId) ?? [];
   const available = neighbors.filter(roomId => !(agent.blockedMoveRoomId === roomId && (agent.blockedMoveUntilTurn ?? -1) >= sim.turn));
+  if (isOscillating(agent) && available.every(roomId => roomId === agent.previousRoomId)) {
+    agent.mood = 'holding-position';
+    return { type: 'idle' };
+  }
   const wanderChance = agent.role === 'ogre' ? 0.08 : 0.18;
-  if (available.length && Math.random() < wanderChance) {
+  const effectiveWanderChance = isOscillating(agent) ? wanderChance * 0.15 : wanderChance;
+  if (available.length && Math.random() < effectiveWanderChance) {
     const alternatives = available.filter(roomId => roomId !== agent.previousRoomId);
     const pool = alternatives.length ? alternatives : available;
     return { type: 'move', roomId: pool[Math.floor(Math.random() * pool.length)] };
@@ -186,6 +192,10 @@ function nearestAgent(agent, sim, predicate) {
 function moveToward(agent, sim, targetRoom, text = null, interactionTargetId = null, interactionType = null) {
   const step = nextStep(sim.graph, agent.roomId, targetRoom);
   if (!step || step === agent.roomId) return { type: 'idle' };
+  if (!interactionTargetId && isOscillating(agent) && step === agent.previousRoomId && targetRoom === agent.previousRoomId) {
+    agent.mood = 'holding-position';
+    return { type: 'idle', text: `${agent.name} stopped uselessly retracing the last corridor.` };
+  }
   if (agent.blockedMoveRoomId === step && (agent.blockedMoveUntilTurn ?? -1) >= sim.turn && !interactionTargetId) {
     return { type: 'idle', text: `${agent.name} stopped repeating a blocked route.` };
   }
@@ -202,4 +212,11 @@ function flee(agent, sim, text) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function isOscillating(agent) {
+  const rooms = agent.recentRooms ?? [];
+  if (rooms.length < 4) return false;
+  const tail = rooms.slice(-4);
+  return tail[0] === tail[2] && tail[1] === tail[3] && tail[0] !== tail[1];
 }
