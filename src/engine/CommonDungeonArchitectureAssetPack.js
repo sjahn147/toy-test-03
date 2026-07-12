@@ -1,14 +1,12 @@
 import { THREE } from './ThreeScene.js';
 import { CommonDungeonArchitectureKit, createDungeonMaterials } from './CommonDungeonArchitectureKit.js';
+// ID 상수는 THREE 의존 없는 데이터 모듈에서 가져와 재수출 (node 테스트 호환).
+import {
+  COMMON_DUNGEON_ARCHITECTURE_ASSET_IDS,
+  COMMON_DUNGEON_ARCHITECTURE_PACK_ID
+} from './CommonDungeonArchitectureAssetIds.js';
 
-export const COMMON_DUNGEON_ARCHITECTURE_ASSET_IDS = Object.freeze([
-  'environment.room-floor',
-  'environment.wall-segment',
-  'environment.door-frame',
-  'environment.corridor'
-]);
-
-export const COMMON_DUNGEON_ARCHITECTURE_PACK_ID = 'environment.common-dungeon-architecture';
+export { COMMON_DUNGEON_ARCHITECTURE_ASSET_IDS, COMMON_DUNGEON_ARCHITECTURE_PACK_ID };
 
 export function createCommonDungeonArchitectureAssetPack(options = {}) {
   const ids = new Set(COMMON_DUNGEON_ARCHITECTURE_ASSET_IDS);

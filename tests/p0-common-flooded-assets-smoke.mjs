@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { COMMON_DUNGEON_ARCHITECTURE_ASSET_IDS } from '../src/engine/CommonDungeonArchitectureAssetPack.js';
+// THREE(CDN)를 끌어오지 않는 순수 데이터 모듈에서 ID를 가져옵니다.
+// AssetPack 자체는 THREE에 의존해 node에서 로드 불가하므로 아래 sources[]로 텍스트만 검사합니다.
+import { COMMON_DUNGEON_ARCHITECTURE_ASSET_IDS } from '../src/engine/CommonDungeonArchitectureAssetIds.js';
 import { FLOODED_STOREHOUSE_LANDMARK_RECIPES, getFloodedStorehouseLandmarkRecipe, listFloodedStorehouseLandmarkRecipes } from '../src/engine/FloodedStorehouseLandmarkRecipes.js';
 
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');

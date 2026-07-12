@@ -13,11 +13,15 @@ export class SpiderColonyLandmarkAssetFactory {
     if (!recipe) return null;
 
     const state = recipe.states.includes(context.state) ? context.state : recipe.defaultState;
-    const root = bundleId === 'spider.ramp.silk'
-      ? buildSilkRamp(state)
-      : bundleId === 'spider.well.vertical'
-        ? buildVerticalWell(state)
-        : buildQueenNest(state);
+    // 각 랜드마크 id를 명시적으로 claim (fall-through else 지양 — 스모크가 명시 참조를 요구).
+    const builders = {
+      'spider.ramp.silk': buildSilkRamp,
+      'spider.well.vertical': buildVerticalWell,
+      'spider.nest.queen-empty': buildQueenNest
+    };
+    const build = builders[bundleId];
+    if (!build) return null;
+    const root = build(state);
 
     root.name = `campaign-landmark:${bundleId}`;
     root.userData = {
