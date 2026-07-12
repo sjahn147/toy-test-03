@@ -14,5 +14,9 @@ jobs:
         with:
           node-version: 20
       - run: npm run test:expansion
-      - run: npm run test:camp-life
+      - name: Camp life immersion smoke
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test:camp-life 2>&1 | tail -n 80
       - run: npm run test:phase8b
