@@ -34,12 +34,16 @@
    - 알려진 기술 부채, 후속 우선순위와 acceptance 기준
 9. [`handoff/developer-3-campaign-landmarks.md`](handoff/developer-3-campaign-landmarks.md)
    - Developer #3 캠페인 랜드마크 책임 범위와 완료 매트릭스
-   - 남은 16개 절차적 hero/zone-completion asset의 PR·배선·배치 상태
+   - 절차적 hero/zone-completion asset의 PR·배선·배치 상태
    - 최종 캠페인 맵 placement/wiring audit 완료 조건
+10. [`technical-debt-register.md`](technical-debt-register.md)
+    - 최신 `main` 커밋을 기준으로 한 통합 기술부채 등록부
+    - committed / partial / unmerged / missing 구분
+    - 우선순위, 종료 조건, 오래된 PR 처리 원칙과 권장 실행 순서
 
 ## 기계 판독 가능한 설계 자료
 
-문서와 함께 다음 `content/` 자료가 미래 런타임의 콘텐츠 계약을 정의합니다.
+문서와 함께 다음 `content/` 자료가 캠페인·어셋·UI 계약을 정의합니다.
 
 - [`../content/campaigns/sleeping-citadel/campaign.manifest.json`](../content/campaigns/sleeping-citadel/campaign.manifest.json)
 - [`../content/assets/asset-catalog.json`](../content/assets/asset-catalog.json)
@@ -49,7 +53,7 @@
 - [`../content/schemas/ui-surface.schema.json`](../content/schemas/ui-surface.schema.json)
 - [`../content/README.md`](../content/README.md)
 
-현재 런타임은 manifest를 직접 로드하지 않습니다. 이들은 이후 `ContentRegistry`, `ScenarioCompiler`, `AssetResolver`가 읽을 기준 데이터이며 기존 시뮬레이션을 깨지 않고 마이그레이션하기 위한 명세입니다.
+Sleeping Citadel의 campaign manifest는 현재 `src/content/ScenarioCompiler.js`를 통해 레거시 시나리오 shape로 컴파일되어 런타임에 진입합니다. 다만 manifest가 아직 런타임 완결형은 아니므로 `legacyMappings.js`가 세력·야생종·구역 배치·lair 기본값을 보강합니다. 이 중복 권위와 secret/conditional route의 레거시 open-link 평탄화는 [`technical-debt-register.md`](technical-debt-register.md)에 추적합니다.
 
 ## 계약 검증
 
@@ -83,26 +87,27 @@ npm run validate:production-content
 
 ## 현재 코드베이스를 읽는 순서
 
-현재 작업자가 런타임을 이해할 때는 다음 순서가 가장 안전합니다.
+현재 작업자가 런타임을 이해할 때는 안정된 application-facing entry point부터 읽고, 필요한 경우에만 호환 구현으로 내려갑니다.
 
 ```text
 App
-→ ObserveScreenPhase8
-→ DungeonSimPhase8
-→ 개별 시스템(정착지, 원정, 물류, 건설·공성, 성격)
-→ DungeonRendererPhase8
-→ AssetRegistryPhase8
-→ 절차적 AssetFactory 및 MiniatureFactory
+→ StrategyObserverScreen
+→ DungeonSimulation
+→ 개별 시스템(정착지, 원정, 물류, 건설·공성, 확장, 캠프 생활, 작업 활동)
+→ StrategyDungeonRenderer
+→ StrategyAssetRegistry
+→ 절차적 factory와 historical Phase* compatibility internals
 ```
 
-`Phase*` 파일 이름은 구현 역사에 따른 임시 구조입니다. 새 기능은 더 이상 새로운 `Phase9`, `Phase10` 계층으로 추가하지 않고 명시적인 기능 모듈과 조합 루트로 추가하는 것을 원칙으로 합니다.
+`Phase*` 파일 이름은 구현 역사에 따른 호환 구조입니다. 새 기능은 더 이상 새로운 `Phase9`, `Phase10` 계층으로 추가하지 않고 명시적인 기능 모듈과 조합 루트로 추가하는 것을 원칙으로 합니다.
 
 ## 인계 원칙
 
-- 설계 의도와 런타임 동작이 충돌하면 이 문서의 계약을 우선 검토합니다.
-- 캠페인 방이나 어셋을 추가할 때는 먼저 `content/` manifest를 갱신합니다.
+- 설계 의도와 런타임 동작이 충돌하면 최신 `main`, tracker issue, 이 문서 순서로 사실을 확인합니다.
+- 캠페인 방이나 어셋을 추가할 때는 먼저 `content/` manifest와 catalog 계약을 확인합니다.
 - manifest, schema, 설계 문서는 같은 변경에서 함께 유지합니다.
 - 시뮬레이션 시스템은 Three.js 객체를 직접 참조하지 않습니다.
 - UI는 시뮬레이션 내부 객체를 직접 순회하지 않고 selector/view-model을 통해 읽도록 이동합니다.
 - 절차적 어셋은 삭제 대상이 아니라 GLB·텍스처가 없을 때 사용하는 공식 fallback입니다.
 - 실제 바이너리 파일은 `assets/`에 두고 라이선스와 원본 출처를 함께 기록합니다.
+- 기술부채를 완료했다고 판단할 때는 구현뿐 아니라 acceptance test가 `main`에 병합됐는지 확인합니다.
