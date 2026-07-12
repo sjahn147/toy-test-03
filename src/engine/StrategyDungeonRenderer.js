@@ -1,5 +1,6 @@
 import { DungeonRendererPhase8 } from './DungeonRendererPhase8.js';
 import { WorldStatusOverlayRenderer } from './WorldStatusOverlayRenderer.js';
+import { WorksitePresentationRenderer } from './WorksitePresentationRenderer.js';
 import { isForwardOutpost } from './StrategyAssetRegistry.js';
 
 export class StrategyDungeonRenderer extends DungeonRendererPhase8 {
@@ -8,6 +9,12 @@ export class StrategyDungeonRenderer extends DungeonRendererPhase8 {
     this.forwardOutpostMeshes = new Map();
     this.forwardOutpostSignatures = new Map();
     this.worldStatusOverlay = new WorldStatusOverlayRenderer({ group: this.group, roomY: room => this.roomY(room) });
+    this.worksitePresentation = new WorksitePresentationRenderer({
+      group: this.group,
+      roomY: room => this.roomY(room),
+      assets: this.assets,
+      cargoMeshes: this.cargoMeshes
+    });
   }
 
   renderState(snapshot) {
@@ -15,6 +22,7 @@ export class StrategyDungeonRenderer extends DungeonRendererPhase8 {
     super.renderState({ ...snapshot, props: (snapshot.props ?? []).filter(prop => !isForwardOutpost(prop)) });
     this.renderForwardOutposts(outposts, snapshot.rooms ?? [], snapshot.time ?? 0);
     this.worldStatusOverlay.render(snapshot, snapshot.time ?? 0);
+    this.worksitePresentation.render(snapshot, snapshot.time ?? 0);
   }
 
   renderForwardOutposts(outposts, rooms, time) {
@@ -54,6 +62,7 @@ export class StrategyDungeonRenderer extends DungeonRendererPhase8 {
 
   destroy() {
     this.worldStatusOverlay.destroy();
+    this.worksitePresentation.destroy();
     for (const mesh of this.forwardOutpostMeshes.values()) { this.group.remove(mesh); disposeTree(mesh); }
     this.forwardOutpostMeshes.clear();
     this.forwardOutpostSignatures.clear();
