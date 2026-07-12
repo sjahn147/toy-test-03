@@ -4,6 +4,7 @@ import { ExpeditionSystem } from './ExpeditionSystem.js';
 import { LogisticsSystem } from './LogisticsSystem.js';
 import { ConstructionSiegeSystem } from './ConstructionSiegeSystem.js';
 import { PersonalitySystem } from './PersonalitySystem.js';
+import { StrategicExpansionSystem } from './StrategicExpansionSystem.js';
 import { factionFor } from '../data/applyPhase6Ecology.js';
 
 const ADVENTURER_FACTION = 'adventurer-expedition';
@@ -57,6 +58,18 @@ export class DungeonSim extends Phase7DungeonSim {
     });
     this.logisticsSystem.constructionSystem = this.constructionSystem;
 
+    this.strategicExpansionSystem = new StrategicExpansionSystem({
+      rooms: this.rooms,
+      props: this.props,
+      graph: this.graph,
+      partySystem: this.partySystem,
+      settlementSystem: this.settlementSystem,
+      territorySystem: this.territorySystem,
+      expeditionSystem: this.expeditionSystem,
+      occupancy: this.occupancy,
+      onEvent: text => this.event(text)
+    });
+
     this.personalitySystem = new PersonalitySystem({
       graph: this.graph,
       rooms: this.rooms,
@@ -76,6 +89,7 @@ export class DungeonSim extends Phase7DungeonSim {
     this.settlementSystem.update(dt, this);
     this.expeditionSystem.update(dt, this);
     this.logisticsSystem.update(dt, this);
+    this.strategicExpansionSystem.update(dt, this);
     this.personalitySystem.update(dt, this);
     super.update(dt);
   }
@@ -86,6 +100,12 @@ export class DungeonSim extends Phase7DungeonSim {
       if (logisticsAction) {
         if (logisticsAction.text) this.event(logisticsAction.text);
         if (this.logisticsSystem.resolve(agent, logisticsAction, this)) return;
+      }
+
+      const expansionAction = this.strategicExpansionSystem.decide(agent, this);
+      if (expansionAction) {
+        if (expansionAction.text) this.event(expansionAction.text);
+        if (this.strategicExpansionSystem.resolve(agent, expansionAction, this)) return;
       }
 
       const constructionAction = this.constructionSystem.decide(agent, this);
@@ -248,6 +268,7 @@ export class DungeonSim extends Phase7DungeonSim {
       expedition: this.expeditionSystem.snapshot(),
       logistics: this.logisticsSystem.snapshot(),
       construction: this.constructionSystem.snapshot(),
+      expansion: this.strategicExpansionSystem.snapshot(),
       personality: this.personalitySystem.snapshot(this.agents)
     };
   }
@@ -259,6 +280,7 @@ export class DungeonSim extends Phase7DungeonSim {
       ...this.expeditionSystem.metrics(),
       ...this.logisticsSystem.metrics(),
       ...this.constructionSystem.metrics(),
+      ...this.strategicExpansionSystem.metrics(),
       ...this.personalitySystem.metrics(this.agents)
     };
   }
