@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { resolveOutpostProfile } from '../src/domain/OutpostProfiles.js';
+import { isForwardOutpostProp, resolveOutpostProfile } from '../src/domain/OutpostProfiles.js';
 
 const read = relative => readFile(new URL(relative, import.meta.url), 'utf8');
 const [
@@ -31,9 +31,12 @@ assert.deepEqual(profiles.map(profile => profile.id), [
   'bone-reliquary',
   'scrap-palisade',
   'war-totem-camp',
-  'spore-nest',
-  'silk-watchpost'
+  'spore-garden',
+  'brood-nest'
 ]);
+assert.equal(isForwardOutpostProp({ type: 'forward_outpost' }), true);
+assert.equal(isForwardOutpostProp({ type: 'territory_banner', outpostProfile: 'bone-reliquary' }), true);
+assert.equal(isForwardOutpostProp({ type: 'territory_banner' }), false);
 
 assert.match(outpostFactorySource, /class ForwardOutpostAssetFactory/);
 assert.match(outpostFactorySource, /addBoneReliquary/);
@@ -41,6 +44,8 @@ assert.match(outpostFactorySource, /addScrapPalisade/);
 assert.match(outpostFactorySource, /addWarTotemCamp/);
 assert.match(outpostFactorySource, /addSporeNest/);
 assert.match(outpostFactorySource, /addSilkWatchpost/);
+assert.match(outpostFactorySource, /profile\.id === 'spore-garden'/);
+assert.match(outpostFactorySource, /profile\.id === 'brood-nest'/);
 assert.match(outpostFactorySource, /soul-flame/);
 assert.match(outpostFactorySource, /spore-cap/);
 assert.match(outpostFactorySource, /silk-web/);
@@ -49,7 +54,7 @@ assert.match(outpostFactorySource, /animate\(root, prop, time\)/);
 
 assert.match(registrySource, /class StrategyAssetRegistry/);
 assert.match(registrySource, /new ForwardOutpostAssetFactory/);
-assert.match(registrySource, /prop\.type === 'forward_outpost'/);
+assert.match(registrySource, /isForwardOutpostProp/);
 assert.match(registrySource, /animateForwardOutpost/);
 
 assert.match(overlaySource, /renderControlFields/);
