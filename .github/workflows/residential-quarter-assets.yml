@@ -1,0 +1,57 @@
+name: Residential Quarter assets
+
+on:
+  push:
+    paths:
+      - 'src/engine/Residential*.js'
+      - 'src/engine/Phase8AssetResolver.js'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'tests/residential-quarter-assets-smoke.mjs'
+      - 'tests/campaign-map-integration-audit.mjs'
+      - 'package.json'
+      - '.github/workflows/residential-quarter-assets.yml'
+  pull_request:
+    paths:
+      - 'src/engine/Residential*.js'
+      - 'src/engine/Phase8AssetResolver.js'
+      - 'content/campaigns/sleeping-citadel/campaign.manifest.json'
+      - 'tests/residential-quarter-assets-smoke.mjs'
+      - 'tests/campaign-map-integration-audit.mjs'
+      - 'package.json'
+      - '.github/workflows/residential-quarter-assets.yml'
+
+jobs:
+  residential-quarter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax — recipes and geometry
+        run: |
+          node --check src/engine/ResidentialQuarterLandmarkRecipes.js
+          node --check src/engine/ResidentialQuarterGeometry.js
+      - name: Syntax — dormitory and kitchen
+        run: |
+          node --check src/engine/ResidentialDormitoryDiorama.js
+          node --check src/engine/ResidentialKitchenDiorama.js
+      - name: Syntax — laundry and court
+        run: |
+          node --check src/engine/ResidentialLaundryDiorama.js
+          node --check src/engine/ResidentialCourtDiorama.js
+      - name: Syntax — chapel
+        run: node --check src/engine/ResidentialChapelDiorama.js
+      - name: Syntax — factory, animator and pack
+        run: |
+          node --check src/engine/ResidentialQuarterLandmarkAssetFactory.js
+          node --check src/engine/ResidentialQuarterAssetAnimator.js
+          node --check src/engine/ResidentialQuarterAssetPack.js
+      - name: Syntax — resolver and tests
+        run: |
+          node --check src/engine/Phase8AssetResolver.js
+          node --check tests/residential-quarter-assets-smoke.mjs
+      - name: Validate Residential Quarter contracts
+        run: npm run test:residential
+      - name: Validate campaign coverage
+        run: npm run test:campaign-map

@@ -9,6 +9,21 @@ const bridge = await source('../src/sim/OldLanternRuntimeBridge.js');
 for (const id of ['common-room', 'kitchen', 'guest-wing', 'cellar', 'secret-office']) {
   assert.ok(pack.includes(`inn.old-lantern.${id}`), `missing ${id} recipe`);
 }
+for (const semanticNode of [
+  'music-stage',
+  'gallery-walk',
+  'old-lantern-sign',
+  'reservation-ledger',
+  'linen-cart',
+  'key-rack',
+  'smuggler-cache',
+  'signal-lantern'
+]) {
+  assert.ok(pack.includes(semanticNode), `restored pack should contain ${semanticNode}`);
+}
+assert.ok(pack.includes('let roomIndex = 0;'), 'guest wing should build a full indexed room sequence');
+assert.ok(pack.includes('for (const row of [-2.65, 2.65])') && pack.includes('for (let col = 0; col < 4; col += 1)'), 'guest wing should restore the full eight-room corridor instead of a reduced bed strip');
+assert.ok(pack.includes('defense-shutters'), 'common room should restore besieged shutter geometry');
 assert.ok(resolver.includes('createOldLanternAssetPack'), 'resolver must register Old Lantern pack');
 assert.ok(resolver.includes('installOldLanternRuntimeBridge'), 'resolver boundary must install the runtime bridge');
 assert.ok(bridge.includes('ensureOldLanternInnSystem'), 'bridge must initialize the facility lazily');
