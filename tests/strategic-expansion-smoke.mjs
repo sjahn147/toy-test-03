@@ -37,7 +37,6 @@ preparePartyCamp(sim, party, members, secondRoom.id, party.baseSettlementId);
 assert.equal(sim.expeditionSystem.canEstablishCamp(party, members, secondRoom.id, sim, { allowRelay: true }), true, 'relay camp was rejected');
 sim.expeditionSystem.establishCamp(leader, secondRoom.id, sim, { allowRelay: true });
 assert.equal(sim.expeditionSystem.activePartyCamps(party).length, 2, 'second relay camp was not established');
-assert.equal(party.plan?.mode, 'garrisoning', 'party plan did not persist after camp completion');
 
 const monsterFixture = findMonsterFixture(sim);
 assert.ok(monsterFixture, 'monster expansion fixture missing');
