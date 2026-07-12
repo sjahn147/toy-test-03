@@ -16,7 +16,17 @@ jobs:
       - run: npm run test:expansion
       - run: npm run test:phase8b
       - name: Phase 8 settlement regression
+        id: phase8
         shell: bash
         run: |
-          set -o pipefail
-          npm run test:phase8 2>&1 | tail -n 100
+          set +e
+          npm run test:phase8 > phase8-regression.log 2>&1
+          status=$?
+          cat phase8-regression.log
+          exit $status
+      - name: Upload Phase 8 regression log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8-regression-log
+          path: phase8-regression.log
