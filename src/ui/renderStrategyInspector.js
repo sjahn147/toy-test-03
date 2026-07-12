@@ -3,16 +3,9 @@
 // with essentials (vitals, thought, location) and folds the deep sections
 // (home/logistics, personality, expedition, loadout, memories) into a native
 // <details> so the first read stays calm and density is available on demand.
-//
-// Drop-in replacement for src/ui/renderStrategyInspector.js. No selector, view-
-// model, or shell change is required — same function signature, same data.
-// Party rosters and room-occupant lists (the per-party / per-room unit lists)
-// are unchanged and continue to use .strategy-related-row.
 
 export function renderStrategyInspector(host, selection, { onClear = () => {}, onSelectAgent = () => {} } = {}) {
   if (!host) return;
-  // 인스펙터는 뷰모델 갱신마다 innerHTML을 재구성한다. 네이티브 <details>(Full dossier)의
-  // 열림 상태가 매 프레임 리셋되어 "0.1초 켜졌다 닫힘"이 발생하므로, 재구성 전에 상태를 보존한다.
   const dossierOpen = host.querySelector('.inspect-dossier')?.open ?? false;
   if (!selection?.inspector) {
     host.innerHTML = '<div class="strategy-empty inspector-empty">Select an agent, party, settlement or room from the world.</div>';
@@ -48,17 +41,17 @@ function header(title, subtitle) {
 }
 
 function renderAgent(value) {
-  const { identity, vitals, intent, flags, personality, home, cargo, party } = value;
+  const { identity, vitals, intent, flags, personality, home, cargo, party, activity } = value;
   const traits = personality.strongestTraits.length ? personality.strongestTraits.map(item => `${item.name} ${Math.round(item.value * 100)}`).join(' · ') : 'unformed';
-  // ---- essentials (always visible) ----
+  const activityProgress = activity ? Math.round((activity.progress ?? 0) * 100) : null;
   const essentials = `${header(identity.name, `${identity.role ?? 'unknown'} · ${identity.faction ?? 'unaffiliated'} · ${intent.status}`)}
     <div class="inspect-grid">
       ${stat(`${Math.max(0, vitals.hp)}/${vitals.maxHp}`, 'HP')}${stat(vitals.attack, 'attack')}${stat(vitals.defense, 'defense')}
       ${stat(Math.round(vitals.fatigue), 'fatigue')}${stat(Math.round(vitals.hunger), 'hunger')}${stat(value.inventory.length, 'inventory')}
     </div>
+    ${activity ? `<section class="equipment-panel activity-now"><strong>Current activity</strong>${row('action', activity.label, `${activityProgress}% · ${activity.phase}`)}${row('prop', activity.prop ?? 'none', activity.assignedBy)}${row('remaining', activity.remaining == null ? '—' : `${activity.remaining.toFixed(1)}s`, activity.interruptible ? 'interruptible' : 'committed')}</section>` : ''}
     <div class="thought">“${esc(intent.thought)}”</div>
     <div class="inspect-room">${esc(intent.roomName ?? intent.roomId ?? 'unknown')} ${intent.destinationRoomName ? `→ ${esc(intent.destinationRoomName)}` : ''}</div>`;
-  // ---- deep sections (folded into a dossier) ----
   const deep = `${section('Home & logistics', [
       row('home', home?.name ?? (flags.displaced ? 'No viable habitat' : 'Unassigned'), home?.state ?? 'none'),
       row('supply', home?.supplyStatus ?? 'open', `${Math.round((home?.supplyEfficiency ?? 1) * 100)}% efficiency`),
