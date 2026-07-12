@@ -239,6 +239,12 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.three.panTarget(dx, dz, immediate);
   }
 
+  rotateCamera(yawSign, pitchSign) {
+    // Orbiting is meaningful in every mode (it already works as click-drag while
+    // following), so unlike panCamera this isn't gated on cameraMode.
+    this.three?.orbitBy(yawSign * 0.12, pitchSign * 0.08);
+  }
+
   handleShortcut(event) {
     if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
     const target = event.target;
@@ -263,6 +269,10 @@ export class ObserveScreen extends Phase6ObserveScreen {
       this.shell?.focusNavigatorSearch();
     } else if (event.key.toLowerCase() === 'f') this.setCameraMode('follow');
     else if (event.key.toLowerCase() === 'r') this.resetCamera(true);
+    else if (event.key.toLowerCase() === 'q') { event.preventDefault(); this.rotateCamera(-1, 0); }
+    else if (event.key.toLowerCase() === 'e') { event.preventDefault(); this.rotateCamera(1, 0); }
+    else if (event.shiftKey && (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w')) { event.preventDefault(); this.rotateCamera(0, -1); }
+    else if (event.shiftKey && (event.key === 'ArrowDown' || event.key.toLowerCase() === 's')) { event.preventDefault(); this.rotateCamera(0, 1); }
     else if (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w') { event.preventDefault(); this.panCamera(0, -3.4, true); }
     else if (event.key === 'ArrowDown' || event.key.toLowerCase() === 's') { event.preventDefault(); this.panCamera(0, 3.4, true); }
     else if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { event.preventDefault(); this.panCamera(-3.4, 0, true); }
@@ -294,7 +304,11 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.refreshViewModel(false);
     if (this.cameraMode === 'follow') this.pushCameraToFollowTarget(false);
     if (this.cameraMode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, null, false);
-    this.three.updateCamera();
+    // Follow mode drifts into a slow auto-orbit after a period with no camera input
+    // (any drag, wheel, pan or rotate key resets the idle clock); every other mode
+    // stays put until the user explicitly moves the camera.
+    this.three.setAutoOrbitEnabled(this.cameraMode === 'follow');
+    this.three.updateCamera(dt);
     this.three.render();
     this.raf = requestAnimationFrame(() => this.loop());
   }
