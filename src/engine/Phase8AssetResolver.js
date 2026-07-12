@@ -3,6 +3,7 @@ import { createCommonDungeonArchitectureAssetPack } from './CommonDungeonArchite
 import { createFungalGardenAssetPack } from './FungalGardenAssetPack.js';
 import { FungalGardenAssetAnimator } from './FungalGardenAssetAnimator.js';
 import { SpiderColonyAssetPack } from './SpiderColonyAssetPack.js';
+import { WaystationAssetPack } from './WaystationAssetPack.js';
 import { createFloodedStorehouseAssetPack } from './FloodedStorehouseAssetPack.js';
 import { createLaboratoryAssetPack } from './LaboratoryAssetPack.js';
 import { LaboratoryAssetAnimator } from './LaboratoryAssetAnimator.js';
@@ -30,6 +31,10 @@ export class Phase8AssetResolver {
       animate: (animator, deltaSeconds) => animator.update(deltaSeconds)
     });
     this.register(new SpiderColonyAssetPack(), {
+      priority: 100,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
+    });
+    this.register(new WaystationAssetPack(), {
       priority: 100,
       animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
     });
