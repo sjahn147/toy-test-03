@@ -11,6 +11,8 @@ import { createRoyalSanctumAssetPack } from './RoyalSanctumAssetPack.js';
 import { RoyalSanctumAssetAnimator } from './RoyalSanctumAssetAnimator.js';
 import { createOldLanternAssetPack } from './OldLanternAssetPack.js';
 import { createCampaignCompletionAssetPack } from './CampaignCompletionAssetPack.js';
+import { CentralMarketAssetPack } from './CentralMarketAssetPack.js';
+import { OrcBarracksAssetPack } from './OrcBarracksAssetPack.js';
 import { installOldLanternRuntimeBridge } from '../sim/OldLanternRuntimeBridge.js';
 
 installOldLanternRuntimeBridge();
@@ -59,6 +61,14 @@ export class Phase8AssetResolver {
     this.register(createCampaignCompletionAssetPack(), {
       priority: 130,
       animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.animate?.(root, elapsedSeconds)
+    });
+    this.register(new CentralMarketAssetPack(), {
+      priority: 100,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
+    });
+    this.register(new OrcBarracksAssetPack(), {
+      priority: 110,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
     });
   }
 
