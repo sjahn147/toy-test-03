@@ -128,9 +128,71 @@ export class DungeonSim extends Phase2DungeonSim {
 
   beginTravel(agent, toRoomId, options = {}) {
     if (agent.webbed > 0 || agent.combat || agent.downed) return false;
+    const engagedHostiles = this.getEngagedHostiles(agent);
+    let disengageHostile = null;
+    if (engagedHostiles.length) {
+      const [primaryHostile] = engagedHostiles;
+      if (!options.forceDisengage) {
+        agent.mood = 'engaged';
+        this.markBlockedMove(agent, toRoomId);
+        this.event(`${agent.name} could not slip past ${primaryHostile.name} while locked in close combat.`, {
+          type: 'disengage-blocked',
+          sourceId: agent.id,
+          targetId: primaryHostile.id
+        });
+        if (!primaryHostile.combat) this.combatSystem.startAttack(primaryHostile, agent, this);
+        if (!agent.combat) this.combatSystem.startAttack(agent, primaryHostile, this);
+        return false;
+      }
+      disengageHostile = primaryHostile;
+      const damage = Math.max(1, Math.floor((primaryHostile.attack ?? 3) * 0.5));
+      this.applyCombatDamage(primaryHostile, agent, damage, { melee: true, disengage: true });
+      if (!agent.alive || agent.downed) return false;
+      if (!primaryHostile.combat) this.combatSystem.startAttack(primaryHostile, agent, this);
+    }
     const started = super.beginTravel(agent, toRoomId, options);
     if (agent.travel && agent.webbed > 0) agent.travel.duration *= 1.75;
+    if (started && disengageHostile) {
+      const primaryHostile = disengageHostile;
+      agent.travel.duration *= 1.45;
+      agent.travel.disengaging = true;
+      agent.travel.disengageFromId = primaryHostile.id;
+      agent.mood = 'disengaging';
+      this.event(`${agent.name} tried to disengage from ${primaryHostile.name} and gave up tempo to do it.`, {
+        type: 'disengage-move',
+        sourceId: agent.id,
+        targetId: primaryHostile.id
+      });
+    }
     return started;
+  }
+
+  getEngagedHostiles(agent) {
+    if (!agent?.alive || agent.departed || agent.hidden || agent.travel || !agent.roomId) return [];
+    return this.agents
+      .filter(candidate =>
+        candidate.id !== agent.id &&
+        candidate.alive &&
+        !candidate.departed &&
+        !candidate.hidden &&
+        !candidate.travel &&
+        candidate.roomId === agent.roomId &&
+        this.isHostilePair(agent, candidate) &&
+        this.engagementDistance(agent, candidate) <= 1.45
+      )
+      .sort((a, b) => this.engagementDistance(agent, a) - this.engagementDistance(agent, b) || a.index - b.index);
+  }
+
+  engagementDistance(a, b) {
+    if (a.roomCell && b.roomCell) return Math.hypot((a.roomCell.x ?? 0) - (b.roomCell.x ?? 0), (a.roomCell.z ?? 0) - (b.roomCell.z ?? 0));
+    return 0;
+  }
+
+  isHostilePair(agent, other) {
+    if (agent.faction === 'dungeon' && other.faction === 'dungeon') {
+      return Boolean(agent.ecologyFaction && other.ecologyFaction && agent.ecologyFaction !== other.ecologyFaction);
+    }
+    return agent.faction !== other.faction;
   }
 
   spawnMonster(forcedRole = null) {

@@ -14,6 +14,7 @@ export class AssetRegistryPhase6 extends AssetRegistryPhase5 {
   }
 
   makeAgent(agent) {
+    if (agent.role === 'orc' || agent.role === 'zombie') return super.makeAgent(agent);
     if (ADVANCED_ROLES.has(agent.role)) return this.advancedCreatures.create(agent);
     return super.makeAgent(agent);
   }

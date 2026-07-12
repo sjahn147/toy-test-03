@@ -29,7 +29,8 @@ export class DungeonSim extends BaseDungeonSim {
       if (action.text) this.event(action.text);
       this.beginTravel(agent, action.roomId, {
         interactionTargetId: action.interactionTargetId ?? null,
-        interactionType: action.interactionType ?? null
+        interactionType: action.interactionType ?? null,
+        forceDisengage: action.forceDisengage ?? false
       });
       return;
     }
@@ -49,7 +50,7 @@ export class DungeonSim extends BaseDungeonSim {
 
   beginTravel(agent, toRoomId, options = {}) {
     if (!toRoomId || toRoomId === agent.roomId || agent.travel) return false;
-    if (agent.blockedMoveRoomId === toRoomId && (agent.blockedMoveUntilTurn ?? -1) >= this.turn && !options.interactionTargetId) {
+    if (agent.blockedMoveRoomId === toRoomId && (agent.blockedMoveUntilTurn ?? -1) >= this.turn && !options.interactionTargetId && !options.forceDisengage) {
       agent.mood = 'avoiding-blocked-route';
       return false;
     }

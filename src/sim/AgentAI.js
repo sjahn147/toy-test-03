@@ -12,6 +12,7 @@ const STATS = {
   mimic: { hp: 15, attack: 7, courage: 10 },
   spider: { hp: 9, attack: 3, courage: 7 },
   orc: { hp: 22, attack: 6, courage: 10 },
+  zombie: { hp: 14, attack: 4, courage: 8 },
   ogre: { hp: 42, attack: 9, courage: 12 }
 };
 
@@ -207,7 +208,7 @@ function flee(agent, sim, text) {
   const options = sim.graph.get(agent.roomId) ?? [];
   const safer = options.find(room => !enemies.includes(room) && room !== agent.previousRoomId) ?? options.find(room => !enemies.includes(room)) ?? options[0];
   if (!safer) return { type: 'idle' };
-  return { type: 'move', roomId: safer, text };
+  return { type: 'move', roomId: safer, text, forceDisengage: true };
 }
 
 function clamp(value, min, max) {

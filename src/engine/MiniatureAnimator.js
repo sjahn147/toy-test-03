@@ -27,12 +27,13 @@ export class MiniatureAnimator {
     const attack = resolveAttackTimeline(agent, time, seed, effects);
     const role = agent.role;
     const skeletal = role === 'skeleton';
+    const shambling = role === 'zombie';
     const heavy = role === 'orc' || role === 'ogre';
     const skirmisher = role === 'rogue' || role === 'goblin' || role === 'kobold';
-    const roleLean = role === 'rogue' ? 0.1 : role === 'fighter' ? 0.035 : role === 'wizard' ? 0.02 : heavy ? 0.07 : skeletal ? 0.055 : 0.045;
-    const stride = moving ? (skirmisher ? 0.68 : role === 'ogre' ? 0.43 : role === 'orc' ? 0.5 : 0.52) : 0;
+    const roleLean = role === 'rogue' ? 0.1 : role === 'fighter' ? 0.035 : role === 'wizard' ? 0.02 : heavy ? 0.07 : skeletal ? 0.055 : shambling ? 0.075 : 0.045;
+    const stride = moving ? (skirmisher ? 0.68 : role === 'ogre' ? 0.43 : role === 'orc' ? 0.5 : shambling ? 0.38 : 0.52) : 0;
     const armSwing = moving ? stride * (heavy ? 0.62 : 0.78) : 0;
-    const idleBreath = Math.sin(time * (skeletal ? 2.4 : heavy ? 1.2 : 1.55) + seed * 5.4);
+    const idleBreath = Math.sin(time * (skeletal ? 2.4 : heavy ? 1.2 : shambling ? 1.05 : 1.55) + seed * 5.4);
     const idleLook = Math.sin(time * 0.55 + seed * 9.1);
     const hitPulse = hit ? Math.sin(Math.PI * hit.progress) : 0;
     const healPulse = heal ? Math.sin(Math.PI * heal.progress) : 0;
@@ -49,8 +50,8 @@ export class MiniatureAnimator {
     dampRotation(rig.chest, 'x', hitPulse * -0.28 + (moving ? heavy ? 0.035 : 0.015 : idleBreath * 0.012) + attackLean * 0.65, alpha);
     dampRotation(rig.chest, 'y', (moving ? -strideWave * (heavy ? 0.055 : 0.09) : idleBreath * 0.02) + attack.twist * 0.78, alpha);
     dampRotation(rig.head, 'x', hitPulse * 0.18 + (skirmisher ? -0.04 : 0) - attack.strike * 0.04, alpha);
-    dampRotation(rig.head, 'y', moving ? -strideWave * 0.035 : idleLook * (skeletal ? 0.16 : 0.11), alpha);
-    dampRotation(rig.head, 'z', healPulse * 0.035 + (skeletal ? Math.sin(time * 3.1 + seed) * 0.018 : 0), alpha);
+    dampRotation(rig.head, 'y', moving ? -strideWave * 0.035 : idleLook * (skeletal ? 0.16 : shambling ? 0.06 : 0.11), alpha);
+    dampRotation(rig.head, 'z', healPulse * 0.035 + ((skeletal || shambling) ? Math.sin(time * 3.1 + seed) * 0.018 : 0), alpha);
 
     poseLeg(rig.thighL, rig.shinL, rig.footL, strideWave * stride, moving, attack, -1, alpha, heavy);
     poseLeg(rig.thighR, rig.shinR, rig.footR, -strideWave * stride, moving, attack, 1, alpha, heavy);
@@ -72,8 +73,8 @@ export class MiniatureAnimator {
 
     const model = rig.model;
     const baseScale = model.userData.baseScale ?? model.scale.x;
-    const breathScale = 1 + (skeletal ? 0 : idleBreath * (heavy ? 0.0025 : 0.004)) + healPulse * 0.014;
-    dampScale(model, baseScale * breathScale, baseScale * (1 + (skeletal ? 0 : idleBreath * 0.007) + healPulse * 0.02), baseScale * breathScale, alpha);
+    const breathScale = 1 + ((skeletal || shambling) ? 0 : idleBreath * (heavy ? 0.0025 : 0.004)) + healPulse * 0.014;
+    dampScale(model, baseScale * breathScale, baseScale * (1 + ((skeletal || shambling) ? 0 : idleBreath * 0.007) + healPulse * 0.02), baseScale * breathScale, alpha);
   }
 
   animateCreatureFallback(mesh, agent, time, seed, dt, alpha, effects, allEffects) {
@@ -182,6 +183,7 @@ function movementPace(agent) {
   if (agent.role === 'goblin' || agent.role === 'kobold' || agent.role === 'rogue') return 9.1;
   if (agent.role === 'ogre') return 5.2;
   if (agent.role === 'orc') return 6;
+  if (agent.role === 'zombie') return 4.9;
   if (agent.role === 'skeleton') return 6.4;
   return 7.4;
 }

@@ -93,6 +93,44 @@ import { graphDistance } from '../src/sim/Pathfinding.js';
 }
 
 {
+  const scenario = {
+    name: 'disengage-pressure',
+    rooms: [
+      { id: 'hall', name: 'Hall', kind: 'hall', x: 0, z: 0, w: 8, d: 8 },
+      { id: 'retreat', name: 'Retreat', kind: 'hall', x: 10, z: 0, w: 8, d: 8 }
+    ],
+    links: [{ a: 'hall', b: 'retreat' }],
+    props: [],
+    agents: [
+      { id: 'hero', name: 'Mira', role: 'fighter', faction: 'party', roomId: 'hall', level: 1 },
+      { id: 'orc', name: 'Ruk', role: 'orc', faction: 'dungeon', ecologyFaction: 'red-tusk-tribe', roomId: 'hall', level: 1 }
+    ]
+  };
+
+  const sim = new Phase3DungeonSim(scenario);
+  placeInRoom(sim, sim.agents.find(agent => agent.id === 'hero'), 'hall');
+  placeInRoom(sim, sim.agents.find(agent => agent.id === 'orc'), 'hall');
+  const hero = sim.agents.find(agent => agent.id === 'hero');
+  const orc = sim.agents.find(agent => agent.id === 'orc');
+  hero.roomCell = { ...hero.roomCell, x: -0.39, z: 0 };
+  orc.roomCell = { ...orc.roomCell, x: 0.39, z: 0 };
+
+  assert.equal(sim.beginTravel(hero, 'retreat'), false, 'adjacent hostile should pin normal movement in-room');
+  assert.equal(hero.roomId, 'hall');
+  assert.equal(Boolean(hero.travel), false);
+  assert.ok(hero.combat || orc.combat, 'blocked disengage should create combat pressure');
+
+  const hpBefore = hero.hp;
+  hero.combat = null;
+  orc.combat = null;
+  assert.equal(sim.beginTravel(hero, 'retreat', { forceDisengage: true }), true, 'forced disengage should still be possible with a penalty');
+  assert.ok(hero.travel, 'forced disengage should start travel');
+  assert.equal(hero.travel.disengaging, true);
+  assert.ok(hero.travel.duration > 1, 'forced disengage should incur a travel tax');
+  assert.ok(hero.hp < hpBefore, 'forced disengage should pay an immediate melee penalty');
+}
+
+{
   const base = SCENARIOS.find(scenario => scenario.id === 'sprawling-warren') ?? SCENARIOS[0];
   const expanded = base.useGeneratedMap ? expandScenario(base) : base;
   const scenario = applyPhase7Territories(applyPhase6Ecology(applyPhase5Ecology(applyPhase2Facilities(expanded))));

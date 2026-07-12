@@ -47,6 +47,12 @@ export const MINIATURE_RECIPES = {
     palette: { skin: 0x70824f, cloth: 0x5d3028, leather: 0x493326, metal: 0x858a84, accent: 0xc79a54, dark: 0x25241f },
     parts: { head: null, hat: null, torso: 'torso_chain_fighter', back: null, waist: 'waist_belt_plain', mainHand: 'wpn_axe_heavy', offHand: 'off_shield_kite', accent: null }
   },
+  zombie: {
+    id: 'zombie_shambler_v1', skeleton: 'humanoid', bodyType: 'neutral', weaponStyle: 'natural', scale: 0.75,
+    proportions: { head: 1.06, shoulders: 0.96, legs: 0.98 },
+    palette: { skin: 0x8a9071, cloth: 0x5a5251, leather: 0x4b3a31, metal: 0x7a7b78, accent: 0xb07a59, dark: 0x262322 },
+    parts: { head: null, hat: null, torso: 'torso_robe_cleric', back: null, waist: 'waist_belt_plain', mainHand: null, offHand: null, accent: null }
+  },
   ogre: {
     id: 'ogre_large_v2', skeleton: 'ogre', bodyType: 'neutral', weaponStyle: 'heavy-club', scale: 1.08,
     proportions: { head: 1.18, shoulders: 1.48, legs: 0.88 },

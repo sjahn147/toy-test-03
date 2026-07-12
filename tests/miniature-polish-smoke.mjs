@@ -21,6 +21,7 @@ const [
   timing,
   death,
   bridge,
+  phase6Registry,
   registry,
   renderer,
   observer
@@ -40,6 +41,7 @@ const [
   read('../src/engine/MiniatureAnimationTiming.js'),
   read('../src/engine/MiniatureDeathAnimator.js'),
   read('../src/engine/CombatPresentationBridge.js'),
+  read('../src/engine/AssetRegistryPhase6.js'),
   read('../src/engine/AssetRegistryPhase8.js'),
   read('../src/engine/DungeonRendererPhase8.js'),
   read('../src/ui/StrategyObserverShell.js')
@@ -76,6 +78,7 @@ assert.match(weapons, /buildArrow/);
 
 assert.equal(MINIATURE_RECIPES.orc.skeleton, 'orc');
 assert.equal(MINIATURE_RECIPES.orc.weaponStyle, 'axe-shield');
+assert.equal(MINIATURE_RECIPES.zombie.skeleton, 'humanoid');
 assert.equal(MINIATURE_PARTS.wpn_axe_heavy.builder, 'axeHeavy');
 assert.equal(MINIATURE_PARTS.off_shield_kite.builder, 'shieldKite');
 assert.match(orc, /decorateOrc/);
@@ -131,11 +134,13 @@ assert.match(bridge, /CORPSE_LINGER_SECONDS = 2\.4/);
 assert.match(factory, /installCombatPresentationBridge/);
 assert.match(factory, /applyMiniaturePresentationPolish/);
 assert.match(factory, /decorateOrc/);
+assert.match(phase6Registry, /agent\.role === 'orc' \|\| agent\.role === 'zombie'/);
 assert.match(registry, /new PolishedMiniatureFactory/);
 assert.match(renderer, /prepareVisualAgents/);
 assert.match(renderer, /corpse: true/);
 assert.match(renderer, /corpseLinger/);
 assert.match(renderer, /miniatureAnimator\.update/);
+assert.match(factory, /HUMANOID_SKELETONS = new Set\(\['humanoid', 'goblin', 'orc', 'ogre'\]\)/);
 
 assert.ok(!observer.includes('?.dataset.mobileSurface ='));
 assert.ok(observer.includes('if (this.screenEl) this.screenEl.dataset.mobileSurface = surface;'));
