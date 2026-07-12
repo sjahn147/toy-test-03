@@ -1,8 +1,8 @@
 # Technical Debt Register
 
-_Last verified against `main` at `5dc6d77b55b2f6df7a5409e973ceeab1b1cc03fb` on 2026-07-12._
+_Last verified against `main` at `8aecc06dfaddbc381ceffd82e0bcf068bc63a60d` on 2026-07-12._
 
-This document records debt that remains after the committed strategic-expansion, camp-life, logistics, world-status, faction-outpost, regression-repair, and worksite-presentation slices. It intentionally separates finished work from active debt so completed features are not repeatedly reimplemented.
+This document records debt that remains after the committed strategic-expansion, camp-life, logistics, world-status, faction-outpost, regression-repair, worksite-presentation, and Industrial Corridor/Ossuary Cathedral landmark slices. It intentionally separates finished work from active debt so completed features are not repeatedly reimplemented.
 
 ## Status legend
 
@@ -24,6 +24,7 @@ The following capabilities are already on `main` and should be extended rather t
 - World ownership/control fields, contested overlays, supply-route rendering, and activity beacons.
 - Faction-specific forward-outpost dioramas.
 - Physical worksite presentation: scaffolds, stored materials, pulley/load motion, and cargo lowering at unloading anchors.
+- Industrial Corridor (D16, D17, D18, D20) and Ossuary Cathedral (E21–E25) dedicated landmark recipes.
 - Frame-rate-independent miniature damping and species-specific movement, attack, and death presentation for the currently supported families.
 
 ## P0 — Campaign map completion
@@ -33,11 +34,9 @@ The following capabilities are already on `main` and should be extended rather t
 **Current state**
 
 - The Sleeping Citadel manifest contains 63 rooms.
-- The committed baseline before the active campaign branch has 41 dedicated landmark recipes.
-- Draft PR #29 adds B06–B10 and would advance dedicated coverage to 46/63.
-- Seventeen rooms remain after that slice:
-  - D16, D17, D18, D20 — Industrial Corridor
-  - E21–E25 — Ossuary Cathedral
+- The committed baseline now has 50 dedicated landmark recipes (Industrial Corridor and Ossuary Cathedral landed by integrating the orphaned `agent/resolver-recovery` branch).
+- Draft PR #29 adds B06–B10 (Residential Quarter) and would advance dedicated coverage to 55/63.
+- Eight rooms remain after that slice:
   - I41–I45 — Central Cross-Market
   - J46–J48 — Red-Tusk Barracks
 
@@ -331,7 +330,7 @@ Issue #24.
 ## Recommended execution order
 
 1. Integrate PR #29 onto the current main and land Residential Quarter B06–B10.
-2. Complete the remaining 17 landmark recipes.
+2. Complete the remaining 8 landmark recipes (Central Cross-Market I41–I45, Red-Tusk Barracks J46–J48).
 3. Implement authored layout, ports, corridors, and shared placement clearance.
 4. Implement conditional/secret route state and active graph rebuilding.
 5. Wire live campaign state into room visuals.

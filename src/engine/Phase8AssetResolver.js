@@ -4,11 +4,14 @@ import { createFungalGardenAssetPack } from './FungalGardenAssetPack.js';
 import { FungalGardenAssetAnimator } from './FungalGardenAssetAnimator.js';
 import { SpiderColonyAssetPack } from './SpiderColonyAssetPack.js';
 import { WaystationAssetPack } from './WaystationAssetPack.js';
+import { ResidentialQuarterAssetPack } from './ResidentialQuarterAssetPack.js';
 import { createFloodedStorehouseAssetPack } from './FloodedStorehouseAssetPack.js';
 import { createLaboratoryAssetPack } from './LaboratoryAssetPack.js';
 import { LaboratoryAssetAnimator } from './LaboratoryAssetAnimator.js';
 import { createRoyalSanctumAssetPack } from './RoyalSanctumAssetPack.js';
 import { RoyalSanctumAssetAnimator } from './RoyalSanctumAssetAnimator.js';
+import { IndustrialCorridorAssetPack } from './IndustrialCorridorAssetPack.js';
+import { OssuaryCathedralAssetPack } from './OssuaryCathedralAssetPack.js';
 import { createOldLanternAssetPack } from './OldLanternAssetPack.js';
 import { createCampaignCompletionAssetPack } from './CampaignCompletionAssetPack.js';
 import { CentralMarketAssetPack } from './CentralMarketAssetPack.js';
@@ -40,6 +43,10 @@ export class Phase8AssetResolver {
       priority: 100,
       animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
     });
+    this.register(new ResidentialQuarterAssetPack(), {
+      priority: 110,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
+    });
     this.register(createFloodedStorehouseAssetPack(), {
       priority: 100,
       animate: (pack, root, deltaSeconds, elapsedSeconds) => pack.animate?.(root, elapsedSeconds, deltaSeconds)
@@ -53,6 +60,14 @@ export class Phase8AssetResolver {
       priority: 100,
       prepare: root => new RoyalSanctumAssetAnimator(root),
       animate: (animator, deltaSeconds) => animator.update(deltaSeconds)
+    });
+    this.register(new IndustrialCorridorAssetPack(), {
+      priority: 100,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
+    });
+    this.register(new OssuaryCathedralAssetPack(), {
+      priority: 100,
+      animate: (pack, root, _deltaSeconds, elapsedSeconds) => pack.update(root, elapsedSeconds)
     });
     this.register(createOldLanternAssetPack(), {
       priority: 120,
