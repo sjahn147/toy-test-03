@@ -107,14 +107,14 @@ export class StrategyObserverShell {
       <div class="strategy-camera-controls" aria-label="Camera controls">
         <button data-shell-camera="fixed" class="is-active" aria-pressed="true" title="Overview camera (R)">Overview</button>
         <button data-shell-camera="follow" aria-pressed="false" title="Follow selected (F)">Follow</button>
-        <button data-shell-camera="free" aria-pressed="false" title="Keep current target">Free</button>
+        <button data-shell-camera="free" aria-pressed="false" title="Free camera (drag or arrows to pan)">Free</button>
         <span class="strategy-camera-divider"></span>
         <button data-shell-camera-action="previous" aria-label="Previous follow target">‹</button>
         <button data-shell-camera-action="focus" title="Focus selection">Focus</button>
         <button data-shell-camera-action="next" aria-label="Next follow target">›</button>
       </div>
-      <div class="strategy-world-title"><b data-shell-world-title>Dungeon ecosystem</b><span data-shell-camera-status>overview · scroll to zoom</span></div>
-      <div class="strategy-shortcut-hint">F follow · R overview · [ ] cycle · / search · Esc clear</div>
+      <div class="strategy-world-title"><b data-shell-world-title>Dungeon ecosystem</b><span data-shell-camera-status>overview · drag or arrows to pan · scroll to zoom</span></div>
+      <div class="strategy-shortcut-hint">F follow · R overview · WASD/arrows pan · [ ] cycle · / search · Esc clear</div>
     `);
   }
 
@@ -211,7 +211,10 @@ export class StrategyObserverShell {
       item.classList.toggle('is-active', active);
       item.setAttribute('aria-pressed', String(active));
     });
-    setText(this.screenEl, '[data-shell-camera-status]', `${mode} · scroll to zoom`);
+    const status = mode === 'follow'
+      ? 'follow · drag to orbit · scroll to zoom'
+      : `${mode} · drag or arrows to pan · scroll to zoom`;
+    setText(this.screenEl, '[data-shell-camera-status]', status);
   }
 
   setMobileSurface(surface) {

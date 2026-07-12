@@ -83,13 +83,13 @@
   }
   .strategy-observer[data-shell-layout="immersive"] .strategy-navigator {
     grid-area: auto;
-    left: 16px; top: 72px; bottom: 162px; width: 292px;
+    left: 16px; top: 72px; bottom: 16px; width: 292px;
     border-right: 1px solid var(--obs-line, rgba(255,255,255,.09));
     display: flex; flex-direction: column; overflow: hidden;
   }
   .strategy-observer[data-shell-layout="immersive"] .strategy-inspector {
     grid-area: auto;
-    right: 16px; top: 72px; bottom: 162px; width: 372px;
+    right: 16px; top: 72px; bottom: 16px; width: 372px;
     border-left: 1px solid var(--obs-line, rgba(255,255,255,.09));
     overflow: hidden;
   }
@@ -106,6 +106,6 @@
     box-shadow: none;
   }
   /* keep the camera rig clear of the floating chronicle */
-  .strategy-observer[data-shell-layout="immersive"] .strategy-camera-controls { bottom: 162px; }
+  .strategy-observer[data-shell-layout="immersive"] .strategy-camera-controls { bottom: 162px; max-width: calc(100% - 32px); flex-wrap: wrap; }
   .strategy-observer[data-shell-layout="immersive"] .strategy-inspector-scroll { height: calc(100% - 44px); }
 }

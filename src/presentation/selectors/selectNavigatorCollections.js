@@ -43,7 +43,8 @@ export function selectFactionList(state) {
       territories,
       threatened
     };
-  }).sort((a, b) => b.population - a.population || a.name.localeCompare(b.name));
+  }).filter(faction => faction.population > 0 || faction.settlements > 0 || faction.territories > 0)
+    .sort((a, b) => b.population - a.population || a.name.localeCompare(b.name));
 }
 
 export function selectPartyList(state) {

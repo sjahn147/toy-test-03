@@ -259,10 +259,13 @@ export class DungeonRenderer {
     const sample = sampleConnection(connection, progress);
     const fromRoom = this.topology.roomById.get(travel.fromRoomId);
     const y = this.roomY(fromRoom) + (this.roomY(destinationRoom) - this.roomY(fromRoom)) * travel.progress;
+    const laneOffset = travel.laneOffset ?? 0;
+    const normalX = -sample.tz;
+    const normalZ = sample.tx;
     return {
-      x: sample.x,
+      x: sample.x + normalX * laneOffset,
       y: y + height,
-      z: sample.z,
+      z: sample.z + normalZ * laneOffset,
       rotation: Math.atan2(sample.tx * (forward ? 1 : -1), sample.tz * (forward ? 1 : -1))
     };
   }

@@ -29,8 +29,6 @@ export class CombatSystem {
   updateDowned(agent, dt, sim) {
     agent.bleedout -= dt;
     if (agent.bleedout > 0) return;
-    agent.downed = false;
-    agent.alive = false;
     agent.hp = 0;
     agent.combat = null;
     sim.finalizeDeath(null, agent);

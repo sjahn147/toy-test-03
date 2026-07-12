@@ -7,11 +7,13 @@ import {
   selectAgentInspector,
   selectPartyInspector,
   selectFactionList,
+  selectFactionInspector,
   selectPartyList,
   selectSettlementList,
   selectRoomList,
   selectFollowRoster,
-  selectTimelineEvents
+  selectTimelineEvents,
+  selectObserverFactionSummary
 } from '../src/presentation/selectors/index.js';
 
 assert.equal(typeof StrategyObserverShell, 'function');
@@ -29,6 +31,9 @@ const snapshot = {
         memories: [{ type: 'rescued-ally', intensity: 0.7 }],
         equipment: { weapon: { name: 'Short Sword', rarity: 'common', durability: 8, maxDurability: 10 } },
         inventory: [{ name: 'Bandage' }]
+      },
+      orc: {
+        id: 'orc', name: 'Ruk', role: 'orc', faction: 'dungeon', ecologyFaction: 'red-tusk-tribe', roomId: 'hall', hp: 11, maxHp: 11, alive: true
       }
     },
     rooms: { hall: { id: 'hall', name: 'Great Hall', kind: 'hall', visited: true } },
@@ -40,7 +45,11 @@ const snapshot = {
         state: 'active', supplyStatus: 'open', supplyEfficiency: 0.75, structuralIntegrity: 88, population: 4, capacity: 6
       }
     },
-    factions: { 'adventurer-expedition': { id: 'adventurer-expedition', name: 'Adventurers' } },
+    factions: {
+      'adventurer-expedition': { id: 'adventurer-expedition', name: 'Adventurers' },
+      'red-tusk-tribe': { id: 'red-tusk-tribe', name: 'Red Tusk Tribe' },
+      'ghost-faction': { id: 'ghost-faction', name: 'Ghost Faction' }
+    },
     parties: {
       'party-1': {
         id: 'party-1', name: 'Lantern Company', leaderId: 'hero', memberIds: ['hero'], expeditionState: 'exploring',
@@ -56,7 +65,7 @@ const snapshot = {
     },
     structures: {}, effects: {}
   },
-  indexes: { agentsByRoom: { hall: ['hero'] }, propsByRoom: { hall: ['banner'] }, settlementsByFaction: { 'adventurer-expedition': ['camp'] } },
+  indexes: { agentsByRoom: { hall: ['hero', 'orc'] }, propsByRoom: { hall: ['banner'] }, settlementsByFaction: { 'adventurer-expedition': ['camp'] } },
   events: [
     { id: 'ambient-1', time: 10, type: 'ecology.growth', severity: 'ambient', roomId: 'hall', text: 'Moss spreads.' },
     { id: 'critical-1', time: 11, type: 'combat.death', severity: 'critical', locationRoomId: 'hall', sourceId: 'hero', targetId: 'rival', text: 'A fatal blow lands.' },
@@ -79,10 +88,14 @@ const party = selectPartyInspector(snapshot, 'party-1');
 assert.equal(party.identity.leaderName, 'Mira');
 assert.equal(party.roster.length, 1);
 assert.equal(party.target.roomName, 'Great Hall');
-assert.equal(selectFactionList(snapshot)[0].id, 'adventurer-expedition');
+const factions = selectFactionList(snapshot);
+assert.equal(factions.some(faction => faction.id === 'ghost-faction'), false, 'empty factions should not clutter the immersive navigator');
+assert.equal(factions.some(faction => faction.id === 'red-tusk-tribe'), true, 'active monster factions should appear in the immersive navigator');
+assert.equal(selectObserverFactionSummary(snapshot, 'red-tusk-tribe').name, 'Red Tusk Tribe');
+assert.equal(selectFactionInspector(snapshot, 'red-tusk-tribe').members[0].name, 'Ruk');
 assert.equal(selectPartyList(snapshot)[0].name, 'Lantern Company');
 assert.equal(selectSettlementList(snapshot)[0].name, 'Mouse Camp');
-assert.equal(selectRoomList(snapshot)[0].occupantCount, 1);
+assert.equal(selectRoomList(snapshot)[0].occupantCount, 2);
 assert.equal(selectFollowRoster(snapshot)[0].id, 'hero');
 
 const majorEvents = selectTimelineEvents(snapshot, { filter: 'major' });
@@ -114,7 +127,9 @@ for (const forbidden of ['super.renderInspectPanel()', 'settlementSystem', 'logi
 }
 assert.match(screenSource, /StrategyObserverShell/, 'production strategy shell is not mounted');
 assert.match(screenSource, /getViewModel/, 'Phase 8 screen does not consume the facade view model');
-assert.match(screenSource, /this\.selection = \{ type: 'agent', id: this\.selectedAgentId \}/, 'canvas picks are not synchronized to shell selection');
+assert.match(screenSource, /this\.followAgentId = null/, 'follow target state is not separated from inspector selection');
+assert.match(screenSource, /this\.selection = \{ type: 'agent', id: this\.selectedAgentId \};\s*this\.selectedAgentId = null;/, 'canvas picks are not synchronized to shell selection safely');
+assert.match(screenSource, /ArrowUp/, 'overview\/free camera keyboard panning is not wired');
 assert.match(screenSource, /renderer\.renderState\(this\.sim\.snapshot\(\)\)/, 'legacy renderer migration exception disappeared unexpectedly');
 assert.match(screenSource, /setCameraTarget\(this\.mapCamera\.x, this\.mapCamera\.y, this\.mapCamera\.z, null, false\)/, 'overview camera still overwrites user zoom each frame');
 assert.match(screenSource, /cycleFollowTarget/, 'follow roster cycling is not wired');
@@ -135,6 +150,7 @@ assert.match(shellSource, /data-shell-nav-search/, 'navigator search is missing'
 assert.match(shellSource, /data-event-pin/, 'chronicle pin control is missing');
 assert.match(shellSource, /setTimelineFilter\('major'\)/, 'alert button does not open major events');
 assert.match(shellSource, /aria-current/, 'navigator selection is not exposed accessibly');
+assert.match(shellSource, /drag or arrows to pan/, 'camera guidance was not updated for immersive free\/overview mode');
 
 // strategy-observer-polish.css was superseded by the Route A production theme
 // (strategy-observer.css), which is a strict superset of its styling contracts.

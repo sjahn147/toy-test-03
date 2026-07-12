@@ -119,6 +119,11 @@ export class DungeonSim extends Phase2DungeonSim {
       id: 'dungeon-hazard', name: 'The dungeon', faction: 'dungeon', kills: 0, hp: 1, maxHp: 1
     };
     super.onDeath(killer, target);
+    if (target.faction === 'party') {
+      target.resurrectable = true;
+      target.corpseRoomId = target.roomId;
+      target.mood = 'awaiting-return';
+    }
   }
 
   beginTravel(agent, toRoomId, options = {}) {

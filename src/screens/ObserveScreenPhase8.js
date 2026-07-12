@@ -17,6 +17,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.runtimeUnsubscribe = null;
     this.shell = null;
     this.selection = null;
+    this.followAgentId = null;
     this.observerFactionId = null;
     this.timelineFilter = 'all';
     this.pinnedEventIds = new Set();
@@ -58,6 +59,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
   selectEntity({ type, id, roomId = null }) {
     this.selection = { type, id };
     this.selectedAgentId = type === 'agent' ? id : null;
+    if (type === 'agent') this.followAgentId = id;
     if (type === 'faction') {
       // 세력 클릭 = 관찰 세력 전환 + 소속 유닛 로스터 표시 (기존엔 selection을 비워 아무 것도 안 나왔다).
       this.observerFactionId = id;
@@ -115,6 +117,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     if (actor) {
       this.selection = { type: 'agent', id: actor.id };
       this.selectedAgentId = actor.id;
+      this.followAgentId = actor.id;
       this.cameraMode = 'follow';
       this.shell?.setCameraMode('follow');
       this.refreshViewModel(true);
@@ -142,6 +145,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
   setCameraMode(mode) {
     this.cameraMode = mode;
     this.shell?.setCameraMode(mode);
+    this.three?.setInteractionMode(mode === 'follow' ? 'orbit' : 'pan');
     if (mode === 'fixed') this.resetCamera(false);
     if (mode === 'follow') {
       this.ensureFollowTarget();
@@ -158,13 +162,15 @@ export class ObserveScreen extends Phase6ObserveScreen {
 
   ensureFollowTarget() {
     const roster = this.viewModel?.followRoster ?? [];
-    const current = roster.find(agent => agent.id === this.selectedAgentId);
+    const current = roster.find(agent => agent.id === this.followAgentId);
     if (current) return current;
     const fallback = roster.find(agent => agent.factionId === 'adventurer-expedition') ?? roster[0] ?? null;
     if (fallback) {
-      this.selectedAgentId = fallback.id;
-      this.selection = { type: 'agent', id: fallback.id };
-      this.refreshViewModel(true);
+      this.followAgentId = fallback.id;
+      if (!this.selection) {
+        this.selection = { type: 'agent', id: fallback.id };
+        this.refreshViewModel(true);
+      }
     }
     return fallback;
   }
@@ -172,10 +178,11 @@ export class ObserveScreen extends Phase6ObserveScreen {
   cycleFollowTarget(direction) {
     const roster = this.viewModel?.followRoster ?? [];
     if (!roster.length) return;
-    const currentIndex = Math.max(0, roster.findIndex(agent => agent.id === this.selectedAgentId));
+    const currentIndex = Math.max(0, roster.findIndex(agent => agent.id === this.followAgentId));
     const target = roster[(currentIndex + direction + roster.length) % roster.length];
     this.selection = { type: 'agent', id: target.id };
     this.selectedAgentId = target.id;
+    this.followAgentId = target.id;
     this.cameraMode = 'follow';
     this.shell?.setCameraMode('follow');
     this.refreshViewModel(true);
@@ -198,6 +205,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     if (!selection?.inspector) return;
     if (selection.type === 'agent') {
       this.selectedAgentId = selection.id;
+      this.followAgentId = selection.id;
       this.cameraMode = 'follow';
       this.shell?.setCameraMode('follow');
       this.pushCameraToFollowTarget(immediate);
@@ -223,7 +231,13 @@ export class ObserveScreen extends Phase6ObserveScreen {
   resetCamera(immediate = false) {
     this.cameraMode = 'fixed';
     this.shell?.setCameraMode('fixed');
+    this.three?.setInteractionMode('pan');
     this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, this.mapCamera.distance, immediate);
+  }
+
+  panCamera(dx, dz, immediate = false) {
+    if (!this.three || this.cameraMode === 'follow') return;
+    this.three.panTarget(dx, dz, immediate);
   }
 
   handleShortcut(event) {
@@ -250,6 +264,10 @@ export class ObserveScreen extends Phase6ObserveScreen {
       this.shell?.focusNavigatorSearch();
     } else if (event.key.toLowerCase() === 'f') this.setCameraMode('follow');
     else if (event.key.toLowerCase() === 'r') this.resetCamera(true);
+    else if (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w') { event.preventDefault(); this.panCamera(0, -3.4, true); }
+    else if (event.key === 'ArrowDown' || event.key.toLowerCase() === 's') { event.preventDefault(); this.panCamera(0, 3.4, true); }
+    else if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { event.preventDefault(); this.panCamera(-3.4, 0, true); }
+    else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { event.preventDefault(); this.panCamera(3.4, 0, true); }
     else if (event.key === '[') this.cycleFollowTarget(-1);
     else if (event.key === ']') this.cycleFollowTarget(1);
     else if (event.key === 'Escape') this.clearSelection();
@@ -257,8 +275,11 @@ export class ObserveScreen extends Phase6ObserveScreen {
   }
 
   renderInspectPanel() {
-    if (this.selectedAgentId) this.selection = { type: 'agent', id: this.selectedAgentId };
-    else if (this.selection?.type === 'agent') this.selection = null;
+    if (this.selectedAgentId) {
+      this.followAgentId = this.selectedAgentId;
+      this.selection = { type: 'agent', id: this.selectedAgentId };
+      this.selectedAgentId = null;
+    }
     this.refreshViewModel(true);
   }
 

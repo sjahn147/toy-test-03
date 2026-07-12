@@ -15,6 +15,7 @@ export class RoomOccupancySystem {
     this.agentCells = new Map();
     this.reservations = new Map();
     this.blockedCells = new Map();
+    this.agentIndex = new Map();
     this.buildGrids();
   }
 
@@ -47,6 +48,7 @@ export class RoomOccupancySystem {
   }
 
   initializeAgents(agents) {
+    this.agentIndex = new Map(agents.map(agent => [agent.id, agent]));
     const ordered = [...agents].sort((a, b) => this.roleOrder(a.role) - this.roleOrder(b.role) || a.index - b.index);
     for (const agent of ordered) {
       if (!agent.alive || agent.departed || agent.hidden) continue;
@@ -55,6 +57,7 @@ export class RoomOccupancySystem {
   }
 
   placeAgent(agent, roomId, entryPort = null, options = {}) {
+    this.agentIndex.set(agent.id, agent);
     this.release(agent.id);
     const reservation = this.reserveDestination(agent, roomId, entryPort, options);
     if (!reservation) {
@@ -65,6 +68,7 @@ export class RoomOccupancySystem {
   }
 
   reserveDestination(agent, roomId, entryPort = null, options = {}) {
+    this.agentIndex.set(agent.id, agent);
     this.cancelReservation(agent.id);
     const grid = this.grids.get(roomId);
     if (!grid) return null;
@@ -213,12 +217,38 @@ export class RoomOccupancySystem {
     const targetCell = options.interactionTargetId ? this.agentCells.get(options.interactionTargetId) : null;
     const targetDistance = targetCell ? Math.hypot(cell.x - targetCell.x, cell.z - targetCell.z) : 0;
     const interactionBias = targetCell ? targetDistance * 1.4 : 0;
+    const crowdBias = this.crowdBias(agent, cell, options);
 
-    if (agent.role === 'rogue') return portDistance * 0.55 + Math.abs(lateral - this.cellSize * 1.2) * 0.75 + interactionBias;
-    if (RANGED_ROLES.has(agent.role)) return portDistance * 0.35 + Math.abs(depth - this.cellSize * 0.7) + lateral * 0.15 + interactionBias * 0.6;
-    if (SUPPORT_ROLES.has(agent.role)) return centerDistance * 0.65 + portDistance * 0.25 + interactionBias;
-    if (MELEE_ROLES.has(agent.role)) return portDistance * 0.25 + Math.abs(depth - this.cellSize * 2.1) * 0.75 + lateral * 0.2 + interactionBias;
-    return portDistance * 0.5 + centerDistance * 0.3 + interactionBias;
+    if (agent.role === 'rogue') return portDistance * 0.55 + Math.abs(lateral - this.cellSize * 1.2) * 0.75 + interactionBias + crowdBias;
+    if (RANGED_ROLES.has(agent.role)) return portDistance * 0.35 + Math.abs(depth - this.cellSize * 0.7) + lateral * 0.15 + interactionBias * 0.6 + crowdBias;
+    if (SUPPORT_ROLES.has(agent.role)) return centerDistance * 0.65 + portDistance * 0.25 + interactionBias + crowdBias;
+    if (MELEE_ROLES.has(agent.role)) return portDistance * 0.25 + Math.abs(depth - this.cellSize * 2.1) * 0.75 + lateral * 0.2 + interactionBias + crowdBias;
+    return portDistance * 0.5 + centerDistance * 0.3 + interactionBias + crowdBias;
+  }
+
+  crowdBias(agent, cell, options = {}) {
+    let penalty = 0;
+    for (const placement of this.nearbyPlacements(cell.roomId, agent.id)) {
+      const distance = Math.max(0.18, Math.hypot(cell.x - placement.x, cell.z - placement.z));
+      penalty += 1.05 / distance;
+      if (placement.factionId === factionIdOf(agent)) penalty += 0.75 / distance;
+      if (isHostile(agent, placement.agent)) penalty += 1.9 / distance;
+      if (options.interactionTargetId && placement.agent?.id === options.interactionTargetId) penalty -= 1.25 / Math.max(0.3, distance);
+    }
+    return penalty;
+  }
+
+  nearbyPlacements(roomId, requestingAgentId) {
+    const placements = [];
+    for (const [agentId, placement] of this.agentCells.entries()) {
+      if (agentId === requestingAgentId || placement.roomId !== roomId) continue;
+      placements.push({ ...placement, agent: this.agentIndex.get(agentId), factionId: factionIdOf(this.agentIndex.get(agentId)) });
+    }
+    for (const reservation of this.reservations.values()) {
+      if (reservation.agentId === requestingAgentId || reservation.roomId !== roomId || reservation.overflow) continue;
+      placements.push({ ...reservation, agent: this.agentIndex.get(reservation.agentId), factionId: factionIdOf(this.agentIndex.get(reservation.agentId)) });
+    }
+    return placements;
   }
 
   roleOrder(role) {
@@ -246,4 +276,20 @@ export class RoomOccupancySystem {
 
 function average(values) {
   return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+}
+
+function factionIdOf(agent) {
+  if (!agent) return null;
+  return agent.faction === 'party'
+    ? 'adventurer-expedition'
+    : agent.factionId ?? agent.ecologyFaction ?? agent.faction ?? null;
+}
+
+function isHostile(a, b) {
+  if (!a || !b) return false;
+  const aFaction = factionIdOf(a);
+  const bFaction = factionIdOf(b);
+  if (!aFaction || !bFaction || aFaction === bFaction) return false;
+  if (a.faction === 'dungeon' && b.faction === 'dungeon') return Boolean(a.ecologyFaction && b.ecologyFaction && a.ecologyFaction !== b.ecologyFaction);
+  return true;
 }

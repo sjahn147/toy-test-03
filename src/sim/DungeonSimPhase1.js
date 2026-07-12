@@ -96,6 +96,7 @@ export class DungeonSim extends BaseDungeonSim {
       destinationCell: { ...destinationCell, footprint: [...destinationCell.footprint] },
       interactionTargetId: validInteractionTarget ? interactionTarget.id : null,
       interactionType: validInteractionTarget ? options.interactionType : null,
+      laneOffset: this.travelLaneOffset(agent, connection, fromRoomId),
       elapsed: 0,
       duration,
       progress: 0,
@@ -127,6 +128,7 @@ export class DungeonSim extends BaseDungeonSim {
 
       if (travel.phase === 'corridor') {
         travel.progress = clamp(travel.elapsed / travel.duration, 0, 1);
+        if (travel.progress < 1) this.resolveCorridorEncounters(agent);
         if (travel.progress < 1) continue;
 
         agent.roomId = travel.toRoomId;
@@ -251,6 +253,72 @@ export class DungeonSim extends BaseDungeonSim {
       interactionOverflowLandings: this.agents.filter(agent => agent.roomCell?.overflow).length,
       blockedMovementRetries: this.agents.reduce((sum, agent) => sum + (agent.blockedMoveCount ?? 0), 0)
     };
+  }
+
+  travelLaneOffset(agent, connection, fromRoomId) {
+    const forward = fromRoomId === connection.aId ? 1 : -1;
+    const factionLane = agent.faction === 'party' ? -0.18 : 0.18;
+    const formationJitter = (((agent.index ?? 0) % 3) - 1) * 0.08;
+    const sizeOffset = agent.role === 'ogre' ? 0.12 : 0;
+    return (factionLane + formationJitter + sizeOffset) * forward;
+  }
+
+  resolveCorridorEncounters(agent) {
+    const travel = agent.travel;
+    if (!travel || travel.phase !== 'corridor' || !this.combatSystem) return;
+    for (const other of this.agents) {
+      if (other.id === agent.id || !other.travel || other.travel.phase !== 'corridor') continue;
+      if (other.travel.connectionId !== travel.connectionId) continue;
+      if (!this.isHostileCorridorEncounter(agent, other)) continue;
+      if (Math.abs((travel.progress ?? 0) - (other.travel.progress ?? 0)) > 0.12) continue;
+      this.startCorridorEncounter(agent, other);
+      return;
+    }
+  }
+
+  isHostileCorridorEncounter(agent, other) {
+    if (!agent.alive || !other.alive || agent.departed || other.departed) return false;
+    if (agent.faction === 'dungeon' && other.faction === 'dungeon') {
+      return Boolean(agent.ecologyFaction && other.ecologyFaction && agent.ecologyFaction !== other.ecologyFaction);
+    }
+    return agent.faction !== other.faction;
+  }
+
+  startCorridorEncounter(agent, other) {
+    const sharedRoomId = this.corridorEncounterRoom(agent.travel, other.travel);
+    const sharedRoom = this.rooms.find(room => room.id === sharedRoomId);
+    if (!sharedRoom) return;
+
+    const agentTarget = this.abortTravelIntoRoom(agent, sharedRoomId);
+    const otherTarget = this.abortTravelIntoRoom(other, sharedRoomId);
+    if (!agentTarget || !otherTarget) return;
+
+    this.event(`${agent.name} and ${other.name} collided in the corridor and started fighting for the doorway.`, {
+      type: 'corridor-encounter',
+      sourceId: agent.id,
+      targetId: other.id
+    });
+    this.combatSystem.startAttack(agent, other, this);
+    if (!other.combat) this.combatSystem.startAttack(other, agent, this);
+  }
+
+  corridorEncounterRoom(aTravel, bTravel) {
+    const aTo = aTravel.toRoomId;
+    const bTo = bTravel.toRoomId;
+    if (aTo === bTravel.fromRoomId) return aTo;
+    if (bTo === aTravel.fromRoomId) return bTo;
+    const averageProgress = ((aTravel.progress ?? 0) + (bTravel.progress ?? 0)) / 2;
+    const connection = this.topology.connectionByPair.get([aTravel.fromRoomId, aTravel.toRoomId].sort().join('::'));
+    return averageProgress >= 0.5 ? connection?.bId ?? aTo : connection?.aId ?? aTravel.fromRoomId;
+  }
+
+  abortTravelIntoRoom(agent, roomId) {
+    const reservation = this.occupancy.reserveDestination(agent, roomId, null);
+    agent.travel = null;
+    agent.roomId = roomId;
+    agent.mood = 'engaged';
+    if (!reservation) return null;
+    return this.occupancy.commitReservation(agent, reservation);
   }
 }
 

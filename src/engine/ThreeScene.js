@@ -20,6 +20,7 @@ export class ThreeScene {
     this.pointers = new Map();
     this.dragStart = null;
     this.pinchStart = null;
+    this.interactionMode = 'orbit';
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
@@ -72,7 +73,16 @@ export class ThreeScene {
       el.setPointerCapture(e.pointerId);
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (this.pointers.size === 1) {
-        this.dragStart = { x: e.clientX, y: e.clientY, azimuth: this.azimuth, elevation: this.elevation };
+        const mode = this.interactionMode === 'pan' || e.button === 1 || e.button === 2 || e.shiftKey ? 'pan' : 'orbit';
+        this.dragStart = {
+          mode,
+          x: e.clientX,
+          y: e.clientY,
+          azimuth: this.azimuth,
+          elevation: this.elevation,
+          targetX: this.desiredTarget.x,
+          targetZ: this.desiredTarget.z
+        };
       } else if (this.pointers.size === 2) {
         const [a, b] = [...this.pointers.values()];
         this.pinchStart = { distance: this.distance, span: Math.hypot(a.x - b.x, a.y - b.y) };
@@ -86,8 +96,22 @@ export class ThreeScene {
       if (this.pointers.size === 1 && this.dragStart) {
         const dx = e.clientX - this.dragStart.x;
         const dy = e.clientY - this.dragStart.y;
-        this.azimuth = this.dragStart.azimuth - dx * 0.008;
-        this.elevation = clamp(this.dragStart.elevation + dy * 0.004, 0.34, 1.16);
+        if (this.dragStart.mode === 'pan') {
+          const scale = Math.max(0.08, this.distance * 0.0125);
+          const rightX = Math.cos(this.azimuth + Math.PI / 2);
+          const rightZ = Math.sin(this.azimuth + Math.PI / 2);
+          const forwardX = Math.cos(this.azimuth);
+          const forwardZ = Math.sin(this.azimuth);
+          const targetX = this.dragStart.targetX - dx * scale * rightX + dy * scale * forwardX;
+          const targetZ = this.dragStart.targetZ - dx * scale * rightZ + dy * scale * forwardZ;
+          this.target.x = targetX;
+          this.target.z = targetZ;
+          this.desiredTarget.x = targetX;
+          this.desiredTarget.z = targetZ;
+        } else {
+          this.azimuth = this.dragStart.azimuth - dx * 0.008;
+          this.elevation = clamp(this.dragStart.elevation + dy * 0.004, 0.34, 1.16);
+        }
       }
 
       if (this.pointers.size === 2 && this.pinchStart) {
@@ -107,11 +131,13 @@ export class ThreeScene {
       }
     };
 
+    this.onContextMenu = (e) => e.preventDefault();
     el.addEventListener('wheel', this.onWheel, { passive: false });
     el.addEventListener('pointerdown', this.onPointerDown);
     el.addEventListener('pointermove', this.onPointerMove);
     el.addEventListener('pointerup', this.onPointerUp);
     el.addEventListener('pointercancel', this.onPointerUp);
+    el.addEventListener('contextmenu', this.onContextMenu);
   }
 
   resize() {
@@ -129,6 +155,19 @@ export class ThreeScene {
     if (immediate) {
       this.target.copy(this.desiredTarget);
       this.distance = this.desiredDistance;
+    }
+  }
+
+  setInteractionMode(mode = 'orbit') {
+    this.interactionMode = mode === 'pan' ? 'pan' : 'orbit';
+  }
+
+  panTarget(dx, dz, immediate = false) {
+    this.desiredTarget.x += dx;
+    this.desiredTarget.z += dz;
+    if (immediate) {
+      this.target.x = this.desiredTarget.x;
+      this.target.z = this.desiredTarget.z;
     }
   }
 
@@ -154,6 +193,7 @@ export class ThreeScene {
     el.removeEventListener('pointermove', this.onPointerMove);
     el.removeEventListener('pointerup', this.onPointerUp);
     el.removeEventListener('pointercancel', this.onPointerUp);
+    el.removeEventListener('contextmenu', this.onContextMenu);
     window.removeEventListener('resize', this.onResize);
     this.container.innerHTML = '';
     this.renderer.dispose();
