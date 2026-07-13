@@ -70,6 +70,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
       onOverlayMode: mode => this.setOverlayMode(mode),
       onTimelineFilter: filter => { this.timelineFilter = filter; this.refreshViewModel(true); },
       onTimelineMode: mode => { this.timelineMode = mode; saveChroniclePreferences({ mode, locale: this.timelineLocale }); this.refreshViewModel(true); },
+      onTimelineLocale: locale => { this.timelineLocale = locale; saveChroniclePreferences({ mode: this.timelineMode, locale }); this.refreshViewModel(true); },
       onTimelineEvent: event => this.focusTimelineEvent(event),
       onTogglePin: eventId => this.togglePinnedEvent(eventId),
       onAlertOpen: () => this.shell?.announce('Showing major, critical and historic events.')

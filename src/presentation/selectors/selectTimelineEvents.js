@@ -1,4 +1,4 @@
-// Chronicle-aware timeline selector.
+// Chronicle-aware bilingual timeline selector.
 
 import { channelVisibleInMode } from '../../domain/chronicleContract.js';
 import { defaultLocalizationService } from '../../localization/LocalizationService.js';
@@ -21,13 +21,14 @@ export function selectTimelineEvents(state, {
 } = {}) {
   const events = Array.isArray(state?.events) ? state.events : [];
   const filtered = [];
+  const primaryLocale = locale === 'bilingual' ? 'ko' : locale;
+  const secondaryLocale = locale === 'bilingual' ? 'en' : null;
 
   for (const event of events) {
     if (!event || typeof event !== 'object') continue;
     const channel = event.channel ?? inferLegacyChannel(event);
     if (!channelVisibleInMode(channel, mode) || !matchesFilter(event, filter)) continue;
-    const localized = localizationService.render(event, { locale });
-    const detail = localizationService.render(event, { locale, detail: true });
+    const localized = localizationService.renderPair(event, { primaryLocale, secondaryLocale });
     filtered.push({
       id: event.id ?? `${event.type ?? 'event'}:${event.time ?? 0}:${filtered.length}`,
       time: typeof event.time === 'number' ? event.time : 0,
@@ -35,8 +36,9 @@ export function selectTimelineEvents(state, {
       severity: event.severity ?? 'ambient',
       channel,
       salience: Number.isFinite(event.salience) ? event.salience : 0.2,
-      text: localized || event.fallbackText || event.text || '',
-      detail: detail && detail !== localized ? detail : null,
+      text: localized.primary || event.fallbackText || event.text || '',
+      secondaryText: localized.secondary || null,
+      detail: localized.detail && localized.detail !== localized.primary ? localized.detail : null,
       fallbackText: event.fallbackText ?? event.text ?? '',
       roomId: event.roomId ?? event.locationRoomId ?? null,
       actorId: event.actorIds?.[0] ?? event.actorId ?? event.sourceId ?? event.agentId ?? null,

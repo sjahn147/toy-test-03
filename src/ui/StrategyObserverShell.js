@@ -1,3 +1,4 @@
+import { chronicleUiCopy } from '../localization/ChronicleUiCopy.js';
 const NAV_TABS = ['factions', 'parties', 'settlements', 'rooms'];
 const TIMELINE_FILTERS = ['all', 'combat', 'ecology', 'party', 'settlement', 'logistics', 'construction', 'discovery', 'hero', 'relationship', 'major'];
 
@@ -12,13 +13,15 @@ export class StrategyObserverShell {
     onTimelineFilter = () => {},
     onTimelineEvent = () => {},
     onTogglePin = () => {},
+    onTimelineLocale = () => {},
     onTimelineMode = () => {},
     onAlertOpen = () => {}
   } = {}) {
-    this.callbacks = { onPauseToggle, onSpeedChange, onBack, onSelect, onCameraMode, onCameraAction, onTimelineFilter, onTimelineMode, onTimelineEvent, onTogglePin, onAlertOpen };
+    this.callbacks = { onPauseToggle, onSpeedChange, onBack, onSelect, onCameraMode, onCameraAction, onTimelineFilter, onTimelineMode, onTimelineLocale, onTimelineEvent, onTogglePin, onAlertOpen };
     this.activeTab = 'factions';
     this.timelineFilter = 'all';
     this.timelineMode = 'chronicle';
+    this.timelineLocale = 'en';
     this.navigatorQuery = '';
     this.mobileSurface = 'world';
     this.paused = false;
@@ -77,11 +80,16 @@ export class StrategyObserverShell {
       </aside>
       <footer class="strategy-timeline" data-mobile-surface="timeline">
         <div class="strategy-timeline-tools">
-          <strong>Chronicle</strong>
+          <strong data-shell-chronicle-title>Chronicle</strong>
           <div class="strategy-chronicle-modes" role="group" aria-label="Chronicle density">
             <button data-shell-log-mode="chronicle" class="is-active" aria-pressed="true">Chronicle</button>
             <button data-shell-log-mode="detailed" aria-pressed="false">Detailed</button>
             <button data-shell-log-mode="debug" aria-pressed="false">Debug</button>
+          </div>
+          <div class="strategy-chronicle-languages" role="group" aria-label="Chronicle language">
+            <button data-shell-locale="en" class="is-active" aria-pressed="true">EN</button>
+            <button data-shell-locale="ko" aria-pressed="false">한국어</button>
+            <button data-shell-locale="bilingual" aria-pressed="false">EN+KO</button>
           </div>
           <div class="strategy-timeline-filters" role="group" aria-label="Chronicle filters">
             ${TIMELINE_FILTERS.map(filter => `<button data-shell-filter="${filter}" class="${filter === this.timelineFilter ? 'is-active' : ''}" aria-pressed="${filter === this.timelineFilter}">${filter}</button>`).join('')}
@@ -165,6 +173,7 @@ export class StrategyObserverShell {
     });
     this.screenEl.querySelectorAll('[data-shell-filter]').forEach(button => button.addEventListener('click', () => this.setTimelineFilter(button.dataset.shellFilter)));
     this.screenEl.querySelectorAll('[data-shell-log-mode]').forEach(button => button.addEventListener('click', () => { this.setTimelineMode(button.dataset.shellLogMode); this.callbacks.onTimelineMode(button.dataset.shellLogMode); }));
+    this.screenEl.querySelectorAll('[data-shell-locale]').forEach(button => button.addEventListener('click', () => { this.setTimelineLocale(button.dataset.shellLocale); this.callbacks.onTimelineLocale(button.dataset.shellLocale); }));
     this.screenEl.querySelectorAll('[data-shell-camera]').forEach(button => button.addEventListener('click', () => {
       this.setCameraMode(button.dataset.shellCamera);
       this.callbacks.onCameraMode(button.dataset.shellCamera);
@@ -215,6 +224,27 @@ export class StrategyObserverShell {
       item.setAttribute('aria-pressed', String(active));
     });
   }
+  setTimelineLocale(locale) {
+    this.timelineLocale = ['en', 'ko', 'bilingual'].includes(locale) ? locale : 'en';
+    const copy = chronicleUiCopy(this.timelineLocale);
+    if (this.screenEl) this.screenEl.dataset.chronicleLocale = this.timelineLocale;
+    this.screenEl?.querySelectorAll('[data-shell-locale]').forEach(item => {
+      const active = item.dataset.shellLocale === this.timelineLocale;
+      item.classList.toggle('is-active', active);
+      item.setAttribute('aria-pressed', String(active));
+    });
+    const title = this.screenEl?.querySelector('[data-shell-chronicle-title]');
+    if (title) title.textContent = copy.title;
+    this.screenEl?.querySelectorAll('[data-shell-log-mode]').forEach(item => {
+      item.textContent = copy.modes[item.dataset.shellLogMode] ?? item.dataset.shellLogMode;
+      item.closest('[role="group"]')?.setAttribute('aria-label', copy.densityLabel);
+    });
+    this.screenEl?.querySelectorAll('[data-shell-filter]').forEach(item => {
+      item.textContent = copy.filters[item.dataset.shellFilter] ?? item.dataset.shellFilter;
+    });
+    this.screenEl?.querySelector('.strategy-chronicle-languages')?.setAttribute('aria-label', copy.languageLabel);
+  }
+
 
 
   focusNavigatorSearch() {
@@ -247,6 +277,7 @@ export class StrategyObserverShell {
     this.selectionId = selectionId;
     this.pinnedEventIds = new Set(pinnedEventIds);
     this.setTimelineMode(viewModel.timelineMode ?? this.timelineMode);
+    this.setTimelineLocale(viewModel.locale ?? this.timelineLocale);
     const top = viewModel.topBar ?? {};
     const time = Math.max(0, Math.floor(top.time ?? 0));
     setText(this.screenEl, '[data-shell-time]', `${String(Math.floor(time / 60)).padStart(2, '0')}:${String(time % 60).padStart(2, '0')}`);
@@ -287,8 +318,8 @@ export class StrategyObserverShell {
     const newest = [...events].reverse();
     const pinned = newest.filter(event => this.pinnedEventIds.has(String(event.id)));
     pinnedHost.hidden = pinned.length === 0;
-    pinnedHost.innerHTML = pinned.length ? `<strong>Pinned</strong>${pinned.map(event => eventMarkup(event, true)).join('')}` : '';
-    host.innerHTML = newest.length ? newest.slice(0, 40).map(event => eventMarkup(event, this.pinnedEventIds.has(String(event.id)))).join('') : '<div class="strategy-empty">The chronicle is quiet.</div>';
+    pinnedHost.innerHTML = pinned.length ? `<strong>${escapeHtml(chronicleUiCopy(this.timelineLocale).pinned)}</strong>${pinned.map(event => eventMarkup(event, true, this.timelineLocale)).join('')}` : '';
+    host.innerHTML = newest.length ? newest.slice(0, 40).map(event => eventMarkup(event, this.pinnedEventIds.has(String(event.id)), this.timelineLocale)).join('') : `<div class="strategy-empty">${escapeHtml(chronicleUiCopy(this.timelineLocale).empty)}</div>`;
   }
 
   announce(message) { setText(this.screenEl, '[data-shell-announcer]', message); }
@@ -312,12 +343,14 @@ function rowMarkup(type, id, title, detail, meta, roomId, selectionType, selecti
   return `<button class="strategy-nav-row${selected ? ' is-selected' : ''}" data-entity-type="${escapeHtml(type)}" data-entity-id="${escapeHtml(id)}" ${roomId ? `data-room-id="${escapeHtml(roomId)}"` : ''} aria-current="${selected ? 'true' : 'false'}"><span><b>${escapeHtml(title)}</b><small>${escapeHtml(detail)}</small></span><em>${escapeHtml(meta ?? '')}</em></button>`;
 }
 
-function eventMarkup(event, pinned) {
+function eventMarkup(event, pinned, locale = 'en') {
   const severity = event.severity ?? 'ambient';
   const channel = event.channel ?? 'chronicle';
+  const copy = chronicleUiCopy(locale);
   const focusable = event.roomId || event.actorId || event.targetId;
-  const details = event.detail ? `<details class="strategy-event-details"><summary>mechanical detail</summary><code>${escapeHtml(event.detail)}</code></details>` : '';
-  return `<article class="strategy-event severity-${escapeHtml(severity)}${focusable ? ' is-focusable' : ''}" data-event-channel="${escapeHtml(channel)}" data-event-id="${escapeHtml(event.id)}" ${event.roomId ? `data-room-id="${escapeHtml(event.roomId)}"` : ''} ${event.actorId ? `data-actor-id="${escapeHtml(event.actorId)}"` : ''} ${event.targetId ? `data-target-id="${escapeHtml(event.targetId)}"` : ''} tabindex="0"><time>${formatEventTime(event.time)}</time><span>${escapeHtml((event.type ?? 'event').split('.')[0])}<i class="strategy-event-channel">${escapeHtml(channel)}</i></span><button class="strategy-event-pin${pinned ? ' is-pinned' : ''}" data-event-pin aria-label="${pinned ? 'Unpin' : 'Pin'} event" aria-pressed="${pinned}">◆</button><p>${escapeHtml(event.text || 'World state changed.')}</p>${details}</article>`;
+  const details = event.detail ? `<details class="strategy-event-details"><summary>${escapeHtml(copy.detail)}</summary><code>${escapeHtml(event.detail)}</code></details>` : '';
+  const secondary = event.secondaryText ? `<small class="strategy-event-secondary" lang="en">${escapeHtml(event.secondaryText)}</small>` : '';
+  return `<article class="strategy-event severity-${escapeHtml(severity)}${focusable ? ' is-focusable' : ''}" data-event-channel="${escapeHtml(channel)}" data-event-id="${escapeHtml(event.id)}" ${event.roomId ? `data-room-id="${escapeHtml(event.roomId)}"` : ''} ${event.actorId ? `data-actor-id="${escapeHtml(event.actorId)}"` : ''} ${event.targetId ? `data-target-id="${escapeHtml(event.targetId)}"` : ''} tabindex="0"><time>${formatEventTime(event.time)}</time><span>${escapeHtml((event.type ?? 'event').split('.')[0])}<i class="strategy-event-channel">${escapeHtml(copy.channels[channel] ?? channel)}</i></span><button class="strategy-event-pin${pinned ? ' is-pinned' : ''}" data-event-pin aria-label="${pinned ? 'Unpin' : 'Pin'} event" aria-pressed="${pinned}">◆</button><p class="strategy-event-primary">${escapeHtml(event.text || copy.fallback)}</p>${secondary}${details}</article>`;
 }
 
 function searchableText(row) { return Object.values(row ?? {}).filter(value => ['string', 'number'].includes(typeof value)).join(' ').toLowerCase(); }
