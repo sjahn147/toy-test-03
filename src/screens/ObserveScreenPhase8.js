@@ -6,7 +6,7 @@ import { applyPhase7Territories } from '../data/applyPhase7Territories.js';
 import { applyPhase8SpatialScale } from '../data/applyPhase8SpatialScale.js';
 import { applyPhase8PropLayout } from '../data/applyPhase8PropLayout.js';
 import { createLegacyGameRuntime } from '../application/GameRuntimeFactory.js';
-import { StrategyObserverShellWP6 } from '../ui/StrategyObserverShellWP6.js';
+import { StrategyObserverShellCameraPhase10 } from '../ui/StrategyObserverShellCameraPhase10.js';
 import { renderStrategyInspector } from '../ui/renderStrategyInspector.js';
 import { CameraDirector } from '../engine/CameraDirector.js';
 import { OVERLAY_MODES, normalizeOverlayMode, cycleOverlayMode } from '../engine/StrategicOverlayModel.js';
@@ -60,13 +60,14 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.runtime = createLegacyGameRuntime({ sim: this.sim });
     this.runtimeUnsubscribe = this.runtime.subscribe(() => { this.viewModelClock = 0; });
 
-    this.shell = new StrategyObserverShellWP6({
+    this.shell = new StrategyObserverShellCameraPhase10({
       onPauseToggle: paused => this.runtime.dispatch({ type: paused ? 'clock.pause' : 'clock.resume' }),
       onSpeedChange: speed => this.runtime.dispatch({ type: 'clock.set-speed', speed }),
       onBack: this.onBack,
       onSelect: payload => this.selectEntity(payload),
       onCameraMode: mode => this.setCameraMode(mode),
       onCameraAction: action => this.handleCameraAction(action),
+      onCameraSettings: settings => this.cameraController?.applySettings(settings),
       onOverlayMode: mode => this.setOverlayMode(mode),
       onTimelineFilter: filter => { this.timelineFilter = filter; this.refreshViewModel(true); },
       onTimelineMode: mode => { this.timelineMode = mode; saveChroniclePreferences({ mode, locale: this.timelineLocale }); this.refreshViewModel(true); },

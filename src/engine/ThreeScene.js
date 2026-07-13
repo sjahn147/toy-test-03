@@ -24,6 +24,11 @@ export class ThreeScene {
     this.dragStart = null;
     this.pinchStart = null;
     this.interactionMode = 'orbit';
+    this.groundRaycaster = new THREE.Raycaster();
+    this.groundNormal = new THREE.Vector3(0, 1, 0);
+    this.groundPlane = new THREE.Plane(this.groundNormal, 0);
+    this.groundPoint = new THREE.Vector3();
+    this.groundNdc = new THREE.Vector2();
     this.idleSeconds = 0;
     this.autoOrbitEnabled = false;
     this.autoOrbitActive = false;
@@ -157,6 +162,19 @@ export class ThreeScene {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+  }
+
+  screenToGround(clientX, clientY, planeY = this.target.y) {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    this.groundNdc.set(
+      ((clientX - rect.left) / rect.width) * 2 - 1,
+      -((clientY - rect.top) / rect.height) * 2 + 1
+    );
+    this.groundRaycaster.setFromCamera(this.groundNdc, this.camera);
+    this.groundPlane.set(this.groundNormal, -planeY);
+    const hit = this.groundRaycaster.ray.intersectPlane(this.groundPlane, this.groundPoint);
+    return hit ? { x: hit.x, y: hit.y, z: hit.z } : null;
   }
 
   setCameraTarget(x, y, z, distance = null, immediate = false) {

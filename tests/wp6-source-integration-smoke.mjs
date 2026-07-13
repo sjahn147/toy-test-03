@@ -6,7 +6,10 @@ const renderer = await readFile(new URL('../src/engine/DungeonRendererPhase8.js'
 const three = await readFile(new URL('../src/engine/ThreeScene.js', import.meta.url), 'utf8');
 const index = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 
-for (const token of ['StrategyObserverShellWP6', 'CameraDirector', 'setOverlayMode(mode)', 'cycleOverlay(direction = 1)', "event.key.toLowerCase() === 'v'"]) {
+// WP10 swaps in StrategyObserverShellCameraPhase10, which extends StrategyObserverShellWP6,
+// so either literal class name confirms the WP6 shell is still wired into this screen.
+assert.ok(screen.includes('StrategyObserverShellWP6') || screen.includes('StrategyObserverShellCameraPhase10'), 'ObserveScreenPhase8 missing a WP6-descended shell');
+for (const token of ['CameraDirector', 'setOverlayMode(mode)', 'cycleOverlay(direction = 1)', "event.key.toLowerCase() === 'v'"]) {
   assert.ok(screen.includes(token), `ObserveScreenPhase8 missing ${token}`);
 }
 for (const token of ['StrategicOverlayRenderer', 'setOverlayMode(mode', 'setOverlayContext(context', 'getOverlaySummary()']) {
