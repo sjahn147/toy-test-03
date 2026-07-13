@@ -5,7 +5,10 @@ import { listHeroAnimationProfiles, getHeroAnimationProfile } from '../src/conte
 
 assert.deepEqual(validateHeroDefinitions(), []);
 const heroes = listHeroDefinitions();
-assert.equal(heroes.length, 6, 'WP8-B must preserve the WP8-A trio and add exactly three irregular heroes');
+// Later work packages (WP8c onward) append more heroes to this shared
+// registry, so this checks WP8-A + WP8-B's 6 are present, not that the
+// registry is frozen at exactly 6.
+assert.ok(heroes.length >= 6, 'WP8-B must preserve the WP8-A trio and add three irregular heroes');
 
 const expected = [
   ['hero.isara', 'hero-isara', 'undead-host', 'E25', 'isara-spectral'],
@@ -44,7 +47,7 @@ for (const id of ['isara-spectral', 'orum-fungal', 'glop-regal']) {
 
 const content = JSON.parse(await readFile(new URL('../content/campaigns/sleeping-citadel/faction-heroes.json', import.meta.url), 'utf8'));
 assert.equal(content.schemaVersion, 2);
-assert.equal(content.heroes.length, 6);
+assert.ok(content.heroes.length >= 6);
 for (const id of expected.map(entry => entry[0])) {
   const record = content.heroes.find(hero => hero.id === id);
   assert.ok(record);

@@ -46,7 +46,7 @@ const raw = {
 };
 assert.doesNotThrow(() => JSON.stringify(raw));
 assertPlain(raw);
-assert.equal(raw.heroes.heroes.length, 6);
+assert.ok(raw.heroes.heroes.length >= 6, 'shared HeroDefinitions registry grows in later work packages');
 assert.equal(raw.heroForms.forms.length, 5);
 assert.equal(raw.heroForms.groups.length, 2);
 for (const form of raw.heroForms.forms) {
