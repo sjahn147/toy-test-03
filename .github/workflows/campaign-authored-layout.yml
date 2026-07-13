@@ -1,0 +1,18 @@
+name: Campaign Authored Layout
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  authored-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:campaign-layout
+      - run: npm run test:campaign-map
+      - run: npm run test:phase8
+      - run: npm run test:phase8c

@@ -1,6 +1,7 @@
 import { THREE } from './ThreeScene.js';
 import { AssetRegistry } from './AssetRegistry.js';
 import { buildDungeonTopology, sampleConnection, roomSurfaceY } from './DungeonTopology.js';
+import { AuthoredRouteRenderer } from './AuthoredRouteRenderer.js';
 
 const FLOOR_HEIGHT = 2.85;
 const AGENT_HEIGHT = 0.43;
@@ -10,7 +11,7 @@ export class DungeonRenderer {
     this.three = three;
     this.scenario = scenario;
     this.assets = assets;
-    this.topology = buildDungeonTopology(scenario.rooms, scenario.links);
+    this.topology = buildDungeonTopology(scenario.rooms, scenario.routes ?? scenario.links, { includeInactive: true });
     this.connectionById = new Map(this.topology.connections.map(connection => [connection.id, connection]));
     this.roomMeshes = new Map();
     this.agentMeshes = new Map();
@@ -20,8 +21,20 @@ export class DungeonRenderer {
     this.pointer = new THREE.Vector2();
     this.group = new THREE.Group();
     three.scene.add(this.group);
+    this.routeRenderer = null;
     this.buildRooms();
-    this.buildConnections();
+    if (this.topology.authored) {
+      this.routeRenderer = new AuthoredRouteRenderer({
+        three: this.three,
+        assets: this.assets,
+        parent: this.group,
+        topology: this.topology,
+        roomY: room => this.roomY(room)
+      });
+      this.routeRenderer.build();
+    } else {
+      this.buildConnections();
+    }
   }
 
   roomY(room) {
@@ -43,13 +56,15 @@ export class DungeonRenderer {
       this.buildWallSide(room, 'W', ports.filter(port => port.side === 'W'));
       this.buildWallSide(room, 'E', ports.filter(port => port.side === 'E'));
 
-      for (const port of ports) {
-        const axis = port.side === 'N' || port.side === 'S' ? 'x' : 'z';
-        const door = this.assets.makeDoorFrame(port.width, axis);
-        door.position.set(port.x, y, port.z);
-        door.userData.roomId = room.id;
-        door.userData.portId = port.id;
-        this.group.add(door);
+      if (!this.topology.authored) {
+        for (const port of ports) {
+          const axis = port.side === 'N' || port.side === 'S' ? 'x' : 'z';
+          const door = this.assets.makeDoorFrame(port.width, axis);
+          door.position.set(port.x, y, port.z);
+          door.userData.roomId = room.id;
+          door.userData.portId = port.id;
+          this.group.add(door);
+        }
       }
 
       if (room.kind === 'hatchery') this.addRoomMarker(room, 0xff9b72);
@@ -124,6 +139,7 @@ export class DungeonRenderer {
   }
 
   renderState(snapshot) {
+    this.routeRenderer?.sync(snapshot.routes ?? []);
     this.renderProps(snapshot.props, snapshot.rooms);
     this.renderAgents(snapshot.agents, snapshot.rooms, snapshot.time);
     this.renderEffects(snapshot.effects ?? [], snapshot.rooms, snapshot.time);
@@ -264,7 +280,7 @@ export class DungeonRenderer {
     const normalZ = sample.tx;
     return {
       x: sample.x + normalX * laneOffset,
-      y: y + height,
+      y: y + height + (sample.yOffset ?? 0),
       z: sample.z + normalZ * laneOffset,
       rotation: Math.atan2(sample.tx * (forward ? 1 : -1), sample.tz * (forward ? 1 : -1))
     };
@@ -328,6 +344,8 @@ export class DungeonRenderer {
   }
 
   destroy() {
+    this.routeRenderer?.destroy();
+    this.routeRenderer = null;
     this.three.scene.remove(this.group);
   }
 }
