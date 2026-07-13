@@ -103,7 +103,9 @@ assert.deepEqual(majorEvents.map(event => event.id), ['critical-1', 'historic-1'
 assert.equal(majorEvents[0].roomId, 'hall');
 assert.equal(majorEvents[0].actorId, 'hero');
 assert.equal(majorEvents[0].targetId, 'rival');
-assert.equal(selectTimelineEvents(snapshot, { filter: 'ecology' }).length, 1);
+// WP9-A's default 'chronicle' mode hides routine/ambient events (moved to 'detailed'+); use
+// 'detailed' mode here to exercise the 'ecology' type-filter itself, independent of that gate.
+assert.equal(selectTimelineEvents(snapshot, { filter: 'ecology', mode: 'detailed' }).length, 1);
 
 const normalized = normalizeLegacySnapshot({
   time: 3,

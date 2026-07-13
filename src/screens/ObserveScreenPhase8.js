@@ -12,6 +12,7 @@ import { CameraDirector } from '../engine/CameraDirector.js';
 import { OVERLAY_MODES, normalizeOverlayMode, cycleOverlayMode } from '../engine/StrategicOverlayModel.js';
 import { WorldInteractionPicker } from '../engine/WorldInteractionPicker.js';
 import { WorldInteractionTooltip } from '../ui/WorldInteractionTooltip.js';
+import { loadChroniclePreferences, saveChroniclePreferences } from '../application/ChroniclePreferences.js';
 
 export class ObserveScreen extends Phase6ObserveScreen {
   constructor(options) {
@@ -24,6 +25,9 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.followAgentId = null;
     this.observerFactionId = null;
     this.timelineFilter = 'all';
+    const chroniclePreferences = loadChroniclePreferences();
+    this.timelineMode = chroniclePreferences.mode;
+    this.timelineLocale = chroniclePreferences.locale;
     this.pinnedEventIds = new Set();
     this.viewModel = null;
     this.viewModelClock = 0;
@@ -65,6 +69,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
       onCameraAction: action => this.handleCameraAction(action),
       onOverlayMode: mode => this.setOverlayMode(mode),
       onTimelineFilter: filter => { this.timelineFilter = filter; this.refreshViewModel(true); },
+      onTimelineMode: mode => { this.timelineMode = mode; saveChroniclePreferences({ mode, locale: this.timelineLocale }); this.refreshViewModel(true); },
       onTimelineEvent: event => this.focusTimelineEvent(event),
       onTogglePin: eventId => this.togglePinnedEvent(eventId),
       onAlertOpen: () => this.shell?.announce('Showing major, critical and historic events.')
@@ -221,6 +226,8 @@ export class ObserveScreen extends Phase6ObserveScreen {
       ...this.selectionContext(),
       observerFactionId: this.observerFactionId,
       timelineFilter: this.timelineFilter,
+      timelineMode: this.timelineMode,
+      locale: this.timelineLocale,
       timelineLimit: 120
     });
     this.shell?.render(this.viewModel, {

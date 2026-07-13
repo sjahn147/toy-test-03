@@ -1,5 +1,5 @@
 const NAV_TABS = ['factions', 'parties', 'settlements', 'rooms'];
-const TIMELINE_FILTERS = ['all', 'combat', 'ecology', 'party', 'settlement', 'logistics', 'discovery', 'relationship', 'major'];
+const TIMELINE_FILTERS = ['all', 'combat', 'ecology', 'party', 'settlement', 'logistics', 'construction', 'discovery', 'hero', 'relationship', 'major'];
 
 export class StrategyObserverShell {
   constructor({
@@ -12,11 +12,13 @@ export class StrategyObserverShell {
     onTimelineFilter = () => {},
     onTimelineEvent = () => {},
     onTogglePin = () => {},
+    onTimelineMode = () => {},
     onAlertOpen = () => {}
   } = {}) {
-    this.callbacks = { onPauseToggle, onSpeedChange, onBack, onSelect, onCameraMode, onCameraAction, onTimelineFilter, onTimelineEvent, onTogglePin, onAlertOpen };
+    this.callbacks = { onPauseToggle, onSpeedChange, onBack, onSelect, onCameraMode, onCameraAction, onTimelineFilter, onTimelineMode, onTimelineEvent, onTogglePin, onAlertOpen };
     this.activeTab = 'factions';
     this.timelineFilter = 'all';
+    this.timelineMode = 'chronicle';
     this.navigatorQuery = '';
     this.mobileSurface = 'world';
     this.paused = false;
@@ -76,6 +78,11 @@ export class StrategyObserverShell {
       <footer class="strategy-timeline" data-mobile-surface="timeline">
         <div class="strategy-timeline-tools">
           <strong>Chronicle</strong>
+          <div class="strategy-chronicle-modes" role="group" aria-label="Chronicle density">
+            <button data-shell-log-mode="chronicle" class="is-active" aria-pressed="true">Chronicle</button>
+            <button data-shell-log-mode="detailed" aria-pressed="false">Detailed</button>
+            <button data-shell-log-mode="debug" aria-pressed="false">Debug</button>
+          </div>
           <div class="strategy-timeline-filters" role="group" aria-label="Chronicle filters">
             ${TIMELINE_FILTERS.map(filter => `<button data-shell-filter="${filter}" class="${filter === this.timelineFilter ? 'is-active' : ''}" aria-pressed="${filter === this.timelineFilter}">${filter}</button>`).join('')}
           </div>
@@ -157,6 +164,7 @@ export class StrategyObserverShell {
       this.renderNavigator(this.lastViewModel?.navigator ?? {});
     });
     this.screenEl.querySelectorAll('[data-shell-filter]').forEach(button => button.addEventListener('click', () => this.setTimelineFilter(button.dataset.shellFilter)));
+    this.screenEl.querySelectorAll('[data-shell-log-mode]').forEach(button => button.addEventListener('click', () => { this.setTimelineMode(button.dataset.shellLogMode); this.callbacks.onTimelineMode(button.dataset.shellLogMode); }));
     this.screenEl.querySelectorAll('[data-shell-camera]').forEach(button => button.addEventListener('click', () => {
       this.setCameraMode(button.dataset.shellCamera);
       this.callbacks.onCameraMode(button.dataset.shellCamera);
@@ -199,6 +207,15 @@ export class StrategyObserverShell {
     });
     this.callbacks.onTimelineFilter(filter);
   }
+  setTimelineMode(mode) {
+    this.timelineMode = ['chronicle', 'detailed', 'debug'].includes(mode) ? mode : 'chronicle';
+    this.screenEl?.querySelectorAll('[data-shell-log-mode]').forEach(item => {
+      const active = item.dataset.shellLogMode === this.timelineMode;
+      item.classList.toggle('is-active', active);
+      item.setAttribute('aria-pressed', String(active));
+    });
+  }
+
 
   focusNavigatorSearch() {
     this.setMobileSurface('navigator');
@@ -229,6 +246,7 @@ export class StrategyObserverShell {
     this.selectionType = selectionType;
     this.selectionId = selectionId;
     this.pinnedEventIds = new Set(pinnedEventIds);
+    this.setTimelineMode(viewModel.timelineMode ?? this.timelineMode);
     const top = viewModel.topBar ?? {};
     const time = Math.max(0, Math.floor(top.time ?? 0));
     setText(this.screenEl, '[data-shell-time]', `${String(Math.floor(time / 60)).padStart(2, '0')}:${String(time % 60).padStart(2, '0')}`);
@@ -296,8 +314,10 @@ function rowMarkup(type, id, title, detail, meta, roomId, selectionType, selecti
 
 function eventMarkup(event, pinned) {
   const severity = event.severity ?? 'ambient';
+  const channel = event.channel ?? 'chronicle';
   const focusable = event.roomId || event.actorId || event.targetId;
-  return `<article class="strategy-event severity-${escapeHtml(severity)}${focusable ? ' is-focusable' : ''}" data-event-id="${escapeHtml(event.id)}" ${event.roomId ? `data-room-id="${escapeHtml(event.roomId)}"` : ''} ${event.actorId ? `data-actor-id="${escapeHtml(event.actorId)}"` : ''} ${event.targetId ? `data-target-id="${escapeHtml(event.targetId)}"` : ''} tabindex="0"><time>${formatEventTime(event.time)}</time><span>${escapeHtml((event.type ?? 'event').split('.')[0])}</span><button class="strategy-event-pin${pinned ? ' is-pinned' : ''}" data-event-pin aria-label="${pinned ? 'Unpin' : 'Pin'} event" aria-pressed="${pinned}">◆</button><p>${escapeHtml(event.text || 'World state changed.')}</p></article>`;
+  const details = event.detail ? `<details class="strategy-event-details"><summary>mechanical detail</summary><code>${escapeHtml(event.detail)}</code></details>` : '';
+  return `<article class="strategy-event severity-${escapeHtml(severity)}${focusable ? ' is-focusable' : ''}" data-event-channel="${escapeHtml(channel)}" data-event-id="${escapeHtml(event.id)}" ${event.roomId ? `data-room-id="${escapeHtml(event.roomId)}"` : ''} ${event.actorId ? `data-actor-id="${escapeHtml(event.actorId)}"` : ''} ${event.targetId ? `data-target-id="${escapeHtml(event.targetId)}"` : ''} tabindex="0"><time>${formatEventTime(event.time)}</time><span>${escapeHtml((event.type ?? 'event').split('.')[0])}<i class="strategy-event-channel">${escapeHtml(channel)}</i></span><button class="strategy-event-pin${pinned ? ' is-pinned' : ''}" data-event-pin aria-label="${pinned ? 'Unpin' : 'Pin'} event" aria-pressed="${pinned}">◆</button><p>${escapeHtml(event.text || 'World state changed.')}</p>${details}</article>`;
 }
 
 function searchableText(row) { return Object.values(row ?? {}).filter(value => ['string', 'number'].includes(typeof value)).join(' ').toLowerCase(); }
