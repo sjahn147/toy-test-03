@@ -3,6 +3,7 @@ import { getHeroAnimationClip } from '../../content/heroes/HeroAnimationClips.js
 import { updateHeroSecondaryMotion, applyVolumePreservingSquash, beginSecondaryMotionFrame, springRotation, springPosition } from './HeroSecondaryMotion.js';
 
 export function animateHeroMiniature(mesh, agent, time = 0) {
+  if (mesh?.userData?.isHeroSummon) return animateHeroSummonMiniature(mesh, agent, time);
   if (mesh?.userData?.isHeroForm) return animateHeroFormMiniature(mesh, agent, time);
   if (!mesh?.userData?.isHero) return false;
   const definition = getHeroDefinition(agent?.heroId ?? agent?.role);
@@ -22,6 +23,9 @@ export function animateHeroMiniature(mesh, agent, time = 0) {
   else if (definition.id === 'hero.jijik') animateJijikLocomotion(joints, agent, time, moving);
   else if (definition.id === 'hero.tissa') animateTissaLocomotion(joints, agent, time, moving);
   else if (definition.id === 'hero.murga') animateMurgaLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.aldren') animateAldrenLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.malcor') animateMalcorLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.arvek') animateArvekLocomotion(joints, agent, time, moving);
 
   if (agent.heroCast) animateHeroCast(joints, definition, agent.heroCast);
   else if (agent.combat) animateCombat(joints, definition, agent.combat);
@@ -153,6 +157,40 @@ function animateMurgaLocomotion(joints, agent, time, moving) {
   if (joints.chest) joints.chest.rotation.x += 0.06;
 }
 
+function animateAldrenLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 2.7 : 1.1) + seed(agent.id);
+  const gait = moving ? Math.sin(phase) : 0;
+  rotate(joints.legL, 'x', gait * 0.34);
+  rotate(joints.legR, 'x', -gait * 0.34);
+  rotate(joints.armL, 'x', -gait * 0.12);
+  rotate(joints.armR, 'x', gait * 0.1);
+  if (joints.pelvis) joints.pelvis.position.y += moving ? Math.abs(Math.sin(phase)) * 0.018 : 0;
+  if (joints.shieldRoot) joints.shieldRoot.rotation.y += moving ? 0.1 : 0;
+}
+
+function animateMalcorLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 5.0 : 1.5) + seed(agent.id);
+  const gait = moving ? Math.sin(phase) : 0;
+  rotate(joints.legL, 'x', gait * 0.48);
+  rotate(joints.legR, 'x', -gait * 0.48);
+  rotate(joints.upperArmL, 'x', -gait * 0.34);
+  rotate(joints.upperArmR, 'x', gait * 0.34);
+  if (joints.spineLower) joints.spineLower.rotation.x += moving ? 0.34 : 0.22;
+  if (joints.neck) joints.neck.rotation.x += moving ? -0.18 : -0.08;
+  if (joints.motionRoot && moving) joints.motionRoot.position.y += Math.max(0, Math.sin(phase * 2)) * 0.04;
+}
+
+function animateArvekLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 2.2 : 0.9) + seed(agent.id);
+  const gait = moving ? Math.sin(phase) : 0;
+  rotate(joints.legL, 'x', gait * 0.27);
+  rotate(joints.legR, 'x', -gait * 0.27);
+  rotate(joints.armL, 'x', -gait * 0.08);
+  rotate(joints.armR, 'x', gait * 0.07);
+  if (joints.motionRoot) joints.motionRoot.position.y += moving ? Math.abs(Math.sin(phase)) * 0.012 : 0;
+  if (joints.chest) joints.chest.rotation.y += moving ? gait * 0.04 : 0;
+}
+
 function animateIdle(joints, definition, time, agent) {
   const profile = definition.visual.animationProfile;
   const primary = getHeroAnimationClip(profile, 'idle-primary');
@@ -191,6 +229,24 @@ function animateCombat(joints, definition, combat) {
     rotate(joints.shoulderR, 'x', combat.phase === 'impact' ? 0.8 : -progress * 0.9);
     rotate(joints.cleaverRoot, 'z', combat.phase === 'impact' ? 0.75 : -progress * 0.72);
     rotate(joints.chest, 'y', combat.phase === 'impact' ? 0.35 : -progress * 0.22);
+    return;
+  }
+  if (definition.id === 'hero.aldren') {
+    rotate(joints.shoulderL, 'x', combat.phase === 'impact' ? 0.55 : -progress * 0.65);
+    rotate(joints.shieldRoot, 'z', combat.phase === 'impact' ? -0.35 : progress * 0.2);
+    rotate(joints.swordRoot, 'x', combat.phase === 'impact' ? 0.5 : -progress * 0.72);
+    return;
+  }
+  if (definition.id === 'hero.malcor') {
+    rotate(joints.spineLower, 'x', combat.phase === 'impact' ? -0.15 : 0.25 + progress * 0.2);
+    rotate(joints.shoulderR, 'x', combat.phase === 'impact' ? 0.9 : -progress * 0.75);
+    rotate(joints.jaw, 'x', combat.phase === 'impact' ? -0.8 : -progress * 0.2);
+    return;
+  }
+  if (definition.id === 'hero.arvek') {
+    rotate(joints.shoulderR, 'x', combat.phase === 'impact' ? 0.75 : -progress * 0.72);
+    rotate(joints.swordRoot, 'z', combat.phase === 'impact' ? 0.62 : -progress * 0.58);
+    rotate(joints.shieldRoot, 'y', combat.phase === 'impact' ? 0.2 : -progress * 0.15);
     return;
   }
   if (definition.id === 'hero.karg') {
@@ -238,6 +294,26 @@ function animateSecondary(joints, definition, time, agent) {
       for (let i = 0; i < 3; i += 1) rotate(joints[`stabilizer${i}`], 'x', -0.9);
     }
   }
+  if (definition.id === 'hero.aldren') {
+    rotate(joints.cloakL, 'z', Math.sin(phase * 1.15) * 0.045);
+    rotate(joints.cloakR, 'z', -Math.sin(phase * 1.05 + 0.35) * 0.045);
+    rotate(joints.commandChain, 'y', Math.sin(phase * 1.4) * 0.04);
+    if (joints.soulCore) joints.soulCore.scale.y *= 0.92 + Math.sin(phase * 4.2) * 0.08;
+  }
+  if (definition.id === 'hero.malcor') {
+    rotate(joints.coatTailL, 'z', Math.sin(phase * 1.55) * 0.08);
+    rotate(joints.coatTailR, 'z', -Math.sin(phase * 1.42 + 0.6) * 0.08);
+    rotate(joints.vaporRoot, 'y', phase * 0.08);
+    if (agent.heroStatuses?.ghoulFrenzy) rotate(joints.jaw, 'x', -0.2);
+  }
+  if (definition.id === 'hero.arvek') {
+    rotate(joints.keyRing, 'y', phase * 0.07);
+    rotate(joints.chainCloak, 'z', Math.sin(phase * 0.85) * 0.035);
+    if (agent.heroStatuses?.gateLockdown) {
+      rotate(joints.shieldRoot, 'y', -0.18);
+      rotate(joints.crossbar, 'z', -0.08);
+    }
+  }
   if (definition.id === 'hero.karg') {
     rotate(joints.bannerL, 'z', Math.sin(phase * 1.15) * 0.09);
     rotate(joints.bannerR, 'z', -Math.sin(phase * 1.05 + 0.5) * 0.09);
@@ -264,6 +340,26 @@ function animateSecondary(joints, definition, time, agent) {
   if (definition.id === 'hero.glop') {
     applyGlopStance(joints, agent.heroStance ?? 'crown');
     if (agent.heroStatuses?.splitCourt && joints.blobRoot) joints.blobRoot.scale.setScalar(0.72);
+  }
+  if (definition.id === 'hero.aldren') {
+    rotate(joints.cloakL, 'z', Math.sin(phase * 1.1) * 0.055);
+    rotate(joints.cloakR, 'z', -Math.sin(phase * 1.05 + 0.4) * 0.055);
+    if (joints.commandChain) joints.commandChain.rotation.y += phase * 0.05;
+    if (agent.heroStatuses?.royalFormation) rotate(joints.shieldRoot, 'y', 0.24);
+  }
+  if (definition.id === 'hero.malcor') {
+    rotate(joints.coatTailL, 'z', Math.sin(phase * 1.4) * 0.09);
+    rotate(joints.coatTailR, 'z', -Math.sin(phase * 1.3 + 0.5) * 0.09);
+    rotate(joints.jaw, 'x', Math.sin(phase * 0.8) * 0.06);
+    if (joints.vaporRoot) joints.vaporRoot.rotation.y += phase * 0.08;
+  }
+  if (definition.id === 'hero.arvek') {
+    if (joints.keyRing) joints.keyRing.rotation.y += phase * 0.04;
+    rotate(joints.chainCloak, 'z', Math.sin(phase * 0.75) * 0.035);
+    if (agent.heroStatuses?.gateLockdown) {
+      if (joints.shieldRoot) joints.shieldRoot.position.z += 0.18;
+      if (joints.crossbar) joints.crossbar.position.z -= 0.12;
+    }
   }
 }
 
@@ -303,6 +399,30 @@ function animateDynamicMaterials(mesh, agent, definition, time) {
       if (material?.transparent) material.opacity = clamp(0.64 - damage * 0.08 + Math.sin(time * 1.7) * 0.025, 0.38, 0.72);
     }
   }
+}
+
+function animateHeroSummonMiniature(mesh, agent, time) {
+  const joints = mesh.userData.joints ?? {};
+  resetJoints(joints);
+  const moving = Boolean(agent?.travel) || agent?.mood === 'retreating';
+  const phase = time * (moving ? 4.4 : 1.7) + seed(agent?.id);
+  const gait = moving ? Math.sin(phase) : 0;
+  rotate(joints.legL, 'x', gait * 0.4);
+  rotate(joints.legR, 'x', -gait * 0.4);
+  rotate(joints.armL, 'x', -gait * 0.26);
+  rotate(joints.armR, 'x', gait * 0.26);
+  if (agent?.heroSummonKind === 'ghoul') {
+    rotate(joints.body, 'x', 0.32 + Math.sin(phase * 0.5) * 0.04);
+    rotate(joints.head, 'x', -0.18);
+  } else if (agent?.heroSummonKind === 'spectral-guard') {
+    if (joints.motionRoot) joints.motionRoot.position.y += Math.sin(phase) * 0.05;
+    if (joints.accent) joints.accent.rotation.y += time * 0.25;
+  }
+  if (agent?.combat) {
+    const progress = clamp(agent.combat.progress ?? 0, 0, 1);
+    rotate(joints.armR, 'x', agent.combat.phase === 'impact' ? 0.8 : -progress * 0.7);
+  }
+  return true;
 }
 
 function animateHeroFormMiniature(mesh, agent, time) {
@@ -398,9 +518,9 @@ function animateIndicators(mesh, agent, definition, time) {
   if (inner) inner.rotation.z = -time * 0.31;
   if (marker) {
     marker.userData ??= {};
-    marker.userData.baseHeroMarkerY ??= marker.position.y;
+    marker.userData.heroBaseY ??= marker.position.y;
     marker.rotation.y = time * 0.72;
-    marker.position.y = marker.userData.baseHeroMarkerY + Math.sin(time * 2.2 + seed(agent.id)) * 0.04;
+    marker.position.y = marker.userData.heroBaseY + Math.sin(time * 2.2 + seed(agent.id)) * 0.04;
   }
   if (hp) hp.scale.x = Math.max(0.02, (agent.hp ?? 0) / Math.max(1, agent.maxHp ?? definition.baseStats.hp));
 }

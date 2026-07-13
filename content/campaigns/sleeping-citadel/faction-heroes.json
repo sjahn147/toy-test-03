@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "campaignId": "sleeping-citadel",
-  "scope": "WP8-A foundation + WP8-B irregular physics trio + WP8-C field physics frontline trio",
+  "scope": "WP8-A foundation + WP8-B irregular physics trio + WP8-C field physics frontline trio + WP8-D fallen kingdom command trio",
   "heroes": [
     {
       "id": "hero.nibble",
@@ -112,6 +112,48 @@
         "physical-tethers",
         "corpse-drag-work-cycle",
         "deployable-support-hearths"
+      ]
+    },
+    {
+      "id": "hero.aldren",
+      "role": "hero-aldren",
+      "name": "Ser Aldren Vale",
+      "localizedName": "세르 알드렌 베일",
+      "factionId": "undead-host",
+      "initialRoomId": "E22",
+      "slice": "wp8d",
+      "frameworkContribution": [
+        "formation-and-line-crossing",
+        "frontal-damage-model",
+        "corpse-reassembly-summons"
+      ]
+    },
+    {
+      "id": "hero.malcor",
+      "role": "hero-malcor",
+      "name": "Malcor Rotten-Tooth",
+      "localizedName": "구린이빨 말코르",
+      "factionId": "undead-host",
+      "initialRoomId": "E24",
+      "slice": "wp8d",
+      "frameworkContribution": [
+        "corpse-consumption-memory-buffs",
+        "fear-paralysis-statuses",
+        "ghoul-pack-lifecycle"
+      ]
+    },
+    {
+      "id": "hero.arvek",
+      "role": "hero-arvek",
+      "name": "Arvek, Who Closed the Gate",
+      "localizedName": "아르벡, 성문을 닫은 자",
+      "factionId": "undead-host",
+      "initialRoomId": "L59",
+      "slice": "wp8d",
+      "frameworkContribution": [
+        "route-mounted-destructible-barriers",
+        "barrier-collision-combat",
+        "multi-route-lockdown"
       ]
     }
   ],

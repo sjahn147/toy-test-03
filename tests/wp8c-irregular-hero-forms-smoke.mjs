@@ -94,4 +94,4 @@ assert.equal(snapshot.forms.length, 3);
 assert.ok(snapshot.forms.every(form => form.ownerHeroId === 'hero.glop' && form.roomId === 'L57'));
 assert.ok(forms.metrics().heroFormsSpawned >= 3);
 
-console.log('WP8-C irregular regression temporary shade and split/merge hero-form smoke passed');
+console.log('WP8-C temporary shade and split/merge hero-form smoke passed');

@@ -12,14 +12,18 @@ export class HeroWorldActorRenderer {
     this.projectiles = new Map();
     this.fields = new Map();
     this.tethers = new Map();
+    this.formations = new Map();
+    this.barriers = new Map();
   }
 
-  render({ deployables = [], projectiles = [], fields = [], tethers = [] } = {}, rooms = [], time = 0) {
+  render({ deployables = [], projectiles = [], fields = [], tethers = [], formations = [], barriers = [] } = {}, rooms = [], time = 0) {
     const roomById = new Map(rooms.map(room => [room.id, room]));
     this.renderDeployables(deployables, roomById, time);
     this.renderProjectiles(projectiles, roomById, time);
     this.renderFields(fields, roomById, time);
     this.renderTethers(tethers, roomById, time);
+    this.renderFormations(formations, roomById, time);
+    this.renderBarriers(barriers, roomById, time);
   }
 
   renderDeployables(records, roomById, time) {
@@ -79,8 +83,39 @@ export class HeroWorldActorRenderer {
     });
   }
 
+  renderFormations(records, roomById, time) {
+    syncMap(this.formations, records, this.group, record => buildFormation(record), (mesh, record) => {
+      const room = roomById.get(record.roomId);
+      if (!room) { mesh.visible = false; return; }
+      mesh.visible = true;
+      const center = record.center ?? { x: 0, z: 0 };
+      mesh.position.set((room.x ?? 0) + (center.x ?? 0), roomY(room) + 0.045, (room.z ?? 0) + (center.z ?? 0));
+      const direction = record.direction ?? { x: 0, z: 1 };
+      mesh.rotation.y = Math.atan2(direction.x, direction.z);
+      animateFormation(mesh, record, time);
+    });
+  }
+
+  renderBarriers(records, roomById, time) {
+    syncMap(this.barriers, records, this.group, record => buildBarrier(record), (mesh, record) => {
+      const room = roomById.get(record.roomId) ?? roomById.get(record.fromRoomId);
+      const other = roomById.get(record.toRoomId);
+      if (!room) { mesh.visible = false; return; }
+      mesh.visible = true;
+      const dx = other ? (other.x ?? 0) - (room.x ?? 0) : 0;
+      const dz = other ? (other.z ?? 0) - (room.z ?? 0) : 1;
+      const length = Math.hypot(dx, dz) || 1;
+      const nx = dx / length;
+      const nz = dz / length;
+      const edgeDistance = Math.max(1.2, Math.min(room.w ?? 6, room.d ?? 6) * 0.42);
+      mesh.position.set((room.x ?? 0) + nx * edgeDistance, roomY(room), (room.z ?? 0) + nz * edgeDistance);
+      mesh.rotation.y = Math.atan2(nx, nz);
+      animateBarrier(mesh, record, time);
+    });
+  }
+
   destroy() {
-    for (const map of [this.deployables, this.projectiles, this.fields, this.tethers]) {
+    for (const map of [this.deployables, this.projectiles, this.fields, this.tethers, this.formations, this.barriers]) {
       for (const mesh of map.values()) this.group?.remove(mesh);
       map.clear();
     }
@@ -254,6 +289,106 @@ function buildTether(record) {
   }
   group.userData.links = links;
   return group;
+}
+
+
+function buildFormation(record) {
+  const group = new THREE.Group();
+  group.name = `hero-world-formation:${record.id}`;
+  group.userData.heroWorldActor = true;
+  const steel = mat('formation:steel', 0x738da7, { metalness: 0.18, roughness: 0.42, transparent: true, opacity: 0.72, emissive: 0x27435d, emissiveIntensity: 0.28 });
+  const soul = mat('formation:soul', 0xa9e3ff, { transparent: true, opacity: 0.58, depthWrite: false, emissive: 0x5b9bb8, emissiveIntensity: 0.55 });
+  const span = Math.max(2.4, record.span ?? 5.2);
+  const line = new THREE.Mesh(geo('formation:line', () => new THREE.BoxGeometry(0.08, 0.04, 1)), soul);
+  line.scale.z = span;
+  line.position.y = 0.035;
+  line.name = 'formation-line';
+  group.add(line);
+  const count = Math.max(1, record.memberIds?.length ?? 1);
+  for (let i = 0; i < count; i += 1) {
+    const shield = new THREE.Mesh(geo('formation:shield', () => new THREE.BoxGeometry(0.56, 0.78, 0.1)), steel);
+    const offset = count === 1 ? 0 : (i / (count - 1) - 0.5) * Math.min(span, 1.25 * (count - 1));
+    shield.position.set(0, 0.45, offset);
+    shield.rotation.y = Math.PI / 2;
+    shield.name = 'formation-shield';
+    shield.userData.phase = i * 0.62;
+    group.add(shield);
+    const flame = new THREE.Mesh(geo('formation:flame', () => new THREE.ConeGeometry(0.08, 0.34, 7)), soul);
+    flame.position.set(-0.08, 0.98, offset);
+    flame.name = 'formation-flame';
+    flame.userData.phase = i * 0.53;
+    group.add(flame);
+  }
+  return group;
+}
+
+function buildBarrier(record) {
+  const group = new THREE.Group();
+  group.name = `hero-world-barrier:${record.id}`;
+  group.userData.heroWorldActor = true;
+  group.userData.baseWidth = Math.max(2.4, record.width ?? 2.8);
+  const iron = mat('barrier:iron', 0x344853, { metalness: 0.18, roughness: 0.4, transparent: true, opacity: 0.72, emissive: 0x25495f, emissiveIntensity: 0.48 });
+  const soul = mat('barrier:soul', 0x86c7e6, { transparent: true, opacity: 0.52, depthWrite: false, emissive: 0x5faed1, emissiveIntensity: 0.76 });
+  const width = group.userData.baseWidth;
+  for (const side of [-1, 1]) {
+    const tower = new THREE.Mesh(geo('barrier:tower', () => new THREE.BoxGeometry(0.36, 2.3, 0.42)), iron);
+    tower.position.set(side * width * 0.5, 1.15, 0);
+    tower.name = 'barrier-tower';
+    group.add(tower);
+    const cap = new THREE.Mesh(geo('barrier:cap', () => new THREE.ConeGeometry(0.34, 0.74, 4)), iron);
+    cap.position.set(side * width * 0.5, 2.66, 0);
+    cap.rotation.y = Math.PI / 4;
+    group.add(cap);
+  }
+  for (let i = 0; i < 6; i += 1) {
+    const bar = new THREE.Mesh(geo('barrier:bar', () => new THREE.BoxGeometry(1, 0.1, 0.16)), soul);
+    bar.scale.x = width;
+    bar.position.y = 0.28 + i * 0.36;
+    bar.name = 'barrier-bar';
+    bar.userData.phase = i * 0.44;
+    group.add(bar);
+  }
+  const bolt = new THREE.Mesh(geo('barrier:bolt', () => new THREE.BoxGeometry(1, 0.22, 0.24)), iron);
+  bolt.scale.x = width * 0.72;
+  bolt.position.y = 1.18;
+  bolt.name = 'barrier-bolt';
+  group.add(bolt);
+  const hp = new THREE.Mesh(geo('barrier:hp', () => new THREE.BoxGeometry(1, 0.06, 0.05)), soul);
+  hp.position.set(0, 2.98, 0);
+  hp.name = 'barrier-hp';
+  group.add(hp);
+  return group;
+}
+
+function animateFormation(mesh, record, time) {
+  const ratio = clamp((record.remaining ?? 0) / Math.max(0.001, record.duration ?? 1), 0, 1);
+  const line = mesh.getObjectByName('formation-line');
+  if (line) line.material.opacity = 0.25 + ratio * 0.38 + Math.sin(time * 3) * 0.08;
+  mesh.traverse(node => {
+    const phase = node.userData?.phase ?? 0;
+    if (node.name === 'formation-shield') node.position.x = Math.sin(time * 2.2 + phase) * 0.035;
+    if (node.name === 'formation-flame') {
+      node.scale.set(0.88 + Math.sin(time * 5.4 + phase) * 0.12, 0.8 + Math.sin(time * 6.1 + phase) * 0.2, 0.88);
+      node.rotation.y = time * 0.7 + phase;
+    }
+  });
+}
+
+function animateBarrier(mesh, record, time) {
+  const ratio = clamp((record.hp ?? 0) / Math.max(1, record.maxHp ?? 1), 0, 1);
+  const hp = mesh.getObjectByName('barrier-hp');
+  if (hp) {
+    hp.scale.x = Math.max(0.04, ratio * (mesh.userData.baseWidth ?? 2.8));
+    hp.material.opacity = 0.4 + ratio * 0.48;
+  }
+  mesh.traverse(node => {
+    const phase = node.userData?.phase ?? 0;
+    if (node.name === 'barrier-bar') {
+      node.material.opacity = Math.max(0.12, 0.24 + ratio * 0.48 + Math.sin(time * 5 + phase) * 0.12);
+      node.scale.y = 0.72 + ratio * 0.28 + Math.sin(time * 3.2 + phase) * 0.06;
+    }
+  });
+  mesh.scale.y = 0.94 + Math.sin(time * 1.4) * 0.02;
 }
 
 function animateDeployable(mesh, record, time) {

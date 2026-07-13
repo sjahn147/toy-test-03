@@ -100,36 +100,36 @@ export function decideHeroAction(agent, sim, skillSystem) {
 
   if (definition.id === 'hero.isara') {
     if (healthRatio <= 0.55 && hostiles.length >= 3 && !skillSystem.hasZone('ethereal-domain', agent.roomId, definition.id)) {
-      return cast(agent, 'isara-unburied-queen', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'isara-unburied-queen', { targetRoomId: agent.roomId });
     }
     if (hostiles.length >= 1 && skillSystem.adjacentWraithCount(agent, sim) > 0) {
-      return cast(agent, 'isara-soul-procession', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'isara-soul-procession', { targetRoomId: agent.roomId });
     }
     if (hostiles.length >= 2 && !skillSystem.hasZone('mourning-veil', agent.roomId, definition.id)) {
-      return cast(agent, 'isara-mourning-veil', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'isara-mourning-veil', { targetRoomId: agent.roomId });
     }
   }
 
   if (definition.id === 'hero.orum-bell') {
     if (healthRatio <= 0.46 && !agent.heroStatuses?.solitaryBloom) {
-      return cast(agent, 'orum-solitary-bloom', { targetId: agent.id, targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'orum-solitary-bloom', { targetId: agent.id, targetRoomId: agent.roomId });
     }
     const allyNeedsMemory = allies.some(ally => ally.heroStatuses?.fear || ally.heroStatuses?.confusion || (ally.sporeSleep ?? 0) > 0);
     if ((hostiles.length >= 2 || allyNeedsMemory) && !skillSystem.hasZone('memory-bloom', agent.roomId, definition.id)) {
-      return cast(agent, 'orum-memory-bloom', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'orum-memory-bloom', { targetRoomId: agent.roomId });
     }
     if (hostiles.length) {
-      return cast(agent, 'orum-mycelial-lance', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'orum-mycelial-lance', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
     }
   }
 
   if (definition.id === 'hero.glop') {
     if (healthRatio <= 0.48 && hostiles.length >= 2 && !sim?.heroFormSystem?.groupForOwner?.(agent.id)) {
-      return cast(agent, 'glop-one-court', { targetId: agent.id, targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'glop-one-court', { targetId: agent.id, targetRoomId: agent.roomId });
     }
     const digestible = skillSystem.findDigestible(agent, sim);
     if (digestible && healthRatio <= 0.78) {
-      return cast(agent, 'glop-digest-evidence', {
+      return castAvailable(agent, definition, skillSystem, sim, 'glop-digest-evidence', {
         targetRoomId: agent.roomId,
         targetPropId: digestible.kind === 'prop' ? digestible.item.id : null,
         targetCargoId: digestible.kind === 'cargo' ? digestible.item.id : null,
@@ -138,8 +138,49 @@ export function decideHeroAction(agent, sim, skillSystem) {
       });
     }
     if (hostiles.length) {
-      return cast(agent, 'glop-royal-command', { targetRoomId: agent.roomId, commandMode: hostiles.length >= 2 ? 'kneel' : 'approach' });
+      return castAvailable(agent, definition, skillSystem, sim, 'glop-royal-command', { targetRoomId: agent.roomId, commandMode: hostiles.length >= 2 ? 'kneel' : 'approach' });
     }
+  }
+
+
+  if (definition.id === 'hero.aldren') {
+    const skeletonAllies = allies.filter(candidate => String(candidate.role ?? '').includes('skeleton') || candidate.heroSummonKind === 'royal-skeleton');
+    if (hostiles.length >= 2 && sim?.heroNecromancySystem?.corpseCount?.(agent.roomId, sim) >= 1) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'aldren-unrevoked-order', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (skeletonAllies.length >= 2 && hostiles.length >= 1 && !(sim?.heroFormationSystem?.formations ?? []).some(item => item.ownerId === agent.id)) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'aldren-royal-line', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length >= 1) return castAvailable(agent, definition, skillSystem, sim, 'aldren-shield-judgment', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+  }
+
+  if (definition.id === 'hero.malcor') {
+    const corpseCount = sim?.heroNecromancySystem?.corpseCount?.(agent.roomId, sim) ?? 0;
+    if (corpseCount >= 2 && hostiles.length >= 2) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'malcor-hungry-feast', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (corpseCount >= 1 && healthRatio <= 0.78) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'malcor-memory-flesh', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length >= 1) return castAvailable(agent, definition, skillSystem, sim, 'malcor-predators-cry', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+  }
+
+  if (definition.id === 'hero.arvek') {
+    const barriers = sim?.heroBarrierSystem?.barriers?.filter?.(item => item.ownerId === agent.id && item.hp > 0) ?? [];
+    if ((healthRatio <= 0.68 || hostiles.length >= 3) && barriers.length < 2) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'arvek-close-the-city', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length >= 1 && barriers.length === 0) {
+      const route = skillSystem.selectDefensiveRoute?.(agent, sim);
+      const action = castAvailable(agent, definition, skillSystem, sim, 'arvek-black-gate', route ?? { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length >= 1) return castAvailable(agent, definition, skillSystem, sim, 'arvek-banishment-sentence', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
   }
 
   return null;

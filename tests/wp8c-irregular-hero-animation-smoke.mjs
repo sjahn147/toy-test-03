@@ -16,7 +16,7 @@ export const THREE={Group,Mesh,BoxGeometry,SphereGeometry,CylinderGeometry,Capsu
 `;
 
 const here = dirname(fileURLToPath(import.meta.url));
-const temp = await mkdtemp(join(tmpdir(), 'wp8c-irregular-animation-'));
+const temp = await mkdtemp(join(tmpdir(), 'wp8c-animation-'));
 for (const directory of ['src/engine/heroes','src/engine','src/content/heroes']) await mkdir(join(temp, directory), { recursive: true });
 for (const file of ['HeroMiniatureFactory.js','HeroAnimator.js','HeroSecondaryMotion.js']) await copyFile(join(here, `../src/engine/heroes/${file}`), join(temp, `src/engine/heroes/${file}`));
 for (const file of ['HeroDefinitions.js','HeroAnimationClips.js']) await copyFile(join(here, `../src/content/heroes/${file}`), join(temp, `src/content/heroes/${file}`));
@@ -95,7 +95,7 @@ for (const formAgent of [
   }
 }
 
-console.log('WP8-C irregular regression articulated irregular hero animation and long-run stability smoke passed');
+console.log('WP8-C articulated irregular hero animation and long-run stability smoke passed');
 
 function transformSignature(joint) {
   return [joint.position.x,joint.position.y,joint.position.z,joint.rotation.x,joint.rotation.y,joint.rotation.z,joint.scale.x,joint.scale.y,joint.scale.z];

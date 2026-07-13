@@ -98,4 +98,4 @@ assert.ok(Math.abs(volume - (1 - 0.03 ** 2)) < 0.02, `squash should approximatel
 resetHeroSecondaryMotion(a);
 assert.deepEqual(secondaryMotionSnapshot(a), { lastTime: 0, channels: {} });
 
-console.log('WP8-C irregular regression deterministic secondary-motion and volume-preservation smoke passed');
+console.log('WP8-C deterministic secondary-motion and volume-preservation smoke passed');

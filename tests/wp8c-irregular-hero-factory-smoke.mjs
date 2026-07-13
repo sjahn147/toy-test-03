@@ -30,7 +30,7 @@ export const THREE={Group,Mesh,BoxGeometry,SphereGeometry,CylinderGeometry,Capsu
 `;
 
 const here = dirname(fileURLToPath(import.meta.url));
-const temp = await mkdtemp(join(tmpdir(), 'wp8c-irregular-factory-'));
+const temp = await mkdtemp(join(tmpdir(), 'wp8c-factory-'));
 await mkdir(join(temp, 'src/engine/heroes'), { recursive: true });
 await mkdir(join(temp, 'src/engine'), { recursive: true });
 await mkdir(join(temp, 'src/content/heroes'), { recursive: true });
@@ -88,4 +88,4 @@ for (const agent of formAgents) {
   assert.ok(model.getObjectByName('hero-form-ring'));
 }
 
-console.log('WP8-C irregular regression irregular hero and temporary-form factory smoke passed');
+console.log('WP8-C irregular hero and temporary-form factory smoke passed');

@@ -151,16 +151,15 @@ export class HeroEnvironmentSystem {
     for (const field of this.fields.values()) if (field.remaining <= 0) this.clearRouteSeal(field, sim);
   }
 
-  clearOwner(agentId, sim = null) {
-    if (!agentId) return 0;
-    let cleared = 0;
+  clearOwner(ownerAgentId, sim = null) {
+    let removed = 0;
     for (const field of this.fields.values()) {
-      if (field.ownerAgentId !== agentId) continue;
+      if (field.ownerAgentId !== ownerAgentId || field.remaining <= 0) continue;
       field.remaining = 0;
-      this.clearRouteSeal(field, sim);
-      cleared += 1;
+      removed += 1;
     }
-    return cleared;
+    for (const field of this.fields.values()) if (field.remaining <= 0) this.clearRouteSeal(field, sim);
+    return removed;
   }
 
   isWaterRouteSuppressed(routeId) {
@@ -214,7 +213,7 @@ export class HeroEnvironmentSystem {
       ally.heroEnvironmentApplied ??= baseline;
       ally.courage = baseline.courage + 3;
       ally.heroStatuses ??= {};
-      ally.heroStatuses.warFeast = { remaining: 0.3, sourceFieldId: field.id, noRetreat: field.payload.noRetreat !== false, damageMultiplier: field.payload.attackMultiplier ?? 1.24, lifesteal: field.payload.lifesteal ?? 0.12 };
+      ally.heroStatuses.warFeast = { remaining: 0.3, sourceFieldId: field.id, noRetreat: field.payload.noRetreat !== false };
       if (ally.combat) ally.hp = Math.min(ally.maxHp ?? ally.hp, ally.hp + 0.25 * dt);
     }
   }

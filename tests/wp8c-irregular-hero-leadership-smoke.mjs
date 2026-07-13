@@ -91,4 +91,4 @@ function makeSim() {
   assert.equal(ally.heroStatuses.royalRegalia.stance, 'chalice');
 }
 
-console.log('WP8-C irregular regression irregular hero leadership smoke passed');
+console.log('WP8-C irregular hero leadership smoke passed');

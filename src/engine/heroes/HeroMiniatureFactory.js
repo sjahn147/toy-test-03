@@ -5,6 +5,7 @@ const geometryCache = new Map();
 const materialCache = new Map();
 
 export function createHeroMiniature(agent) {
+  if (agent?.heroSummonKind) return createHeroSummonMiniature(agent);
   if (agent?.heroFormOf) return createHeroFormMiniature(agent);
   const definition = getHeroDefinition(agent?.heroId ?? agent?.role);
   if (!definition) return null;
@@ -35,6 +36,9 @@ export function createHeroMiniature(agent) {
   else if (definition.id === 'hero.jijik') assembly = buildJijik(model, definition, materials);
   else if (definition.id === 'hero.tissa') assembly = buildTissa(model, definition, materials);
   else if (definition.id === 'hero.murga') assembly = buildMurga(model, definition, materials);
+  else if (definition.id === 'hero.aldren') assembly = buildAldren(model, definition, materials);
+  else if (definition.id === 'hero.malcor') assembly = buildMalcor(model, definition, materials);
+  else if (definition.id === 'hero.arvek') assembly = buildArvek(model, definition, materials);
   else return null;
 
   root.userData.joints = assembly.joints;
@@ -1314,6 +1318,116 @@ function buildMurga(model, definition, materials) {
     skillParts: { cauldronRoot: joints.cauldronRoot, lid: joints.lid, hookRoot: joints.hookRoot, chainRoot: joints.chainRoot, cleaverRoot: joints.cleaverRoot }
   };
 }
+
+
+function buildAldren(model, definition, materials) {
+  const joints = buildHierarchy(model, {
+    motionRoot:{parent:null,position:[0,0,0]}, pelvis:{parent:'motionRoot',position:[0,0.64,0]},
+    legL:{parent:'pelvis',position:[-0.18,-0.38,0]}, footL:{parent:'legL',position:[0,-0.38,0.1]},
+    legR:{parent:'pelvis',position:[0.18,-0.38,0]}, footR:{parent:'legR',position:[0,-0.38,0.1]},
+    spine:{parent:'pelvis',position:[0,0.38,0]}, chest:{parent:'spine',position:[0,0.42,0]}, soulCore:{parent:'chest',position:[0,0.02,0.02]},
+    neck:{parent:'chest',position:[0,0.43,0]}, head:{parent:'neck',position:[0,0.27,0]}, crest:{parent:'head',position:[0,0.36,-0.02]},
+    shoulderL:{parent:'chest',position:[-0.45,0.24,0]}, armL:{parent:'shoulderL',position:[-0.14,-0.2,0]}, forearmL:{parent:'armL',position:[0,-0.31,0]}, handL:{parent:'forearmL',position:[0,-0.23,0]}, shieldRoot:{parent:'handL',position:[0,0,0.1]},
+    shoulderR:{parent:'chest',position:[0.45,0.24,0]}, armR:{parent:'shoulderR',position:[0.14,-0.2,0]}, forearmR:{parent:'armR',position:[0,-0.31,0]}, handR:{parent:'forearmR',position:[0,-0.23,0]}, swordRoot:{parent:'handR',position:[0,0.04,0]},
+    cloakRoot:{parent:'chest',position:[0,0.22,-0.25]}, cloakL:{parent:'cloakRoot',position:[-0.18,-0.2,0]}, cloakR:{parent:'cloakRoot',position:[0.18,-0.2,0]}, commandChain:{parent:'chest',position:[0,0.2,0.27]}, baseFx:{parent:'motionRoot',position:[0,0.03,0]}
+  });
+  add(joints.pelvis, box('hero:aldren:pelvis-plate',[0.48,0.26,0.34],materials.metal));
+  for(const side of ['L','R']){
+    add(joints[`leg${side}`], cylinder('hero:aldren:femur',0.05,0.62,materials.bone));
+    const greave=box('hero:aldren:greave',[0.18,0.46,0.22],materials.metal); greave.position.y=-0.08; joints[`leg${side}`].add(greave);
+    add(joints[`foot${side}`], box('hero:aldren:sabatons',[0.22,0.13,0.38],materials.dark));
+    add(joints[`arm${side}`], cylinder('hero:aldren:humerus',0.045,0.5,materials.bone));
+    add(joints[`forearm${side}`], cylinder('hero:aldren:forearm-bone',0.04,0.44,materials.bone));
+    add(joints[`hand${side}`], sphere('hero:aldren:hand-bone',0.11,materials.bone));
+    const pauldron=dome(`hero:aldren:pauldron:${side}`,0.28,materials.metal); pauldron.rotation.z=side==='L'?-0.35:0.35; joints[`shoulder${side}`].add(pauldron);
+  }
+  const leftBreast=box('hero:aldren:hollow-breast-left',[0.3,0.65,0.18],materials.metal); leftBreast.position.x=-0.23;
+  const rightBreast=box('hero:aldren:hollow-breast-right',[0.3,0.65,0.18],materials.metal); rightBreast.position.x=0.23;
+  const collar=torus('hero:aldren:hollow-collar',0.34,0.05,materials.brass); collar.rotation.x=Math.PI/2; collar.position.y=0.31;
+  joints.chest.add(leftBreast,rightBreast,collar);
+  for(let i=0;i<5;i++){const rib=torus('hero:aldren:rib',0.22,0.018,materials.bone);rib.rotation.z=Math.PI/2;rib.position.y=-0.18+i*0.09;joints.chest.add(rib);}
+  const flame=sphere('hero:aldren:soul-flame',0.16,materials.spectral); flame.scale.set(0.8,1.5,0.8); joints.soulCore.add(flame);
+  const skull=sphere('hero:aldren:skull',0.27,materials.bone); skull.scale.set(0.92,1.02,0.88); joints.head.add(skull);
+  const jaw=box('hero:aldren:jaw',[0.32,0.13,0.23],materials.bone); jaw.position.set(0,-0.2,0.04); joints.head.add(jaw); addEyes(joints.head,materials.dark,materials.accent,0.17,0.05,0.23);
+  const helm=dome('hero:aldren:royal-helm',0.33,materials.metal); helm.position.y=0.05; joints.head.add(helm);
+  const visor=box('hero:aldren:visor',[0.52,0.12,0.11],materials.metal); visor.position.set(0,-0.02,0.25); joints.head.add(visor);
+  for(let i=0;i<5;i++){const feather=box('hero:aldren:crest-feather',[0.08,0.42-i*0.035,0.05],materials.cloth);feather.position.set((i-2)*0.075,0.16,0);feather.rotation.z=(i-2)*0.08;joints.crest.add(feather);}
+  const shield=box('hero:aldren:empty-shield',[0.78,1.15,0.12],materials.metal); shield.position.y=0.08; joints.shieldRoot.add(shield);
+  const shieldRim=torus('hero:aldren:shield-rim',0.39,0.04,materials.brass); shieldRim.scale.y=1.4; shieldRim.rotation.x=Math.PI/2; shieldRim.position.z=0.08; joints.shieldRoot.add(shieldRim);
+  const emptyHeraldry=box('hero:aldren:empty-heraldry',[0.38,0.55,0.06],materials.dark);emptyHeraldry.position.set(0,0.08,0.09);joints.shieldRoot.add(emptyHeraldry);
+  const sword=makeRoyalSword(materials.metal,materials.brass,materials.accent); sword.position.y=0.42; joints.swordRoot.add(sword);
+  for(const [joint,side] of [[joints.cloakL,-1],[joints.cloakR,1]]){const cloth=openCone('hero:aldren:cloak',0.42,1.25,8,materials.cloth);cloth.scale.z=0.18;cloth.position.set(side*0.1,-0.48,-0.08);cloth.rotation.z=side*0.06;joint.add(cloth);}
+  const chain=makeChain(materials.brass,9,0.09); chain.rotation.z=Math.PI/2; joints.commandChain.add(chain);
+  const brokenShield=makeCrackMark(materials.accent); brokenShield.visible=false; brokenShield.name='hero-damage:stage1-show:shield-crack'; joints.shieldRoot.add(brokenShield);
+  const tornCloak=box('hero:aldren:torn-cloak',[0.32,0.55,0.04],materials.clothInner);tornCloak.visible=false;tornCloak.position.set(-0.28,-0.5,-0.12);tornCloak.rotation.z=-0.25;tornCloak.name='hero-damage:stage2-show:torn-cloak';joints.cloakRoot.add(tornCloak);
+  return {joints,secondary:{cloakL:joints.cloakL,cloakR:joints.cloakR,commandChain:joints.commandChain,crest:joints.crest,soulCore:joints.soulCore},secondaryMotionConfig:[{id:'aldren-cloak',mode:'veil-chain',joints:['cloakL','cloakR'],amplitude:0.05,frequency:1.1,stiffness:22,damping:8},{id:'aldren-chain',mode:'artifact-float',joints:['commandChain'],amplitude:0.025,frequency:1.4,stiffness:28,damping:9}],damageParts:{stage1Hide:[],stage2Hide:[leftBreast],stage1Show:[brokenShield],stage2Show:[tornCloak]},skillParts:{shieldRoot:joints.shieldRoot,swordRoot:joints.swordRoot,soulCore:joints.soulCore,cloakRoot:joints.cloakRoot}};
+}
+
+function buildMalcor(model, definition, materials) {
+  const joints=buildHierarchy(model,{
+    motionRoot:{parent:null,position:[0,0,0]},pelvis:{parent:'motionRoot',position:[0,0.54,0]},legL:{parent:'pelvis',position:[-0.16,-0.34,0]},footL:{parent:'legL',position:[0,-0.34,0.12]},legR:{parent:'pelvis',position:[0.16,-0.34,0]},footR:{parent:'legR',position:[0,-0.34,0.12]},
+    spineLower:{parent:'pelvis',position:[0,0.3,0]},chest:{parent:'spineLower',position:[0,0.36,0.08]},neck:{parent:'chest',position:[0,0.38,0.16]},head:{parent:'neck',position:[0,0.24,0.16]},jaw:{parent:'head',position:[0,-0.2,0.12]},
+    shoulderL:{parent:'chest',position:[-0.38,0.18,0]},upperArmL:{parent:'shoulderL',position:[-0.12,-0.25,0]},forearmL:{parent:'upperArmL',position:[0,-0.38,0]},handL:{parent:'forearmL',position:[0,-0.3,0]},
+    shoulderR:{parent:'chest',position:[0.38,0.18,0]},upperArmR:{parent:'shoulderR',position:[0.12,-0.25,0]},forearmR:{parent:'upperArmR',position:[0,-0.38,0]},handR:{parent:'forearmR',position:[0,-0.3,0]},
+    coatRoot:{parent:'chest',position:[0,-0.05,-0.18]},coatTailL:{parent:'coatRoot',position:[-0.2,-0.28,-0.04]},coatTailR:{parent:'coatRoot',position:[0.2,-0.28,-0.04]},cravat:{parent:'chest',position:[0,0.18,0.25]},cutlery:{parent:'pelvis',position:[0,0.04,0.25]},vaporRoot:{parent:'chest',position:[0,0.1,-0.15]},baseFx:{parent:'motionRoot',position:[0,0.03,0]}
+  });
+  add(joints.pelvis,box('hero:malcor:pelvis',[0.42,0.25,0.32],materials.leather));
+  const torso=capsule('hero:malcor:torso',0.25,0.56,materials.skin);torso.scale.set(0.9,1.12,0.72);joints.chest.add(torso);
+  for(const side of ['L','R']){add(joints[`leg${side}`],capsule('hero:malcor:leg',0.085,0.58,materials.skin));add(joints[`foot${side}`],box('hero:malcor:foot',[0.18,0.1,0.35],materials.dark));add(joints[`upperArm${side}`],capsule('hero:malcor:long-upper-arm',0.07,0.62,materials.skin));add(joints[`forearm${side}`],capsule('hero:malcor:long-forearm',0.065,0.66,materials.skin));const claw=makeClawHand(materials.skin,materials.bone);joints[`hand${side}`].add(claw);}
+  const head=sphere('hero:malcor:head',0.28,materials.skin);head.scale.set(0.84,1.16,0.9);joints.head.add(head);addEyes(joints.head,materials.dark,materials.accent,0.15,0.08,0.24);
+  const jaw=box('hero:malcor:jaw',[0.38,0.18,0.29],materials.skin);joints.jaw.add(jaw);for(let i=0;i<6;i++){const tooth=cone('hero:malcor:tooth',0.025,0.11,materials.bone);tooth.position.set(-0.12+i*0.05,-0.08,0.15);tooth.rotation.x=Math.PI;joints.jaw.add(tooth);}for(let i=0;i<4;i++){const stitch=cylinder('hero:malcor:silver-stitch',0.012,0.22,materials.metal,true);stitch.position.set(-0.13+i*0.09,0,0.17);stitch.rotation.z=0.4;joints.jaw.add(stitch);}
+  const coat=openCone('hero:malcor:banquet-coat',0.48,0.9,8,materials.cloth);coat.scale.z=0.55;coat.position.y=-0.18;joints.chest.add(coat);
+  for(const joint of [joints.coatTailL,joints.coatTailR]){const tail=box('hero:malcor:coat-tail',[0.3,1.05,0.07],materials.cloth);tail.position.y=-0.44;joint.add(tail);}
+  const cravat=box('hero:malcor:tablecloth-cravat',[0.26,0.68,0.05],materials.clothInner);cravat.position.y=-0.18;joints.cravat.add(cravat);
+  for(let i=0;i<7;i++){const ring=torus('hero:malcor:noble-ring',0.035,0.01,materials.brass);ring.rotation.x=Math.PI/2;ring.position.set((i%4-1.5)*0.04,-0.02-Math.floor(i/4)*0.04,0);(i<4?joints.handL:joints.handR).add(ring);}
+  for(let i=0;i<6;i++){const utensil=cylinder('hero:malcor:cutlery',0.012,0.38,materials.metal);utensil.position.set((i-2.5)*0.055,0,0);utensil.rotation.z=-0.18+(i%2)*0.36;joints.cutlery.add(utensil);}
+  for(let i=0;i<6;i++){const spine=cone('hero:malcor:spine-ridge',0.045,0.22,materials.bone);spine.rotation.x=-Math.PI/2;spine.position.set(0,0.25-i*0.1,-0.26);joints.chest.add(spine);}
+  const vapor=makeSmokePuff(materials.spore,7);vapor.position.y=0.1;joints.vaporRoot.add(vapor);
+  const openJaw=box('hero:malcor:open-jaw-shadow',[0.34,0.28,0.25],materials.dark);openJaw.visible=false;openJaw.position.y=-0.12;openJaw.name='hero-damage:stage1-show:open-jaw';joints.jaw.add(openJaw);
+  const tornTail=box('hero:malcor:torn-tail',[0.22,0.48,0.06],materials.clothInner);tornTail.visible=false;tornTail.position.set(0,-0.35,0);tornTail.rotation.z=-0.35;tornTail.name='hero-damage:stage2-show:torn-coat';joints.coatTailL.add(tornTail);
+  return {joints,secondary:{coatTailL:joints.coatTailL,coatTailR:joints.coatTailR,jaw:joints.jaw,vaporRoot:joints.vaporRoot,cravat:joints.cravat},secondaryMotionConfig:[{id:'malcor-coat',mode:'veil-chain',joints:['coatTailL','coatTailR'],amplitude:0.09,frequency:1.35,stiffness:18,damping:7},{id:'malcor-cravat',mode:'root-tendrils',joints:['cravat'],amplitude:0.035,frequency:1.1,stiffness:24,damping:8}],damageParts:{stage1Hide:[],stage2Hide:[],stage1Show:[openJaw],stage2Show:[tornTail]},skillParts:{jaw:joints.jaw,coatRoot:joints.coatRoot,handL:joints.handL,handR:joints.handR,vaporRoot:joints.vaporRoot}};
+}
+
+function buildArvek(model, definition, materials) {
+  const joints=buildHierarchy(model,{
+    motionRoot:{parent:null,position:[0,0,0]},pelvis:{parent:'motionRoot',position:[0,0.72,0]},legL:{parent:'pelvis',position:[-0.22,-0.43,0]},footL:{parent:'legL',position:[0,-0.43,0.12]},legR:{parent:'pelvis',position:[0.22,-0.43,0]},footR:{parent:'legR',position:[0,-0.43,0.12]},spine:{parent:'pelvis',position:[0,0.42,0]},chest:{parent:'spine',position:[0,0.5,0]},head:{parent:'chest',position:[0,0.62,0]},
+    shoulderL:{parent:'chest',position:[-0.58,0.3,0]},towerL:{parent:'shoulderL',position:[0,0.22,0]},armL:{parent:'shoulderL',position:[-0.16,-0.24,0]},forearmL:{parent:'armL',position:[0,-0.36,0]},handL:{parent:'forearmL',position:[0,-0.27,0]},shieldRoot:{parent:'handL',position:[0,0.05,0.14]},
+    shoulderR:{parent:'chest',position:[0.58,0.3,0]},towerR:{parent:'shoulderR',position:[0,0.22,0]},armR:{parent:'shoulderR',position:[0.16,-0.24,0]},forearmR:{parent:'armR',position:[0,-0.36,0]},handR:{parent:'forearmR',position:[0,-0.27,0]},swordRoot:{parent:'handR',position:[0,0.04,0]},
+    crossbar:{parent:'chest',position:[0,0.05,0.3]},keyRing:{parent:'chest',position:[0,0.25,-0.38]},chainCloak:{parent:'chest',position:[0,0.1,-0.32]},baseFx:{parent:'motionRoot',position:[0,0.03,0]}
+  });
+  add(joints.pelvis,box('hero:arvek:pelvis',[0.65,0.34,0.46],materials.metal));const torso=box('hero:arvek:gate-torso',[0.9,0.9,0.52],materials.metal);joints.chest.add(torso);
+  for(const side of ['L','R']){add(joints[`leg${side}`],capsule('hero:arvek:leg',0.15,0.76,materials.dark));add(joints[`foot${side}`],box('hero:arvek:boot',[0.34,0.18,0.5],materials.metal));add(joints[`arm${side}`],capsule('hero:arvek:upper-arm',0.14,0.64,materials.dark));add(joints[`forearm${side}`],box('hero:arvek:gauntlet',[0.24,0.55,0.28],materials.metal));add(joints[`hand${side}`],sphere('hero:arvek:hand',0.15,materials.dark));}
+  for(const [tower,side] of [[joints.towerL,-1],[joints.towerR,1]]){const block=box('hero:arvek:gate-tower',[0.42,0.72,0.4],materials.metal);tower.add(block);for(let i=0;i<3;i++){const cren=box('hero:arvek:crenellation',[0.1,0.16,0.12],materials.brass);cren.position.set((i-1)*0.13,0.42,0);tower.add(cren);}const crest=box('hero:arvek:crest',[0.22,0.3,0.05],side<0?materials.cloth:materials.clothInner);crest.position.set(0,0.05,0.23);tower.add(crest);}
+  const helm=box('hero:arvek:helm',[0.52,0.52,0.48],materials.metal);joints.head.add(helm);const slit=box('hero:arvek:visor-slit',[0.38,0.06,0.03],materials.accent);slit.position.z=0.26;joints.head.add(slit);const crown=dome('hero:arvek:helm-crown',0.31,materials.dark);crown.position.y=0.28;joints.head.add(crown);
+  const bar=box('hero:arvek:crossbar',[1.15,0.15,0.16],materials.brass);joints.crossbar.add(bar);for(const x of [-0.46,0.46]){const bolt=cylinder('hero:arvek:bar-bolt',0.07,0.12,materials.dark);bolt.rotation.x=Math.PI/2;bolt.position.set(x,0,0.1);joints.crossbar.add(bolt);}
+  const shield=box('hero:arvek:door-shield',[0.95,1.45,0.18],materials.dark);shield.position.y=0.08;joints.shieldRoot.add(shield);for(let i=0;i<4;i++){const band=box('hero:arvek:door-band',[0.98,0.09,0.08],materials.metal);band.position.set(0,-0.48+i*0.32,0.11);joints.shieldRoot.add(band);}for(let i=0;i<6;i++){const mark=sphere('hero:arvek:handprint',0.045,materials.clothInner);mark.position.set(-0.28+(i%3)*0.28,-0.35+Math.floor(i/3)*0.55,0.22);mark.scale.set(1.5,0.7,0.3);joints.shieldRoot.add(mark);}
+  const sword=makeExecutionSword(materials.metal,materials.dark,materials.accent);sword.position.y=0.48;joints.swordRoot.add(sword);
+  for(let i=0;i<12;i++){const key=makeKey(materials.brass,i);const angle=i/12*Math.PI*2;key.position.set(Math.cos(angle)*0.3,Math.sin(angle)*0.08,Math.sin(angle)*0.3);key.rotation.z=angle;joints.keyRing.add(key);}
+  const chain=makeChain(materials.metal,16,0.11);chain.position.y=-0.25;joints.chainCloak.add(chain);const shadowCloth=openCone('hero:arvek:threshold-cloak',0.55,1.25,9,materials.cloth);shadowCloth.scale.z=0.2;shadowCloth.position.y=-0.42;joints.chainCloak.add(shadowCloth);
+  const brokenBar=box('hero:arvek:broken-crossbar',[0.54,0.14,0.15],materials.brass);brokenBar.visible=false;brokenBar.position.x=0.28;brokenBar.rotation.z=0.35;brokenBar.name='hero-damage:stage1-show:broken-bar';joints.crossbar.add(brokenBar);
+  const fallenTower=box('hero:arvek:fallen-tower',[0.36,0.58,0.35],materials.metal);fallenTower.visible=false;fallenTower.position.set(-0.35,-0.35,0);fallenTower.rotation.z=-0.9;fallenTower.name='hero-damage:stage2-show:fallen-tower';joints.chest.add(fallenTower);
+  return {joints,secondary:{keyRing:joints.keyRing,chainCloak:joints.chainCloak,towerL:joints.towerL,towerR:joints.towerR,crossbar:joints.crossbar},secondaryMotionConfig:[{id:'arvek-keys',mode:'artifact-float',joints:['keyRing'],amplitude:0.025,frequency:1.0,stiffness:32,damping:10},{id:'arvek-chain-cloak',mode:'veil-chain',joints:['chainCloak'],amplitude:0.04,frequency:0.8,stiffness:26,damping:9}],damageParts:{stage1Hide:[bar],stage2Hide:[joints.towerL.children[0]],stage1Show:[brokenBar],stage2Show:[fallenTower]},skillParts:{shieldRoot:joints.shieldRoot,crossbar:joints.crossbar,keyRing:joints.keyRing,swordRoot:joints.swordRoot,towerL:joints.towerL,towerR:joints.towerR}};
+}
+
+function createHeroSummonMiniature(agent) {
+  const root=new THREE.Group();root.name=`hero-summon:${agent.heroSummonKind}`;root.userData.agentId=agent.id;root.userData.heroSummonKind=agent.heroSummonKind;root.userData.isHeroSummon=true;
+  const model=new THREE.Group();model.name='hero-summon-model';root.add(model);
+  const bone=materialFor('hero-summon:bone',0xd5cfb8,{roughness:0.62});const metal=materialFor('hero-summon:metal',0x53616b,{metalness:0.28,roughness:0.48});const spectral=materialFor('hero-summon:spectral',0xa9e3ff,{transparent:true,opacity:0.5,emissive:0xa9e3ff,emissiveIntensity:0.28,depthWrite:false});const ghast=materialFor('hero-summon:ghast',0x7f856f,{roughness:0.68});const dark=materialFor('hero-summon:dark',0x17191b,{roughness:0.8});
+  const joints=buildHierarchy(model,{motionRoot:{parent:null,position:[0,0,0]},body:{parent:'motionRoot',position:[0,0.72,0]},head:{parent:'body',position:[0,0.58,0]},armL:{parent:'body',position:[-0.32,0.14,0]},armR:{parent:'body',position:[0.32,0.14,0]},legL:{parent:'body',position:[-0.14,-0.42,0]},legR:{parent:'body',position:[0.14,-0.42,0]},accent:{parent:'body',position:[0,0.12,0.18]}});
+  if(agent.heroSummonKind==='ghoul'){
+    const torso=capsule('hero-summon:ghoul-torso',0.22,0.46,ghast);torso.rotation.x=0.3;joints.body.add(torso);const head=sphere('hero-summon:ghoul-head',0.22,ghast);head.position.z=0.18;joints.head.add(head);for(const side of ['L','R']){add(joints[`arm${side}`],capsule('hero-summon:ghoul-arm',0.065,0.56,ghast));add(joints[`leg${side}`],capsule('hero-summon:ghoul-leg',0.07,0.48,ghast));const claw=makeClawHand(ghast,bone);joints[`arm${side}`].add(claw);}const jaw=box('hero-summon:ghoul-jaw',[0.28,0.12,0.2],dark);jaw.position.set(0,-0.16,0.15);joints.head.add(jaw);
+  }else if(agent.heroSummonKind==='spectral-guard'){
+    const armor=box('hero-summon:spectral-armor',[0.5,0.7,0.32],metal);joints.body.add(armor);const helm=dome('hero-summon:spectral-helm',0.28,metal);joints.head.add(helm);const core=sphere('hero-summon:spectral-core',0.13,spectral);joints.accent.add(core);for(const side of ['L','R']){add(joints[`arm${side}`],capsule('hero-summon:spectral-arm',0.07,0.45,spectral));add(joints[`leg${side}`],capsule('hero-summon:spectral-leg',0.07,0.5,spectral));}
+  }else{
+    const spine=cylinder('hero-summon:skeleton-spine',0.04,0.58,bone);joints.body.add(spine);for(let i=0;i<4;i++){const rib=torus('hero-summon:skeleton-rib',0.18,0.018,bone);rib.rotation.z=Math.PI/2;rib.position.y=-0.14+i*0.08;joints.body.add(rib);}const skull=sphere('hero-summon:skeleton-skull',0.21,bone);joints.head.add(skull);for(const side of ['L','R']){add(joints[`arm${side}`],cylinder('hero-summon:skeleton-arm',0.035,0.48,bone));add(joints[`leg${side}`],cylinder('hero-summon:skeleton-leg',0.04,0.56,bone));}const plate=box('hero-summon:royal-plate',[0.44,0.46,0.2],metal);joints.body.add(plate);
+  }
+  const ring=new THREE.Mesh(geo(`hero-summon:ring:${agent.heroSummonKind}`,()=>new THREE.TorusGeometry(0.36,0.025,6,24)),new THREE.MeshBasicMaterial({color:agent.heroSummonKind==='ghoul'?0x9fc784:0xa9e3ff,transparent:true,opacity:0.55}));ring.rotation.x=Math.PI/2;ring.position.y=-0.28;root.add(ring);root.userData.joints=joints;root.userData.heroMeshCount=countMeshes(root);root.traverse(node=>{node.userData.agentId=agent.id;node.userData.heroSummonKind=agent.heroSummonKind;});return root;
+}
+
+function makeRoyalSword(metal, brass, accent){const group=new THREE.Group();const blade=box('hero:aldren:sword-blade',[0.12,1.15,0.06],metal);blade.position.y=0.52;const point=cone('hero:aldren:sword-point',0.085,0.22,metal);point.position.y=1.18;const guard=box('hero:aldren:sword-guard',[0.48,0.08,0.08],brass);const gem=sphere('hero:aldren:sword-gem',0.06,accent);gem.position.y=-0.08;group.add(blade,point,guard,gem);return group;}
+function makeClawHand(skin,bone){const group=new THREE.Group();const palm=sphere('hero:malcor:claw-palm',0.1,skin);group.add(palm);for(let i=0;i<4;i++){const finger=capsule('hero:malcor:claw-finger',0.025,0.22,skin);finger.position.set((i-1.5)*0.05,-0.13,0.03);finger.rotation.z=(i-1.5)*0.08;const claw=cone('hero:malcor:claw-tip',0.022,0.12,bone);claw.position.y=-0.3;finger.add(claw);group.add(finger);}return group;}
+function makeExecutionSword(metal,dark,accent){const group=new THREE.Group();const blade=box('hero:arvek:execution-blade',[0.22,1.35,0.09],metal);blade.position.y=0.58;const tip=cone('hero:arvek:execution-tip',0.15,0.28,metal);tip.position.y=1.38;const guard=box('hero:arvek:execution-guard',[0.62,0.12,0.13],dark);const rune=box('hero:arvek:execution-rune',[0.05,0.72,0.02],accent);rune.position.set(0,0.62,0.06);group.add(blade,tip,guard,rune);return group;}
+function makeCrackMark(material){const group=new THREE.Group();for(let i=0;i<4;i++){const line=box('hero:crack-line',[0.025,0.34-i*0.04,0.02],material);line.rotation.z=-0.45+i*0.3;line.position.set((i-1.5)*0.06,0.08,0.16);group.add(line);}return group;}
 
 function createHeroFormMiniature(agent) {
   const root = new THREE.Group();

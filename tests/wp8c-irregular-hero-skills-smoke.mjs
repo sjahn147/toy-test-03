@@ -195,4 +195,4 @@ function advance(system, forms, sim, seconds, step = 0.1) {
   assert.ok(glop.heroFlags.includes('digested-corpse'));
 }
 
-console.log('WP8-C irregular regression irregular hero functional skill lifecycle smoke passed');
+console.log('WP8-C irregular hero functional skill lifecycle smoke passed');

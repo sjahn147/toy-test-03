@@ -7,18 +7,30 @@ const HERO_KNOCKBACK_RESISTANCE = Object.freeze({
   'hero.nibble': 0.06,
   'hero.kirik': 0.38,
   'hero.karg': 0.3,
+  'hero.isara': 0.42,
+  'hero.orum-bell': 0.24,
+  'hero.glop': 0.48,
   'hero.jijik': 0.12,
   'hero.tissa': 0.1,
-  'hero.murga': 0.24
+  'hero.murga': 0.24,
+  'hero.aldren': 0.42,
+  'hero.malcor': 0.18,
+  'hero.arvek': 0.58
 });
 
 const HERO_MASS_MULTIPLIER = Object.freeze({
   'hero.nibble': 0.88,
   'hero.kirik': 1.55,
   'hero.karg': 1.45,
+  'hero.isara': 0.58,
+  'hero.orum-bell': 1.24,
+  'hero.glop': 1.68,
   'hero.jijik': 1.05,
   'hero.tissa': 0.92,
-  'hero.murga': 1.34
+  'hero.murga': 1.34,
+  'hero.aldren': 1.42,
+  'hero.malcor': 1.06,
+  'hero.arvek': 1.92
 });
 
 export class HeroSystem {
@@ -202,6 +214,9 @@ export function ensureHeroRuntime(agent, definition = getHeroDefinition(agent?.h
   if (definition.id === 'hero.isara') { agent.incorporeal = true; agent.trapImmune = true; }
   if (definition.id === 'hero.orum-bell') agent.communionEnabled ??= true;
   if (definition.id === 'hero.glop') agent.heroStance ??= 'crown';
+  if (definition.id === 'hero.aldren') agent.royalOrders ??= 1;
+  if (definition.id === 'hero.malcor') agent.appetite ??= 0;
+  if (definition.id === 'hero.arvek') agent.gateGuilt ??= 1;
   agent.maxHp = Math.max(agent.maxHp ?? 0, definition.baseStats.hp);
   agent.hp = agent.alive === false ? 0 : Math.max(1, Math.min(agent.hp ?? definition.baseStats.hp, agent.maxHp));
   agent.baseAttack = definition.baseStats.attack;

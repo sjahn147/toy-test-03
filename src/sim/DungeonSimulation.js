@@ -14,6 +14,9 @@ import { HeroFormSystem } from './heroes/HeroFormSystem.js';
 import { HeroPhysicsSystem } from './heroes/HeroPhysicsSystem.js';
 import { HeroDeployableSystem } from './heroes/HeroDeployableSystem.js';
 import { HeroEnvironmentSystem } from './heroes/HeroEnvironmentSystem.js';
+import { HeroFormationSystem } from './heroes/HeroFormationSystem.js';
+import { HeroNecromancySystem } from './heroes/HeroNecromancySystem.js';
+import { HeroBarrierSystem } from './heroes/HeroBarrierSystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -58,6 +61,9 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroPhysicsSystem = new HeroPhysicsSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroDeployableSystem = new HeroDeployableSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroEnvironmentSystem = new HeroEnvironmentSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroFormationSystem = new HeroFormationSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroNecromancySystem = new HeroNecromancySystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroBarrierSystem = new HeroBarrierSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroSystem.initialize(this);
     this.heroSkillSystem.initialize(this);
     this.heroFormSystem.initialize(this);
@@ -70,6 +76,9 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroDeployableSystem.update(dt, this);
     this.heroEnvironmentSystem.update(dt, this);
     this.heroPhysicsSystem.update(dt, this);
+    this.heroFormationSystem.update(dt, this);
+    this.heroNecromancySystem.update(dt, this);
+    this.heroBarrierSystem.update(dt, this);
     this.heroLeadershipSystem.update(dt, this);
     this.eliteEcologySystem.update(dt, this);
     this.eliteAbilitySystem.update(dt, this);
@@ -123,6 +132,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
 
   applyCombatDamage(source, target, amount, metadata = {}) {
     let adjusted = this.heroSkillSystem?.modifyIncomingDamage?.(source, target, amount, metadata) ?? amount;
+    adjusted = this.heroFormationSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
+    adjusted = this.heroBarrierSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
     if (metadata.fire && Number.isFinite(target?.heroFireDamageMultiplier)) adjusted *= target.heroFireDamageMultiplier;
     const before = Number(target?.hp ?? 0);
     const result = super.applyCombatDamage(source, target, adjusted, metadata);
@@ -131,16 +142,13 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     return result;
   }
 
-  beginTravel(agent, toRoomId) {
-    if (this.heroSkillSystem?.isMovementBlocked(agent)) {
-      this.event(`${agent.name} cannot move while deployed as a hero bastion.`, { type: 'hero-movement-blocked', agentId: agent.id, roomId: agent.roomId });
-      return false;
-    }
-    if (this.heroSkillSystem?.isRouteBlocked(agent.roomId, toRoomId, agent)) {
-      this.event(`${agent.name} was stopped by a hero-controlled route.`, { type: 'hero-route-blocked', agentId: agent.id, fromRoomId: agent.roomId, toRoomId });
-      return false;
-    }
-    return super.beginTravel(agent, toRoomId);
+  beginTravel(agent, toRoomId, options = {}) {
+    if (this.heroSkillSystem?.isMovementBlocked(agent)) return false;
+    if (this.heroNecromancySystem?.isMovementBlocked(agent)) return false;
+    if (this.heroBarrierSystem?.isMovementBlocked(agent)) return false;
+    if (this.heroSkillSystem?.isRouteBlocked(agent.roomId, toRoomId, agent)) return false;
+    if (this.heroBarrierSystem?.isRouteBlocked(agent.roomId, toRoomId, agent)) return false;
+    return super.beginTravel(agent, toRoomId, options);
   }
 
   finalizeDeath(source, target) {
@@ -155,6 +163,9 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroPhysicsSystem?.clearAgent?.(target?.id);
     this.heroDeployableSystem?.clearOwner?.(target?.id, this);
     this.heroEnvironmentSystem?.clearOwner?.(target?.id, this);
+    this.heroFormationSystem?.onAgentDeath?.(target, this);
+    this.heroNecromancySystem?.onAgentDeath?.(target, this);
+    this.heroBarrierSystem?.onAgentDeath?.(target, this);
     this.heroFormSystem.onAgentDeath(target, this);
     this.heroSystem.onAgentDeath(target, this);
     this.eliteEcologySystem.onAgentDeath(target, this);
@@ -208,7 +219,10 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       heroForms: this.heroFormSystem.snapshot(this),
       heroPhysics: this.heroPhysicsSystem.snapshot(),
       heroDeployables: this.heroDeployableSystem.snapshot(),
-      heroEnvironment: this.heroEnvironmentSystem.snapshot()
+      heroEnvironment: this.heroEnvironmentSystem.snapshot(),
+      heroFormations: this.heroFormationSystem.snapshot(),
+      heroNecromancy: this.heroNecromancySystem.snapshot(),
+      heroBarriers: this.heroBarrierSystem.snapshot()
     };
   }
 
@@ -229,7 +243,10 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...this.heroFormSystem.metrics(),
       ...this.heroPhysicsSystem.metrics(),
       ...this.heroDeployableSystem.metrics(),
-      ...this.heroEnvironmentSystem.metrics()
+      ...this.heroEnvironmentSystem.metrics(),
+      ...this.heroFormationSystem.metrics(),
+      ...this.heroNecromancySystem.metrics(),
+      ...this.heroBarrierSystem.metrics()
     };
   }
 }

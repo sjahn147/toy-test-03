@@ -27,6 +27,9 @@ export class HeroLeadershipSystem {
       if (definition.id === 'hero.jijik') this.applyJijik(hero, definition, sim);
       if (definition.id === 'hero.tissa') this.applyTissa(hero, definition, sim);
       if (definition.id === 'hero.murga') this.applyMurga(hero, definition, dt, sim);
+      if (definition.id === 'hero.aldren') this.applyAldren(hero, definition, sim);
+      if (definition.id === 'hero.malcor') this.applyMalcor(hero, definition, sim);
+      if (definition.id === 'hero.arvek') this.applyArvek(hero, definition, sim);
     }
   }
 
@@ -42,6 +45,7 @@ export class HeroLeadershipSystem {
       restoreOptional(agent, applied, 'heroBlastImpulseMultiplier');
       restoreOptional(agent, applied, 'heroFireDamageMultiplier');
       restoreOptional(agent, applied, 'heroHungerRateMultiplier');
+      restoreOptional(agent, applied, 'heroKnockbackResistance');
       delete agent.heroLeadershipApplied;
       delete agent.heroLeadershipSourceId;
     }
@@ -251,6 +255,54 @@ export class HeroLeadershipSystem {
     if (affected) this.activeEffects.push({ heroId: definition.id, type: 'army-eats-first', affected });
   }
 
+  applyAldren(hero, definition, sim) {
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      if (!isSkeletonLike(ally)) continue;
+      const baseline = capture(ally);
+      ally.armor = baseline.armor + (definition.leadership.skeletonArmorBonus ?? 2);
+      ally.courage = baseline.courage + (definition.leadership.skeletonCourageBonus ?? 3);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      ally.heroKnockbackResistance = Math.min(0.9, (ally.heroKnockbackResistance ?? 0) + (definition.leadership.knockbackResistanceBonus ?? 0.25));
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'unfinished-watch', affected });
+  }
+
+  applyMalcor(hero, definition, sim) {
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      if (!isGhoulLike(ally)) continue;
+      const baseline = capture(ally);
+      ally.attack = baseline.attack + (definition.leadership.ghoulAttackBonus ?? 2);
+      ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.ghoulSpeedMultiplier ?? 1.12);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      ally.fear = 0;
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'ghast-lord', affected });
+  }
+
+  applyArvek(hero, definition, sim) {
+    const barrierActive = Boolean(sim?.heroBarrierSystem?.nearestBarrier?.(hero.roomId, definition.factionId));
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      if (!isUndeadLike(ally)) continue;
+      const baseline = capture(ally);
+      ally.armor = baseline.armor + (definition.leadership.undeadArmorBonus ?? 2) + (barrierActive ? 1 : 0);
+      ally.courage = baseline.courage + (barrierActive ? 2 : 1);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    if (affected || barrierActive) this.activeEffects.push({ heroId: definition.id, type: 'gatekeeper-command', affected, barrierActive });
+  }
+
   snapshot() {
     return { activeEffects: this.activeEffects.map(effect => ({ ...effect })) };
   }
@@ -269,7 +321,8 @@ function capture(agent) {
     heroBlastDamageMultiplier: agent.heroBlastDamageMultiplier,
     heroBlastImpulseMultiplier: agent.heroBlastImpulseMultiplier,
     heroFireDamageMultiplier: agent.heroFireDamageMultiplier,
-    heroHungerRateMultiplier: agent.heroHungerRateMultiplier
+    heroHungerRateMultiplier: agent.heroHungerRateMultiplier,
+    heroKnockbackResistance: agent.heroKnockbackResistance
   };
 }
 
@@ -287,6 +340,12 @@ function isFlooded(room) {
 function factionOf(agent) {
   return agent?.ecologyFaction ?? agent?.factionId ?? agent?.faction ?? null;
 }
+
+function isSkeletonLike(agent) { const value = `${agent?.role ?? ''} ${agent?.species ?? ''}`.toLowerCase(); return value.includes('skeleton') || agent?.heroSummonKind === 'royal-skeleton'; }
+
+function isGhoulLike(agent) { const value = `${agent?.role ?? ''} ${agent?.species ?? ''}`.toLowerCase(); return value.includes('ghoul') || value.includes('ghast'); }
+
+function isUndeadLike(agent) { const value = `${agent?.role ?? ''} ${agent?.species ?? ''}`.toLowerCase(); return ['skeleton','zombie','wraith','ghoul','ghast','undead','spectral','death-knight'].some(token => value.includes(token)); }
 
 function structures(sim) {
   const source = sim?.constructionSystem?.structures ?? sim?.construction?.structures ?? [];

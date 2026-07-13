@@ -305,6 +305,19 @@ export class HeroSkillSystem {
       case 'deploy-healing-cauldron': return this.deployHealingCauldron(agent, effect, sim);
       case 'hook-corpse-or-downed': return this.hookCorpseOrDowned(agent, cast, effect, sim);
       case 'war-feast-field': return this.createWarFeast(agent, effect, sim);
+      case 'create-royal-formation': return sim?.heroFormationSystem?.createRoyalLine?.(agent, effect, sim) ?? false;
+      case 'royal-shield-bash': return sim?.heroFormationSystem?.shieldBash?.(agent, { ...effect, targetId: cast.targetId }, sim) ?? false;
+      case 'reassemble-royal-skeletons': return sim?.heroNecromancySystem?.reassembleRoyalSkeletons?.(agent, effect, sim) ?? false;
+      case 'ghast-fear-cone': return sim?.heroNecromancySystem?.fearCone?.(agent, effect, sim) ?? false;
+      case 'consume-memory-corpse': return sim?.heroNecromancySystem?.consumeMemoryCorpse?.(agent, effect, sim) ?? false;
+      case 'increase-appetite': return this.increaseAppetite(agent, effect);
+      case 'raise-ghoul-pack': return sim?.heroNecromancySystem?.raiseGhoulPack?.(agent, effect, sim) ?? false;
+      case 'ghoul-frenzy-aura': return sim?.heroNecromancySystem?.applyGhoulFrenzy?.(agent, effect, sim) ?? false;
+      case 'create-spectral-gate': return this.createSpectralGate(agent, cast, effect, sim);
+      case 'banishment-shield-charge': return this.banishmentCharge(agent, cast, effect, sim);
+      case 'seal-all-room-routes': return this.sealAllRoomRoutes(agent, effect, sim);
+      case 'raise-spectral-guards': return sim?.heroNecromancySystem?.raiseSpectralGuards?.(agent, effect, sim) ?? false;
+      case 'root-self': return sim?.heroBarrierSystem?.rootHero?.(agent, effect.duration ?? 10) ?? false;
       case 'emit-command': return true;
       default: return false;
     }
@@ -1126,8 +1139,13 @@ export class HeroSkillSystem {
       }
       const stagger = statuses.stagger;
       if (stagger) {
-        stagger.remaining -= dt;
-        if (stagger.remaining <= 0) delete statuses.stagger;
+        if (typeof stagger === 'number') {
+          statuses.stagger = Math.max(0, stagger - dt);
+          if (statuses.stagger <= 0) delete statuses.stagger;
+        } else {
+          stagger.remaining -= dt;
+          if (stagger.remaining <= 0) delete statuses.stagger;
+        }
       }
       const armorBreak = statuses.armorBreak;
       if (armorBreak) {
@@ -1174,6 +1192,39 @@ export class HeroSkillSystem {
     }
   }
 
+  increaseAppetite(agent, effect) {
+    agent.appetite = Math.max(0, (agent.appetite ?? 0) + (effect.amount ?? 1));
+    return true;
+  }
+
+  createSpectralGate(agent, cast, effect, sim) {
+    const route = cast.targetRouteId
+      ? this.connectedRoutes(agent.roomId, sim).find(candidate => candidate.id === cast.targetRouteId)
+      : this.selectDefensiveRoute(agent, sim)?.route ?? this.connectedRoutes(agent.roomId, sim)[0];
+    if (!route) return false;
+    return sim?.heroBarrierSystem?.createSpectralGate?.(agent, route, effect, sim) ?? false;
+  }
+
+  banishmentCharge(agent, cast, effect, sim) {
+    const target = cast.targetId ? (sim?.agents ?? []).find(candidate => candidate.id === cast.targetId) : this.hostilesInRoom(agent, sim)[0];
+    if (!target) return false;
+    return sim?.heroBarrierSystem?.banishmentCharge?.(agent, target, effect, sim) ?? false;
+  }
+
+  sealAllRoomRoutes(agent, effect, sim) {
+    const routes = this.connectedRoutes(agent.roomId, sim).filter(route => route.active !== false);
+    return (sim?.heroBarrierSystem?.sealAllRoomRoutes?.(agent, routes, effect, sim) ?? []).length > 0;
+  }
+
+  selectDefensiveRoute(agent, sim) {
+    const routes = this.connectedRoutes(agent.roomId, sim)
+      .filter(route => route.active !== false)
+      .filter(route => !sim?.heroBarrierSystem?.barrierForRoute?.(route.id))
+      .sort((a, b) => (b.width ?? 0) - (a.width ?? 0) || String(a.id).localeCompare(String(b.id)));
+    const route = routes[0] ?? null;
+    return route ? { targetRouteId: route.id, targetRoomId: agent.roomId, route } : null;
+  }
+
   isRouteBlocked(fromRoomId, toRoomId, agent) {
     const lock = this.routeLocks.find(candidate => pairMatches(candidate, fromRoomId, toRoomId));
     if (!lock) return false;
@@ -1187,7 +1238,9 @@ export class HeroSkillSystem {
       agent?.heroStatuses?.rooted ||
       agent?.heroStatuses?.butchering ||
       (agent?.heroStatuses?.displaced?.remaining ?? 0) > 0 ||
-      (agent?.heroStatuses?.hooked?.remaining ?? 0) > 0
+      (agent?.heroStatuses?.hooked?.remaining ?? 0) > 0 ||
+      (agent?.heroStatuses?.heroParalysis?.remaining ?? 0) > 0 ||
+      (agent?.heroStatuses?.gateLockdown?.remaining ?? 0) > 0
     );
   }
 
@@ -1201,8 +1254,6 @@ export class HeroSkillSystem {
     }
     if (target?.heroStatuses?.veilConcealment && !metadata.holy) result *= 0.82;
     if (target?.heroFormKind === 'guard') result *= 0.8;
-    const fire = metadata.fire === true || metadata.projectileType === 'fire' || metadata.damageType === 'fire';
-    if (fire && Number.isFinite(target?.heroFireDamageMultiplier)) result *= target.heroFireDamageMultiplier;
     return Math.max(1, Math.round(result));
   }
 

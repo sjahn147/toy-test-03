@@ -151,7 +151,9 @@ export class DungeonRenderer {
       deployables: snapshot.heroDeployables?.deployables ?? [],
       projectiles: snapshot.heroDeployables?.projectiles ?? [],
       fields: snapshot.heroEnvironment?.fields ?? [],
-      tethers: snapshot.heroPhysics?.tethers ?? []
+      tethers: snapshot.heroPhysics?.tethers ?? [],
+      formations: snapshot.heroFormations?.formations ?? [],
+      barriers: snapshot.heroBarriers?.barriers ?? []
     }, snapshot.rooms, snapshot.time);
     this.renderEffects(snapshot.effects ?? [], snapshot.rooms, snapshot.time);
   }

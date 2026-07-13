@@ -16,7 +16,7 @@ export const THREE={Group,Mesh,BoxGeometry,SphereGeometry,CylinderGeometry,ConeG
 `;
 
 const here = dirname(fileURLToPath(import.meta.url));
-const temp = await mkdtemp(join(tmpdir(), 'wp8c-irregular-telegraph-'));
+const temp = await mkdtemp(join(tmpdir(), 'wp8c-telegraph-'));
 await mkdir(join(temp, 'src/engine/heroes'), { recursive: true });
 await mkdir(join(temp, 'src/engine'), { recursive: true });
 await copyFile(join(here, '../src/engine/heroes/HeroTelegraphRenderer.js'), join(temp, 'src/engine/heroes/HeroTelegraphRenderer.js'));
@@ -64,7 +64,7 @@ for (const effect of [
 }
 
 assert.equal(createHeroEffect({ type: 'ordinary-effect' }), null);
-console.log('WP8-C irregular regression irregular telegraph and temporary-form presentation smoke passed');
+console.log('WP8-C irregular telegraph and temporary-form presentation smoke passed');
 
 function assertFinite(root, label) {
   root.traverse(node => {

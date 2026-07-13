@@ -17,6 +17,10 @@ const COLORS = {
   'goblin-air': 0xa8d8d5,
   'kobold-water': 0x72d3e5,
   'orc-ember': 0xe36b42,
+  'royal-blue': 0x6f9fd1,
+  'royal-soul': 0xa9e3ff,
+  'ghast-green': 0x9bcf83,
+  'death-knight-blue': 0x6b98b8,
   hero: 0xf2d47c
 };
 
@@ -46,6 +50,12 @@ export function createHeroEffect(effect) {
   else if (effect.type === 'hero-feast-burst') buildFeastBurst(group, material, effect.radius ?? 6);
   else if (effect.type === 'hero-submerged-reveal') buildDrainSpiral(group, material, effect.radius ?? 3.5);
   else if (effect.type === 'hero-butcher-complete') buildButcherBurst(group, material);
+  else if (effect.type === 'hero-formation-impact') buildShieldImpact(group, material);
+  else if (effect.type === 'hero-necromancy-rite') buildNecromancyRite(group, material, effect);
+  else if (effect.type === 'hero-summon-emerge') buildSummonEmerge(group, material, effect);
+  else if (effect.type === 'hero-ghast-retch') buildGhastRetch(group, material);
+  else if (effect.type === 'hero-barrier-rise' || effect.type === 'hero-barrier-hit' || effect.type === 'hero-barrier-fall') buildSpectralGateWall(group, material, effect);
+  else if (effect.type === 'hero-gate-collision') buildGateCollision(group, material);
   else buildShape(group, group.userData.shape, effect.radius ?? 2, material, effect);
   captureEffectBaseTransforms(group);
   return group;
@@ -126,6 +136,15 @@ function buildShape(group, shape, radius, material, effect = {}) {
   if (shape === 'cauldron-hearth') return buildCauldronHearth(group, material, radius);
   if (shape === 'hook-line') return buildHookLine(group, material, effect.length ?? radius);
   if (shape === 'feast-ring') return buildFeastRing(group, material, radius);
+  if (shape === 'command-line') return buildCommandLine(group, material, effect.length ?? radius, effect.width ?? 0.8);
+  if (shape === 'shield-wedge') return buildShieldWedge(group, material, effect.length ?? radius, effect.width ?? 2.4);
+  if (shape === 'three-grave-sigils') return buildThreeGraveSigils(group, material, radius);
+  if (shape === 'ghast-scream-cone') return buildGhastScreamCone(group, material, effect.length ?? radius, effect.width ?? 3.5);
+  if (shape === 'corpse-grasp') return buildCorpseGrasp(group, material, radius);
+  if (shape === 'carrion-banquet-ring') return buildCarrionBanquetRing(group, material, radius);
+  if (shape === 'spectral-gate-wall') return buildSpectralGateWall(group, material, effect);
+  if (shape === 'door-shield-charge') return buildDoorShieldCharge(group, material, effect.length ?? radius, effect.width ?? 1.6);
+  if (shape === 'all-gates-closing') return buildAllGatesClosing(group, material, radius);
   return buildRing(group, material, radius);
 }
 
@@ -599,6 +618,206 @@ function buildFormEffect(group, material, effect) {
   group.add(flare);
 }
 
+
+function buildCommandLine(group, material, length, width) {
+  const span = Math.max(3, length);
+  const line = namedMesh('command-line', new THREE.BoxGeometry(span, 0.055, Math.max(0.08, width * 0.18)), material);
+  line.position.y = 0.045;
+  group.add(line);
+  for (let i = 0; i < 5; i += 1) {
+    const shield = namedMesh('command-shield', new THREE.BoxGeometry(0.42, 0.06, 0.58), material);
+    shield.position.set((i / 4 - 0.5) * span, 0.08, 0);
+    shield.rotation.x = Math.PI / 2;
+    shield.userData.phase = i * 0.48;
+    group.add(shield);
+  }
+  const sword = namedMesh('command-sword', new THREE.ConeGeometry(0.09, 0.9, 4), material);
+  sword.position.set(0, 0.12, -0.55);
+  sword.rotation.x = Math.PI / 2;
+  group.add(sword);
+}
+
+function buildShieldWedge(group, material, length, width) {
+  const safeLength = Math.max(2.5, length);
+  for (const side of [-1, 1]) {
+    const edge = namedMesh('shield-wedge-edge', new THREE.BoxGeometry(0.07, 0.05, safeLength), material);
+    edge.position.set(side * width * 0.25, 0.045, safeLength * 0.5);
+    edge.rotation.y = side * -0.16;
+    group.add(edge);
+  }
+  for (let i = 0; i < 4; i += 1) {
+    const plate = namedMesh('shield-wedge-plate', new THREE.BoxGeometry(width * (0.38 + i * 0.08), 0.06, 0.24), material);
+    plate.position.set(0, 0.06, safeLength * (0.18 + i * 0.2));
+    plate.userData.phase = i * 0.45;
+    group.add(plate);
+  }
+}
+
+function buildThreeGraveSigils(group, material, radius) {
+  for (let i = 0; i < 3; i += 1) {
+    const angle = -Math.PI / 2 + i * Math.PI * 2 / 3;
+    const grave = new THREE.Group();
+    grave.name = 'grave-sigil';
+    grave.userData.phase = i * 0.72;
+    const ring = namedMesh('grave-ring', new THREE.TorusGeometry(0.52, 0.045, 7, 28), material);
+    ring.rotation.x = Math.PI / 2;
+    grave.add(ring);
+    const blade = namedMesh('grave-blade', new THREE.BoxGeometry(0.09, 0.05, 0.8), material);
+    blade.position.z = 0.08;
+    grave.add(blade);
+    const cross = namedMesh('grave-cross', new THREE.BoxGeometry(0.42, 0.05, 0.09), material);
+    cross.position.z = -0.17;
+    grave.add(cross);
+    grave.position.set(Math.cos(angle) * radius * 0.55, 0.055, Math.sin(angle) * radius * 0.55);
+    group.add(grave);
+  }
+}
+
+function buildGhastScreamCone(group, material, length, width) {
+  const safeLength = Math.max(3, length);
+  for (let i = 0; i < 5; i += 1) {
+    const z = safeLength * (i + 1) / 5;
+    const wave = namedMesh('ghast-scream-wave', new THREE.TorusGeometry(Math.max(0.18, width * z / safeLength * 0.5), 0.04, 6, 30, Math.PI), material);
+    wave.rotation.x = Math.PI / 2;
+    wave.rotation.z = Math.PI / 2;
+    wave.position.set(0, 0.12, z);
+    wave.userData.phase = i * 0.46;
+    group.add(wave);
+  }
+}
+
+function buildCorpseGrasp(group, material, radius) {
+  buildRing(group, material, radius * 0.7);
+  for (let i = 0; i < 6; i += 1) {
+    const angle = i / 6 * Math.PI * 2;
+    const claw = namedMesh('corpse-claw', new THREE.ConeGeometry(0.08, 0.62, 5), material);
+    claw.position.set(Math.cos(angle) * radius * 0.46, 0.14, Math.sin(angle) * radius * 0.46);
+    claw.rotation.z = Math.PI / 2;
+    claw.rotation.y = -angle;
+    claw.userData.phase = i * 0.51;
+    group.add(claw);
+  }
+}
+
+function buildCarrionBanquetRing(group, material, radius) {
+  buildRing(group, material, radius);
+  const inner = namedMesh('banquet-inner-ring', new THREE.TorusGeometry(radius * 0.56, 0.035, 7, 40), material);
+  inner.rotation.x = Math.PI / 2;
+  group.add(inner);
+  for (let i = 0; i < 10; i += 1) {
+    const angle = i / 10 * Math.PI * 2;
+    const tooth = namedMesh('banquet-tooth', new THREE.ConeGeometry(0.11, 0.55, 5), material);
+    tooth.position.set(Math.cos(angle) * radius * 0.78, 0.14, Math.sin(angle) * radius * 0.78);
+    tooth.rotation.z = Math.PI / 2;
+    tooth.rotation.y = -angle;
+    tooth.userData.phase = i * 0.37;
+    group.add(tooth);
+  }
+}
+
+function buildSpectralGateWall(group, material, effect = {}) {
+  const width = Math.max(2.6, effect.width ?? effect.radius ?? 4.2);
+  for (const side of [-1, 1]) {
+    const tower = namedMesh('spectral-gate-tower', new THREE.BoxGeometry(0.34, 2.2, 0.38), material);
+    tower.position.set(side * width * 0.5, 1.1, 0);
+    group.add(tower);
+    const crown = namedMesh('spectral-gate-crown', new THREE.ConeGeometry(0.32, 0.72, 4), material);
+    crown.position.set(side * width * 0.5, 2.55, 0);
+    crown.rotation.y = Math.PI / 4;
+    group.add(crown);
+  }
+  for (let i = 0; i < 5; i += 1) {
+    const bar = namedMesh('spectral-gate-bar', new THREE.BoxGeometry(width, 0.09, 0.12), material);
+    bar.position.y = 0.34 + i * 0.38;
+    bar.userData.phase = i * 0.42;
+    group.add(bar);
+  }
+  const bolt = namedMesh('spectral-gate-bolt', new THREE.BoxGeometry(width * 0.72, 0.18, 0.2), material);
+  bolt.position.y = 1.16;
+  group.add(bolt);
+}
+
+function buildDoorShieldCharge(group, material, length, width) {
+  const lane = namedMesh('door-charge-lane', new THREE.BoxGeometry(Math.max(0.8, width), 0.04, Math.max(2.5, length)), material);
+  lane.position.set(0, 0.04, Math.max(2.5, length) * 0.5);
+  group.add(lane);
+  const door = namedMesh('door-charge-shield', new THREE.BoxGeometry(Math.max(0.9, width * 0.72), 0.08, 1.1), material);
+  door.position.set(0, 0.1, 0.65);
+  door.userData.phase = 0.4;
+  group.add(door);
+}
+
+function buildAllGatesClosing(group, material, radius) {
+  buildRing(group, material, radius);
+  for (let i = 0; i < 6; i += 1) {
+    const angle = i / 6 * Math.PI * 2;
+    const gate = namedMesh('closing-gate', new THREE.BoxGeometry(radius * 0.32, 0.08, 0.65), material);
+    gate.position.set(Math.cos(angle) * radius * 0.72, 0.08, Math.sin(angle) * radius * 0.72);
+    gate.rotation.y = -angle;
+    gate.userData.phase = i * 0.52;
+    group.add(gate);
+  }
+  for (let i = 0; i < 8; i += 1) {
+    const angle = i / 8 * Math.PI * 2;
+    const key = namedMesh('falling-key', new THREE.BoxGeometry(0.08, 0.08, 0.55), material);
+    key.position.set(Math.cos(angle) * radius * 0.4, 0.15 + (i % 3) * 0.12, Math.sin(angle) * radius * 0.4);
+    key.rotation.y = angle;
+    key.userData.phase = i * 0.33;
+    group.add(key);
+  }
+}
+
+function buildShieldImpact(group, material) {
+  for (let i = 0; i < 7; i += 1) {
+    const angle = i / 7 * Math.PI * 2;
+    const shard = namedMesh('shield-impact-shard', new THREE.ConeGeometry(0.07, 0.5, 4), material);
+    shard.position.set(Math.cos(angle) * 0.55, 0.25, Math.sin(angle) * 0.55);
+    shard.rotation.z = angle;
+    group.add(shard);
+  }
+}
+
+function buildNecromancyRite(group, material, effect = {}) {
+  buildThreeGraveSigils(group, material, effect.radius ?? 3.4);
+  const core = namedMesh('necromancy-core', new THREE.OctahedronGeometry(0.28, 0), material);
+  core.position.y = 0.42;
+  group.add(core);
+}
+
+function buildSummonEmerge(group, material, effect = {}) {
+  buildRing(group, material, effect.radius ?? 1.2);
+  for (let i = 0; i < 5; i += 1) {
+    const bone = namedMesh('summon-bone', new THREE.CylinderGeometry(0.035, 0.045, 0.62, 6), material);
+    const angle = i / 5 * Math.PI * 2;
+    bone.position.set(Math.cos(angle) * 0.48, 0.22, Math.sin(angle) * 0.48);
+    bone.rotation.z = angle;
+    bone.userData.phase = i * 0.42;
+    group.add(bone);
+  }
+}
+
+function buildGhastRetch(group, material) {
+  for (let i = 0; i < 7; i += 1) {
+    const drop = namedMesh('ghast-retch-drop', new THREE.SphereGeometry(0.07 + (i % 3) * 0.02, 7, 5), material);
+    drop.position.set((i % 2 ? -1 : 1) * 0.12 * (1 + i / 5), 0.3 + i * 0.08, 0.28 + i * 0.12);
+    drop.userData.phase = i * 0.31;
+    group.add(drop);
+  }
+}
+
+function buildGateCollision(group, material) {
+  const gate = namedMesh('gate-collision-door', new THREE.BoxGeometry(1.5, 1.8, 0.12), material);
+  gate.position.y = 0.9;
+  group.add(gate);
+  for (let i = 0; i < 8; i += 1) {
+    const shard = namedMesh('gate-collision-shard', new THREE.BoxGeometry(0.08, 0.38, 0.08), material);
+    const angle = i / 8 * Math.PI * 2;
+    shard.position.set(Math.cos(angle) * 0.8, 0.6 + (i % 3) * 0.2, Math.sin(angle) * 0.4);
+    shard.rotation.z = angle;
+    group.add(shard);
+  }
+}
+
 function buildArmorDrop(group, material) {
   const plate = namedMesh('armor-drop', new THREE.BoxGeometry(0.8, 0.7, 0.18), material);
   plate.position.y = 0.35;
@@ -645,6 +864,27 @@ function animateShapeParts(root, shape, age, progress, telegraph) {
       node.rotation.y += age * 0.6;
     } else if (node.name === 'court-orbit') {
       node.rotation.y += age * 0.35;
+    } else if (node.name === 'command-shield' || node.name === 'shield-wedge-plate') {
+      node.position.y += Math.sin(age * 3.2 + phase) * 0.025;
+      node.scale.x *= 0.84 + progress * 0.18;
+    } else if (node.name === 'grave-sigil' || node.name === 'falling-key') {
+      node.rotation.y += age * (node.name === 'grave-sigil' ? 0.45 : 1.2) + phase * 0.05;
+      node.position.y += Math.sin(age * 2.4 + phase) * 0.06;
+    } else if (node.name === 'ghast-scream-wave') {
+      node.scale.setScalar(0.7 + progress * 0.55 + Math.sin(age * 5 + phase) * 0.06);
+    } else if (node.name === 'corpse-claw' || node.name === 'banquet-tooth') {
+      node.rotation.z += Math.sin(age * 3.5 + phase) * 0.16;
+    } else if (node.name === 'spectral-gate-bar') {
+      node.scale.x *= 0.55 + progress * 0.5;
+      node.material.opacity = Math.max(0.15, 0.35 + Math.sin(age * 4 + phase) * 0.15);
+    } else if (node.name === 'closing-gate') {
+      node.position.x *= 1 - progress * 0.22;
+      node.position.z *= 1 - progress * 0.22;
+    } else if (node.name === 'summon-bone') {
+      node.position.y += progress * 0.65 + Math.sin(age * 4 + phase) * 0.05;
+    } else if (node.name === 'ghast-retch-drop') {
+      node.position.z += progress * 0.7;
+      node.position.y -= progress * 0.28;
     }
   });
   if (shape === 'ethereal-domain') offsetEffectChildren(root, Math.sin(age * 1.25) * 0.025);
@@ -659,7 +899,7 @@ function defaultShape(type, effect = {}) {
 }
 
 function rotatingShape(shape) {
-  return ['triangle', 'three-gear-circle', 'memory-flower', 'solitary-bloom', 'royal-sigil', 'digest-spiral', 'triune-court', 'ethereal-domain'].includes(shape);
+  return ['triangle', 'three-gear-circle', 'memory-flower', 'solitary-bloom', 'royal-sigil', 'digest-spiral', 'triune-court', 'ethereal-domain', 'three-grave-sigils', 'carrion-banquet-ring', 'all-gates-closing'].includes(shape);
 }
 
 function rotationSpeed(shape) {

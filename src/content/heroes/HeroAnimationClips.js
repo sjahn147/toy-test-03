@@ -358,6 +358,123 @@ export const HERO_ANIMATION_CLIPS = Object.freeze({
     ])
   }),
 
+
+  'aldren-royal-guard': Object.freeze({
+    'idle-primary': clip('aldren.idle-primary', 4.0, [
+      channel('soulCore','scale.y',[[0,0.02],[0.5,0.18],[1,0.02]]),
+      channel('head','rotation.y',[[0,-0.03],[0.5,0.04],[1,-0.03]]),
+      channel('shieldRoot','rotation.z',[[0,0.02],[0.5,-0.025],[1,0.02]])
+    ], { loop: true }),
+    'idle-secondary': clip('aldren.idle-secondary', 5.2, [
+      channel('cloakL','rotation.z',[[0,0.04],[0.5,-0.06],[1,0.04]]),
+      channel('cloakR','rotation.z',[[0,-0.03],[0.5,0.05],[1,-0.03]]),
+      channel('commandChain','rotation.y',[[0,0],[1,0.45]],'linear')
+    ], { loop: true }),
+    'skill:aldren-royal-line': clip('aldren.royal-line', 1.65, [
+      channel('motionRoot','position.y',[[0,0],[0.45,-0.08],[1,0]]),
+      channel('swordRoot','rotation.x',[[0,0],[0.36,-1.1],[0.72,0.75],[1,0]]),
+      channel('swordRoot','rotation.z',[[0,0],[0.72,-0.35],[1,0]]),
+      channel('shieldRoot','rotation.y',[[0,0],[0.72,0.3],[1,0.1]])
+    ], { events: [{ at: 0.7, type: 'line-inscribed' }, { at: 0.74, type: 'impact' }] }),
+    'skill:aldren-shield-judgment': clip('aldren.shield-judgment', 0.95, [
+      channel('chest','rotation.y',[[0,0],[0.35,-0.42],[0.68,0.36],[1,0]]),
+      channel('shoulderL','rotation.x',[[0,0],[0.35,-0.8],[0.7,0.42],[1,0]]),
+      channel('shieldRoot','position.z',[[0,0],[0.7,0.5],[1,0.08]]),
+      channel('shieldRoot','rotation.x',[[0,0],[0.7,-0.18],[1,0]])
+    ], { events: [{ at: 0.68, type: 'impact' }] }),
+    'skill:aldren-unrevoked-order': clip('aldren.unrevoked-order', 2.35, [
+      channel('swordRoot','rotation.x',[[0,0],[0.4,-1.25],[0.75,0.2],[1,0]]),
+      channel('motionRoot','position.y',[[0,0],[0.75,-0.1],[1,0]]),
+      channel('soulCore','scale.x',[[0,0],[0.75,0.85],[1,0.2]]),
+      channel('soulCore','scale.y',[[0,0],[0.75,1.15],[1,0.3]]),
+      channel('cloakRoot','scale.x',[[0,0],[0.75,0.3],[1,0.08]])
+    ], { events: [{ at: 0.42, type: 'sword-knock' }, { at: 0.58, type: 'sword-knock' }, { at: 0.74, type: 'impact' }] }),
+    death: clip('aldren.death', 2.7, [
+      channel('motionRoot','position.y',[[0,0],[0.55,-0.2],[1,-0.55]]),
+      channel('motionRoot','rotation.z',[[0,0],[1,-1.2]]),
+      channel('swordRoot','rotation.z',[[0,0],[1,1.6]]),
+      channel('soulCore','scale.y',[[0,0],[1,-0.85]])
+    ])
+  }),
+
+  'malcor-ghast-lord': Object.freeze({
+    'idle-primary': clip('malcor.idle-primary', 3.1, [
+      channel('spineLower','rotation.x',[[0,0.2],[0.5,0.28],[1,0.2]]),
+      channel('head','rotation.y',[[0,-0.15],[0.6,0.18],[1,-0.15]]),
+      channel('jaw','rotation.x',[[0,0.04],[0.5,-0.12],[1,0.04]])
+    ], { loop: true }),
+    'idle-secondary': clip('malcor.idle-secondary', 4.0, [
+      channel('coatTailL','rotation.z',[[0,0.06],[0.5,-0.09],[1,0.06]]),
+      channel('coatTailR','rotation.z',[[0,-0.05],[0.5,0.08],[1,-0.05]]),
+      channel('vaporRoot','rotation.y',[[0,0],[1,0.8]],'linear')
+    ], { loop: true }),
+    'skill:malcor-predators-cry': clip('malcor.predators-cry', 1.7, [
+      channel('spineLower','rotation.x',[[0,0],[0.55,-0.48],[0.75,0.32],[1,0]]),
+      channel('neck','rotation.x',[[0,0],[0.55,-0.65],[0.75,0.45],[1,0]]),
+      channel('jaw','rotation.x',[[0,0],[0.62,-1.1],[1,-0.18]]),
+      channel('coatRoot','scale.x',[[0,0],[0.68,0.25],[1,0.05]])
+    ], { events: [{ at: 0.62, type: 'stitches-snap' }, { at: 0.7, type: 'impact' }] }),
+    'skill:malcor-memory-flesh': clip('malcor.memory-flesh', 1.45, [
+      channel('motionRoot','position.y',[[0,0],[0.5,-0.2],[1,0]]),
+      channel('shoulderL','rotation.x',[[0,0],[0.55,-1.05],[1,-0.1]]),
+      channel('shoulderR','rotation.x',[[0,0],[0.55,-1.05],[1,-0.1]]),
+      channel('jaw','rotation.x',[[0,0],[0.7,-0.85],[1,-0.15]])
+    ], { events: [{ at: 0.7, type: 'impact' }] }),
+    'skill:malcor-hungry-feast': clip('malcor.hungry-feast', 2.5, [
+      channel('motionRoot','position.y',[[0,0],[0.45,-0.12],[0.72,0.18],[1,0]]),
+      channel('shoulderL','rotation.z',[[0,0],[0.7,-0.95],[1,-0.2]]),
+      channel('shoulderR','rotation.z',[[0,0],[0.7,0.95],[1,0.2]]),
+      channel('jaw','rotation.x',[[0,0],[0.72,-1.0],[1,-0.22]]),
+      channel('vaporRoot','scale.x',[[0,0],[0.72,0.8],[1,0.2]])
+    ], { events: [{ at: 0.72, type: 'impact' }] }),
+    death: clip('malcor.death', 2.2, [
+      channel('motionRoot','rotation.x',[[0,0],[0.7,0.85],[1,1.35]]),
+      channel('coatTailL','rotation.z',[[0,0],[1,-0.9]]),
+      channel('coatTailR','rotation.z',[[0,0],[1,0.9]]),
+      channel('jaw','rotation.x',[[0,0],[1,-1.2]])
+    ])
+  }),
+
+  'arvek-black-gate': Object.freeze({
+    'idle-primary': clip('arvek.idle-primary', 4.2, [
+      channel('chest','rotation.y',[[0,-0.015],[0.5,0.02],[1,-0.015]]),
+      channel('head','rotation.y',[[0,-0.04],[0.5,0.05],[1,-0.04]]),
+      channel('crossbar','position.z',[[0,0],[0.5,0.025],[1,0]])
+    ], { loop: true }),
+    'idle-secondary': clip('arvek.idle-secondary', 5.0, [
+      channel('keyRing','rotation.y',[[0,0],[1,0.55]],'linear'),
+      channel('chainCloak','rotation.z',[[0,0.03],[0.5,-0.04],[1,0.03]]),
+      channel('towerL','rotation.z',[[0,0.01],[0.5,-0.015],[1,0.01]]),
+      channel('towerR','rotation.z',[[0,-0.01],[0.5,0.015],[1,-0.01]])
+    ], { loop: true }),
+    'skill:arvek-black-gate': clip('arvek.black-gate', 2.05, [
+      channel('motionRoot','position.y',[[0,0],[0.5,-0.1],[1,0]]),
+      channel('shieldRoot','rotation.x',[[0,0],[0.65,-0.4],[1,-0.08]]),
+      channel('shieldRoot','position.z',[[0,0],[0.7,0.5],[1,0.12]]),
+      channel('crossbar','position.z',[[0,0],[0.72,-0.34],[1,-0.08]])
+    ], { events: [{ at: 0.68, type: 'crossbar-lock' }, { at: 0.74, type: 'impact' }] }),
+    'skill:arvek-banishment-sentence': clip('arvek.banishment', 1.15, [
+      channel('motionRoot','position.z',[[0,0],[0.45,-0.18],[0.72,0.72],[1,0.12]]),
+      channel('shieldRoot','rotation.x',[[0,0],[0.4,-0.55],[0.72,0.28],[1,0]]),
+      channel('shoulderL','rotation.x',[[0,0],[0.72,-0.8],[1,-0.1]]),
+      channel('swordRoot','rotation.z',[[0,0],[0.72,0.4],[1,0]])
+    ], { events: [{ at: 0.7, type: 'impact' }] }),
+    'skill:arvek-close-the-city': clip('arvek.close-city', 2.85, [
+      channel('motionRoot','position.y',[[0,0],[0.5,-0.16],[0.76,0.12],[1,0]]),
+      channel('keyRing','rotation.y',[[0,0],[1,6.8]],'linear'),
+      channel('towerL','scale.y',[[0,0],[0.75,0.35],[1,0.12]]),
+      channel('towerR','scale.y',[[0,0],[0.75,0.35],[1,0.12]]),
+      channel('crossbar','position.z',[[0,0],[0.75,-0.5],[1,-0.18]]),
+      channel('shieldRoot','position.y',[[0,0],[0.75,-0.25],[1,-0.08]])
+    ], { events: [{ at: 0.75, type: 'impact' }] }),
+    death: clip('arvek.death', 3.0, [
+      channel('motionRoot','position.y',[[0,0],[0.6,-0.2],[1,-0.65]]),
+      channel('motionRoot','rotation.z',[[0,0],[1,1.1]]),
+      channel('shieldRoot','rotation.z',[[0,0],[1,-1.45]]),
+      channel('keyRing','position.y',[[0,0],[1,-1.2]])
+    ])
+  }),
+
 });
 
 export function getHeroAnimationClip(profile, clipId) {

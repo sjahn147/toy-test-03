@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { HeroFormationSystem } from '../src/sim/heroes/HeroFormationSystem.js';
+import { HeroNecromancySystem } from '../src/sim/heroes/HeroNecromancySystem.js';
+import { HeroBarrierSystem } from '../src/sim/heroes/HeroBarrierSystem.js';
+const formation=new HeroFormationSystem(), necro=new HeroNecromancySystem(), barrier=new HeroBarrierSystem();
+const owner={id:'a',heroId:'hero.aldren',name:'Aldren',role:'hero-aldren',ecologyFaction:'undead-host',roomId:'R',roomCell:{x:0,z:0},alive:true,hp:100,armor:5,attack:8};
+const ally={id:'s',role:'skeleton',species:'skeleton',ecologyFaction:'undead-host',roomId:'R',roomCell:{x:1,z:0},alive:true,hp:20,armor:2,attack:4};
+const enemy={id:'e',role:'fighter',faction:'party',roomId:'R',roomCell:{x:0,z:2},alive:true,hp:40};
+const sim={agents:[owner,ally,enemy],ecosystem:{corpses:[]},combatSystem:{initializeAgent(){}},emitEffect(){}};
+formation.createRoyalLine(owner,{},sim);necro.reassembleRoyalSkeletons(owner,{maximum:1,duration:5},sim);barrier.createSpectralGate(owner,{id:'route',from:'R',to:'S',width:2.5},{duration:5},sim);
+for(const snapshot of [formation.snapshot(),necro.snapshot(),barrier.snapshot()]) assert.doesNotThrow(()=>JSON.stringify(snapshot));
+assert.equal(formation.snapshot().formations[0].roomId,'R');assert.equal(necro.snapshot().summons[0].roomId,'R');assert.equal(barrier.snapshot().barriers[0].roomId,'R');
+console.log('WP8-D snapshot contract smoke passed');

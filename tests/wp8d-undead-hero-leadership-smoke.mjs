@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import { HeroLeadershipSystem } from '../src/sim/heroes/HeroLeadershipSystem.js';
+
+const aldren={id:'aldren',heroId:'hero.aldren',role:'hero-aldren',ecologyFaction:'undead-host',roomId:'E22',alive:true};
+const malcor={id:'malcor',heroId:'hero.malcor',role:'hero-malcor',ecologyFaction:'undead-host',roomId:'E24',alive:true};
+const arvek={id:'arvek',heroId:'hero.arvek',role:'hero-arvek',ecologyFaction:'undead-host',roomId:'L59',alive:true};
+const skeleton={id:'sk',role:'skeleton',species:'skeleton',ecologyFaction:'undead-host',roomId:'E22',alive:true,attack:5,armor:2,courage:7,speedMultiplier:1};
+const ghoul={id:'gh',role:'ghoul',species:'ghoul',ecologyFaction:'undead-host',roomId:'E24',alive:true,attack:7,armor:1,courage:6,speedMultiplier:1,fear:3};
+const guard={id:'guard',role:'spectral-guard',species:'spectral-guard',heroSummonKind:'spectral-guard',ecologyFaction:'undead-host',roomId:'L59',alive:true,attack:8,armor:3,courage:9,speedMultiplier:1};
+const barrier={id:'bar',roomId:'L59',factionId:'undead-host',hp:30};
+const sim={agents:[aldren,malcor,arvek,skeleton,ghoul,guard],rooms:[],heroBarrierSystem:{nearestBarrier:(room,faction)=>room==='L59'&&faction==='undead-host'?barrier:null}};
+const system=new HeroLeadershipSystem();
+system.update(0.1,sim);
+assert.equal(skeleton.armor,4); assert.equal(skeleton.courage,10); assert.equal(skeleton.heroKnockbackResistance,0.25);
+assert.equal(ghoul.attack,9); assert.equal(ghoul.speedMultiplier,1.12); assert.equal(ghoul.fear,0);
+assert.equal(guard.armor,6); assert.equal(guard.courage,11);
+const first={skArmor:skeleton.armor,ghAttack:ghoul.attack,guardArmor:guard.armor};
+system.update(0.1,sim);
+assert.deepEqual({skArmor:skeleton.armor,ghAttack:ghoul.attack,guardArmor:guard.armor},first,'leadership must not stack');
+aldren.alive=false; malcor.alive=false; arvek.alive=false;
+system.update(0.1,sim);
+assert.equal(skeleton.armor,2); assert.equal(skeleton.courage,7); assert.equal(skeleton.heroKnockbackResistance,undefined);
+assert.equal(ghoul.attack,7); assert.equal(ghoul.speedMultiplier,1);
+assert.equal(guard.armor,3); assert.equal(guard.courage,9);
+console.log('WP8-D undead hero leadership smoke passed');

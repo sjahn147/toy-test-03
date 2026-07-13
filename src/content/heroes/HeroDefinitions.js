@@ -789,6 +789,266 @@ export const HERO_DEFINITIONS = Object.freeze({
   }),
 
 
+  'hero.aldren': hero({
+    id: 'hero.aldren',
+    role: 'hero-aldren',
+    displayName: 'Ser Aldren Vale',
+    localizedName: '세르 알드렌 베일',
+    factionId: 'undead-host',
+    species: 'skeleton',
+    size: 'medium',
+    initialRoomId: 'E22',
+    encounterRoomId: 'E22',
+    baseStats: { hp: 112, attack: 11, courage: 24, armor: 7, speed: 0.82 },
+    relationship: { initial: -20 },
+    visual: {
+      bodyPlan: 'hero-skeleton-royal-guard',
+      animationProfile: 'aldren-royal-guard',
+      scale: 1.02,
+      indicatorRadius: 0.68,
+      markerHeight: 2.65,
+      palette: {
+        skin: 0xd9d4c0,
+        cloth: 0x283a59,
+        clothInner: 0x1a2439,
+        leather: 0x41362f,
+        metal: 0x535e68,
+        brass: 0xc2a862,
+        accent: 0xa9e3ff,
+        dark: 0x14191e
+      },
+      silhouette: ['tall-royal-helm', 'broad-empty-heraldic-shield', 'straight-command-sword'],
+      dedicatedParts: ['hollow-breastplate', 'royal-crested-helm', 'empty-heraldic-shield', 'command-sword', 'half-rotted-blue-cloak', 'soul-flame-rib-cavity', 'command-chain', 'ossuary-spurs']
+    },
+    passive: {
+      id: 'aldren-unfinished-watch',
+      name: 'The Watch Is Not Ended',
+      description: 'Skeletons holding Aldren\'s line gain frontal protection, courage, and resistance to forced movement.'
+    },
+    leadership: {
+      radius: 'formation-and-same-room',
+      skeletonArmorBonus: 2,
+      skeletonCourageBonus: 3,
+      frontalDamageMultiplier: 0.76,
+      knockbackResistanceBonus: 0.25
+    },
+    runtimeDefaults: { royalOrders: 1 },
+    skills: [
+      skill('aldren-royal-line', 'Royal Battle Line', {
+        cooldown: 15,
+        windup: 1.65,
+        recovery: 0.8,
+        targetPolicy: 'allied-room',
+        telegraph: { shape: 'command-line', radius: 5.2, length: 5.2, width: 0.8, colorRole: 'royal-blue', cue: 'sword-scrapes-stone' },
+        effects: [
+          { type: 'create-royal-formation', duration: 12, maximumAllies: 4, span: 5.2, frontalDamageMultiplier: 0.72, crossingStagger: 1.1 },
+          { type: 'emit-command', command: 'hold-the-royal-line' }
+        ],
+        ai: { priority: 8, minimumAllies: 2, minimumHostiles: 1 }
+      }),
+      skill('aldren-shield-judgment', 'Shield Judgment', {
+        cooldown: 9,
+        windup: 0.95,
+        recovery: 0.75,
+        targetPolicy: 'hostile-direction',
+        telegraph: { shape: 'shield-wedge', radius: 3.6, length: 3.6, width: 2.4, colorRole: 'royal-blue', cue: 'shield-rim-rings' },
+        effects: [
+          { type: 'royal-shield-bash', damage: 6, impulse: 5.2, length: 3.6, width: 2.4, interrupt: true, armorBreak: { amount: 2, duration: 5 } }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('aldren-unrevoked-order', 'The Unrevoked Order', {
+        cooldown: 34,
+        windup: 2.35,
+        recovery: 1.05,
+        interruptDamageRatio: 0.24,
+        targetPolicy: 'room-corpses',
+        costs: { bone: 3, deathEnergy: 1 },
+        telegraph: { shape: 'three-grave-sigils', radius: 5.5, colorRole: 'royal-soul', cue: 'sword-command-three-knocks' },
+        effects: [
+          { type: 'reassemble-royal-skeletons', maximum: 3, duration: 24, role: 'skeleton' },
+          { type: 'emit-command', command: 'resume-your-posts' }
+        ],
+        ai: { priority: 10, minimumHostiles: 2 }
+      })
+    ]
+  }),
+
+  'hero.malcor': hero({
+    id: 'hero.malcor',
+    role: 'hero-malcor',
+    displayName: 'Malcor Rotten-Tooth',
+    localizedName: '구린이빨 말코르',
+    factionId: 'undead-host',
+    species: 'ghast',
+    size: 'medium',
+    initialRoomId: 'E24',
+    encounterRoomId: 'E24',
+    baseStats: { hp: 96, attack: 12, courage: 19, armor: 2, speed: 1.08 },
+    relationship: { initial: -55 },
+    visual: {
+      bodyPlan: 'hero-ghast-noble',
+      animationProfile: 'malcor-ghast-lord',
+      scale: 1.0,
+      indicatorRadius: 0.62,
+      markerHeight: 2.45,
+      palette: {
+        skin: 0x878b72,
+        cloth: 0x211d23,
+        clothInner: 0x4b2630,
+        leather: 0x3a2b25,
+        metal: 0x8d8a82,
+        brass: 0xb4975c,
+        accent: 0xb3d99e,
+        dark: 0x151316
+      },
+      silhouette: ['long-arms-below-knees', 'forward-hunched-neck', 'dragging-noble-coattails'],
+      dedicatedParts: ['silver-stitched-jaw', 'rotted-banquet-coat', 'noble-ring-array', 'silver-cutlery-belt', 'elongated-claw-hands', 'ghast-spine-ridge', 'stained-tablecloth-cravat', 'scent-vapor-rig']
+    },
+    passive: {
+      id: 'malcor-ghast-stench',
+      name: 'Ghast Stench',
+      description: 'Living enemies near Malcor lose accuracy and healing efficiency and may retch when exposed too long.'
+    },
+    leadership: {
+      radius: 'same-room',
+      ghoulAttackBonus: 2,
+      ghoulSpeedMultiplier: 1.12,
+      corpseDetectionRadius: 2,
+      fearImmunity: true
+    },
+    runtimeDefaults: { appetite: 0, memoryBuff: null },
+    skills: [
+      skill('malcor-predators-cry', "Predator's Cry", {
+        cooldown: 11,
+        windup: 1.7,
+        recovery: 0.95,
+        targetPolicy: 'hostile-direction',
+        telegraph: { shape: 'ghast-scream-cone', radius: 5.2, length: 5.2, width: 3.5, colorRole: 'ghast-green', cue: 'silver-jaw-stitches-snap' },
+        effects: [
+          { type: 'ghast-fear-cone', length: 5.2, width: 3.5, fearDuration: 4, paralyzeDuration: 1.35 },
+          { type: 'emit-command', command: 'feed-the-pack' }
+        ],
+        ai: { priority: 8, minimumHostiles: 2 }
+      }),
+      skill('malcor-memory-flesh', 'Memory in the Flesh', {
+        cooldown: 13,
+        windup: 1.45,
+        recovery: 0.85,
+        targetPolicy: 'room-corpse',
+        telegraph: { shape: 'corpse-grasp', radius: 2.2, colorRole: 'ghast-green', cue: 'cutlery-on-bone' },
+        effects: [
+          { type: 'consume-memory-corpse', heal: 24, buffDuration: 14 },
+          { type: 'increase-appetite', amount: 1 }
+        ],
+        ai: { priority: 7, healthBelow: 0.78, requireCorpse: true }
+      }),
+      skill('malcor-hungry-feast', 'The Hungry Feast', {
+        cooldown: 36,
+        windup: 2.5,
+        recovery: 1.1,
+        interruptDamageRatio: 0.23,
+        targetPolicy: 'room-corpses',
+        costs: { corpse: 1, deathEnergy: 2 },
+        telegraph: { shape: 'carrion-banquet-ring', radius: 6, colorRole: 'ghast-green', cue: 'banquet-bell-under-earth' },
+        effects: [
+          { type: 'raise-ghoul-pack', maximum: 3, duration: 28 },
+          { type: 'ghoul-frenzy-aura', duration: 12, attackMultiplier: 1.18, speedMultiplier: 1.12 }
+        ],
+        ai: { priority: 10, minimumHostiles: 2, requireCorpse: true }
+      })
+    ]
+  }),
+
+  'hero.arvek': hero({
+    id: 'hero.arvek',
+    role: 'hero-arvek',
+    displayName: 'Arvek, Who Closed the Gate',
+    localizedName: '아르벡, 성문을 닫은 자',
+    factionId: 'undead-host',
+    species: 'death-knight',
+    size: 'large',
+    initialRoomId: 'L59',
+    encounterRoomId: 'L59',
+    baseStats: { hp: 146, attack: 15, courage: 26, armor: 8, speed: 0.72 },
+    relationship: { initial: -45 },
+    visual: {
+      bodyPlan: 'hero-death-knight-gate',
+      animationProfile: 'arvek-black-gate',
+      scale: 1.12,
+      indicatorRadius: 0.82,
+      markerHeight: 3.0,
+      palette: {
+        skin: 0xb7b19e,
+        cloth: 0x202731,
+        clothInner: 0x3c2631,
+        leather: 0x312a27,
+        metal: 0x343d43,
+        brass: 0x7f7356,
+        accent: 0x86b4d0,
+        dark: 0x101417
+      },
+      silhouette: ['gate-tower-pauldrons', 'horizontal-breastplate-bolt', 'full-door-slab-shield'],
+      dedicatedParts: ['gate-tower-shoulders', 'breastplate-crossbar', 'door-slab-shield', 'city-key-back-ring', 'black-execution-sword', 'outer-city-crest', 'royal-crest', 'threshold-chain-cloak']
+    },
+    passive: {
+      id: 'arvek-gatekeeper',
+      name: 'Gatekeeper',
+      description: 'Arvek becomes harder to stagger and harm while defending a closed route or one of his spectral gates.'
+    },
+    leadership: {
+      radius: 'same-room-and-barriers',
+      undeadArmorBonus: 2,
+      barrierArmorBonus: 0.2,
+      routeDefenseBonus: 0.25,
+      retreatLock: true
+    },
+    runtimeDefaults: { gateGuilt: 1 },
+    skills: [
+      skill('arvek-black-gate', 'The Black Gate', {
+        cooldown: 15,
+        windup: 2.05,
+        recovery: 1.0,
+        targetPolicy: 'room-route',
+        costs: { deathEnergy: 2 },
+        telegraph: { shape: 'spectral-gate-wall', radius: 4.5, width: 2.6, colorRole: 'death-knight-blue', cue: 'breastplate-bolt-closes' },
+        effects: [
+          { type: 'create-spectral-gate', duration: 12, hp: 48, allowFaction: 'undead-host' },
+          { type: 'emit-command', command: 'the-gate-remains-shut' }
+        ],
+        ai: { priority: 8, minimumHostiles: 1 }
+      }),
+      skill('arvek-banishment-sentence', 'Sentence of Banishment', {
+        cooldown: 10,
+        windup: 1.15,
+        recovery: 0.9,
+        targetPolicy: 'single-hostile',
+        telegraph: { shape: 'door-shield-charge', radius: 4.2, length: 4.2, width: 1.6, colorRole: 'death-knight-blue', cue: 'door-shield-drags-stone' },
+        effects: [
+          { type: 'banishment-shield-charge', damage: 9, impulse: 7.2, barrierCollisionDamage: 12, stagger: 1.4 },
+          { type: 'emit-command', command: 'outside-the-walls' }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('arvek-close-the-city', 'Close the City', {
+        cooldown: 42,
+        windup: 2.85,
+        recovery: 1.25,
+        interruptDamageRatio: 0.27,
+        targetPolicy: 'all-room-routes',
+        costs: { deathEnergy: 6 },
+        telegraph: { shape: 'all-gates-closing', radius: 7, colorRole: 'death-knight-blue', cue: 'hundred-keys-fall' },
+        effects: [
+          { type: 'seal-all-room-routes', duration: 10, hp: 34, allowFaction: 'undead-host' },
+          { type: 'raise-spectral-guards', count: 2, duration: 20 },
+          { type: 'root-self', duration: 10 }
+        ],
+        ai: { priority: 10, minimumHostiles: 3, healthBelow: 0.68 }
+      })
+    ]
+  }),
+
+
 });
 
 export const HERO_BY_ROLE = Object.freeze(Object.fromEntries(Object.values(HERO_DEFINITIONS).map(definition => [definition.role, definition])));
