@@ -9,13 +9,13 @@ export function decideHeroAction(agent, sim, skillSystem) {
 
   if (definition.id === 'hero.nibble') {
     if (healthRatio <= 0.38 && allies.length > 0 && strengthRatio(agent, allies, hostiles) < 0.62) {
-      return cast(agent, 'nibble-everyone-out', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'nibble-everyone-out', { targetRoomId: agent.roomId });
     }
     if (skillSystem.hasUnlockableTarget(agent, sim)) {
-      return cast(agent, 'nibble-master-key', skillSystem.selectUnlockableTarget(agent, sim));
+      return castAvailable(agent, definition, skillSystem, sim, 'nibble-master-key', skillSystem.selectUnlockableTarget(agent, sim));
     }
     if (hostiles.length >= 2 && !skillSystem.hasRoomRouteLock(agent.roomId)) {
-      return cast(agent, 'nibble-lock-the-ways', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'nibble-lock-the-ways', { targetRoomId: agent.roomId });
     }
   }
 
@@ -23,29 +23,78 @@ export function decideHeroAction(agent, sim, skillSystem) {
     const damagedStructure = skillSystem.findDamagedFriendlyStructure(agent, sim);
     const trap = skillSystem.findFriendlyTrap(agent, sim);
     if ((healthRatio <= 0.58 || hostiles.length >= 3) && !agent.heroStatuses?.bastion) {
-      return cast(agent, 'kirik-triangle-bastion', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'kirik-triangle-bastion', { targetRoomId: agent.roomId });
     }
     if (damagedStructure || trap) {
-      return cast(agent, 'kirik-reconfigure-trap', {
+      return castAvailable(agent, definition, skillSystem, sim, 'kirik-reconfigure-trap', {
         targetStructureId: damagedStructure?.id ?? null,
         targetTrapId: trap?.id ?? null,
         targetRoomId: agent.roomId
       });
     }
     if (hostiles.length >= 2 && !skillSystem.hasSlowZone(agent.roomId, definition.factionId)) {
-      return cast(agent, 'kirik-gear-lockfield', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'kirik-gear-lockfield', { targetRoomId: agent.roomId });
     }
   }
 
   if (definition.id === 'hero.karg') {
     if (healthRatio <= 0.36 && !agent.heroStatuses?.secondDefeat) {
-      return cast(agent, 'karg-remember-second-defeat', { targetId: agent.id, targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'karg-remember-second-defeat', { targetId: agent.id, targetRoomId: agent.roomId });
     }
     if (hostiles.length >= 2) {
-      return cast(agent, 'karg-broken-blade-circle', { targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'karg-broken-blade-circle', { targetRoomId: agent.roomId });
     }
     if (hostiles.length === 1 && !skillSystem.duelForHero(definition.id)) {
-      return cast(agent, 'karg-declare-duel', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+      return castAvailable(agent, definition, skillSystem, sim, 'karg-declare-duel', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+    }
+  }
+
+  if (definition.id === 'hero.jijik') {
+    if (hostiles.length >= 3) {
+      const barrage = castAvailable(agent, definition, skillSystem, sim, 'jijik-three-point-barrage', { targetRoomId: agent.roomId });
+      if (barrage) return barrage;
+    }
+    const structure = skillSystem.findHostileOrDamagedStructure(agent, sim);
+    const chargePresent = (sim?.heroDeployableSystem?.deployablesInRoom?.(agent.roomId, 'breach-charge') ?? []).length > 0;
+    if (!chargePresent && (structure || hostiles.length >= 2)) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'jijik-breach-charge', { targetStructureId: structure?.id ?? null, targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length >= 1) {
+      return castAvailable(agent, definition, skillSystem, sim, 'jijik-air-cannon', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+    }
+  }
+
+  if (definition.id === 'hero.tissa') {
+    const room = (sim.rooms ?? []).find(candidate => candidate.id === agent.roomId);
+    if (isFlooded(room) && allies.length >= 1 && !skillSystem.hasEnvironmentField(agent.roomId, 'emergency-drain', sim)) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'tissa-emergency-drain', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    const waterRoute = skillSystem.selectWaterRoute(agent, sim);
+    if (waterRoute && !sim?.heroEnvironmentSystem?.isWaterRouteSuppressed?.(waterRoute.targetRouteId)) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'tissa-pressure-seal', waterRoute);
+      if (action) return action;
+    }
+    if (hostiles.length >= 1) {
+      return castAvailable(agent, definition, skillSystem, sim, 'tissa-pressure-jet', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+    }
+  }
+
+  if (definition.id === 'hero.murga') {
+    const wounded = allies.filter(candidate => candidate.hp < (candidate.maxHp ?? candidate.hp) * 0.72);
+    if (allies.length >= 3 && hostiles.length >= 2 && !skillSystem.hasEnvironmentField(agent.roomId, 'war-feast', sim)) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'murga-war-feast', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    const cauldronPresent = (sim?.heroDeployableSystem?.deployablesInRoom?.(agent.roomId, 'healing-cauldron') ?? []).length > 0;
+    if (wounded.length >= 2 && !cauldronPresent) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'murga-blood-root-broth', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    const target = skillSystem.findCorpseOrDowned(agent, sim);
+    if (target) {
+      return castAvailable(agent, definition, skillSystem, sim, 'murga-butchers-hook', { targetId: target.id, targetRoomId: agent.roomId });
     }
   }
 
@@ -96,9 +145,9 @@ export function decideHeroAction(agent, sim, skillSystem) {
   return null;
 }
 
-function cast(agent, skillId, payload = {}) {
-  const cooldown = agent.heroCooldowns?.[skillId] ?? 0;
-  if (cooldown > 0) return null;
+function castAvailable(agent, definition, skillSystem, sim, skillId, payload = {}) {
+  const skill = definition.skills.find(candidate => candidate.id === skillId);
+  if (!skill || !skillSystem.canCast(agent, skill, sim)) return null;
   return { type: 'hero-cast', skillId, ...payload };
 }
 
@@ -131,6 +180,12 @@ function strongest(list) {
   return [...list].sort((a, b) => ((b.hp ?? 0) + (b.attack ?? 0) * 4) - ((a.hp ?? 0) + (a.attack ?? 0) * 4) || String(a.id).localeCompare(String(b.id)))[0] ?? null;
 }
 
+function isFlooded(room) {
+  if (!room) return false;
+  const tags = new Set(room.tags ?? []);
+  return room.heroEnvironmentState === 'flooded' || room.waterLevel > 0 || ['flooded', 'water', 'reservoir', 'sluice-control', 'flood-hazard'].some(tag => tags.has(tag));
+}
+
 function isAvailable(agent) {
-  return agent && agent.alive !== false && !agent.departed && !agent.hidden && !agent.downed && !agent.travel && !agent.combat && !agent.heroCast;
+  return agent && agent.alive !== false && !agent.departed && !agent.hidden && !agent.downed && !agent.travel && !agent.combat && !agent.heroCast && !agent.heroStatuses?.butchering;
 }

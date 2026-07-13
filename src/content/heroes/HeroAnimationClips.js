@@ -235,7 +235,128 @@ export const HERO_ANIMATION_CLIPS = Object.freeze({
       channel('blobRoot', 'scale.x', [[0, 0], [1, 0.55]]),
       channel('blobRoot', 'scale.z', [[0, 0], [1, 0.55]])
     ])
-  })
+  }),
+
+  'jijik-mechanical-arm': Object.freeze({
+    'idle-primary': clip('jijik.idle-primary', 2.9, [
+      channel('head', 'rotation.y', [[0, -0.12], [0.42, 0.16], [0.7, -0.04], [1, -0.12]]),
+      channel('toolRotor', 'rotation.y', [[0, 0], [0.48, 0.35], [0.52, 0.35], [1, 0]]),
+      channel('gauge', 'rotation.z', [[0, -0.12], [0.5, 0.18], [1, -0.12]])
+    ], { loop: true }),
+    'idle-secondary': clip('jijik.idle-secondary', 3.6, [
+      channel('mechanicalShoulder', 'rotation.z', [[0, 0.04], [0.5, -0.05], [1, 0.04]]),
+      channel('powderPack', 'rotation.z', [[0, -0.025], [0.5, 0.035], [1, -0.025]]),
+      channel('fuseRoot', 'rotation.y', [[0, 0], [1, 0.4]], 'linear')
+    ], { loop: true }),
+    'skill:jijik-breach-charge': clip('jijik.breach-charge', 1.8, [
+      channel('motionRoot', 'position.y', [[0, 0], [0.38, -0.12], [0.72, -0.16], [1, 0]]),
+      channel('mechanicalShoulder', 'rotation.x', [[0, 0], [0.28, -1.0], [0.58, 0.5], [0.78, -0.72], [1, 0]]),
+      channel('mechanicalElbow', 'rotation.x', [[0, 0], [0.32, -0.55], [0.58, 0.85], [0.78, -0.4], [1, 0]]),
+      channel('toolRotor', 'rotation.y', [[0, 0], [0.25, 1.57], [1, 1.57]], 'linear'),
+      channel('recoilBrace', 'position.z', [[0, 0], [0.62, -0.16], [1, 0]])
+    ], { events: [{ at: 0.34, type: 'tool-hammer' }, { at: 0.58, type: 'tool-hammer' }, { at: 0.78, type: 'impact' }] }),
+    'skill:jijik-air-cannon': clip('jijik.air-cannon', 1.05, [
+      channel('toolRotor', 'rotation.y', [[0, 0], [0.32, 3.14], [1, 3.14]], 'linear'),
+      channel('mechanicalShoulder', 'rotation.x', [[0, 0], [0.45, -0.55], [0.7, 0.28], [1, 0]]),
+      channel('mechanicalElbow', 'rotation.x', [[0, 0], [0.45, -0.32], [0.7, 0.74], [1, 0]]),
+      channel('chest', 'rotation.z', [[0, 0], [0.62, -0.18], [0.78, 0.22], [1, 0]]),
+      channel('recoilBrace', 'position.z', [[0, 0], [0.7, -0.28], [1, 0]])
+    ], { events: [{ at: 0.67, type: 'pressure-release' }, { at: 0.7, type: 'impact' }] }),
+    'skill:jijik-three-point-barrage': clip('jijik.three-point-barrage', 2.25, [
+      channel('motionRoot', 'position.y', [[0, 0], [0.28, -0.14], [1, -0.08]]),
+      channel('toolRotor', 'rotation.y', [[0, 0], [0.28, 4.71], [1, 4.71]], 'linear'),
+      channel('mechanicalShoulder', 'rotation.x', [[0, 0], [0.32, -1.2], [0.52, -0.5], [0.66, -1.05], [0.8, -0.45], [0.92, -0.9], [1, 0]]),
+      channel('chest', 'rotation.x', [[0, 0], [0.32, 0.18], [0.52, -0.14], [0.66, 0.18], [0.8, -0.14], [0.92, 0.18], [1, 0]]),
+      channel('powderPack', 'rotation.x', [[0, 0], [0.52, -0.12], [0.66, 0.12], [0.8, -0.12], [0.92, 0.12], [1, 0]])
+    ], { events: [{ at: 0.5, type: 'mortar-one' }, { at: 0.68, type: 'mortar-two' }, { at: 0.86, type: 'mortar-three' }, { at: 0.88, type: 'impact' }] }),
+    death: clip('jijik.death', 2.0, [
+      channel('motionRoot', 'rotation.z', [[0, 0], [0.65, -0.9], [1, -1.38]]),
+      channel('mechanicalShoulder', 'rotation.x', [[0, 0], [1, 1.2]]),
+      channel('toolRotor', 'rotation.y', [[0, 0], [1, 8]], 'linear'),
+      channel('powderPack', 'rotation.z', [[0, 0], [1, 0.55]])
+    ])
+  }),
+
+  'tissa-diver': Object.freeze({
+    'idle-primary': clip('tissa.idle-primary', 3.1, [
+      channel('head', 'rotation.y', [[0, -0.08], [0.46, 0.13], [1, -0.08]]),
+      channel('helmet', 'rotation.z', [[0, 0.015], [0.5, -0.02], [1, 0.015]]),
+      channel('gauge', 'rotation.z', [[0, -0.15], [0.42, 0.08], [0.7, -0.03], [1, -0.15]])
+    ], { loop: true }),
+    'idle-secondary': clip('tissa.idle-secondary', 2.7, [
+      channel('tailBase', 'rotation.y', [[0, -0.1], [0.5, 0.12], [1, -0.1]]),
+      channel('tailMid', 'rotation.y', [[0, 0.12], [0.5, -0.16], [1, 0.12]]),
+      channel('hoseL', 'rotation.z', [[0, 0.04], [0.5, -0.055], [1, 0.04]]),
+      channel('hoseR', 'rotation.z', [[0, -0.04], [0.5, 0.055], [1, -0.04]])
+    ], { loop: true }),
+    'skill:tissa-pressure-jet': clip('tissa.pressure-jet', 1.1, [
+      channel('tailBase', 'rotation.y', [[0, 0], [0.5, -0.7], [1, -0.3]]),
+      channel('tailMid', 'rotation.y', [[0, 0], [0.5, 0.95], [1, 0.35]]),
+      channel('shoulderR', 'rotation.x', [[0, 0], [0.5, -1.05], [0.72, 0.4], [1, 0]]),
+      channel('wrench', 'rotation.z', [[0, 0], [0.5, -0.75], [0.72, 0.45], [1, 0]]),
+      channel('chest', 'rotation.z', [[0, 0], [0.7, -0.16], [0.82, 0.2], [1, 0]])
+    ], { events: [{ at: 0.68, type: 'water-release' }, { at: 0.72, type: 'impact' }] }),
+    'skill:tissa-pressure-seal': clip('tissa.pressure-seal', 1.65, [
+      channel('motionRoot', 'position.y', [[0, 0], [0.42, -0.18], [0.78, -0.2], [1, 0]]),
+      channel('shoulderL', 'rotation.x', [[0, 0], [0.42, -0.9], [0.76, 0.5], [1, 0]]),
+      channel('shoulderR', 'rotation.x', [[0, 0], [0.42, -0.9], [0.76, 0.5], [1, 0]]),
+      channel('wrench', 'rotation.y', [[0, 0], [1, 5.6]], 'linear'),
+      channel('tailBase', 'rotation.y', [[0, 0], [0.55, -0.42], [1, 0]])
+    ], { events: [{ at: 0.76, type: 'seal-lock' }, { at: 0.78, type: 'impact' }] }),
+    'skill:tissa-emergency-drain': clip('tissa.emergency-drain', 2.4, [
+      channel('motionRoot', 'position.y', [[0, 0], [0.38, -0.2], [1, -0.1]]),
+      channel('shoulderL', 'rotation.z', [[0, 0], [0.52, -0.86], [0.78, -1.0], [1, -0.2]]),
+      channel('shoulderR', 'rotation.z', [[0, 0], [0.52, 0.86], [0.78, 1.0], [1, 0.2]]),
+      channel('tailBase', 'rotation.y', [[0, 0], [0.55, -0.9], [1, -0.35]]),
+      channel('tailMid', 'rotation.y', [[0, 0], [0.55, 1.15], [1, 0.4]]),
+      channel('gauge', 'rotation.z', [[0, 0], [0.72, 2.5], [1, 3.2]], 'linear')
+    ], { events: [{ at: 0.72, type: 'drain-open' }, { at: 0.78, type: 'impact' }] }),
+    death: clip('tissa.death', 2.1, [
+      channel('motionRoot', 'rotation.z', [[0, 0], [0.65, 0.9], [1, 1.36]]),
+      channel('tailBase', 'rotation.y', [[0, 0], [1, -1.1]]),
+      channel('helmet', 'rotation.z', [[0, 0], [1, 0.5]]),
+      channel('tankRoot', 'rotation.x', [[0, 0], [1, -0.7]])
+    ])
+  }),
+
+  'murga-cauldron': Object.freeze({
+    'idle-primary': clip('murga.idle-primary', 3.5, [
+      channel('chest', 'rotation.y', [[0, -0.035], [0.5, 0.045], [1, -0.035]]),
+      channel('head', 'rotation.y', [[0, -0.08], [0.62, 0.11], [1, -0.08]]),
+      channel('cauldronRoot', 'rotation.z', [[0, -0.02], [0.5, 0.025], [1, -0.02]])
+    ], { loop: true }),
+    'idle-secondary': clip('murga.idle-secondary', 3.0, [
+      channel('necklace', 'rotation.z', [[0, 0.05], [0.5, -0.065], [1, 0.05]]),
+      channel('hookRoot', 'rotation.z', [[0, -0.04], [0.5, 0.055], [1, -0.04]]),
+      channel('lid', 'rotation.x', [[0, 0.02], [0.5, -0.03], [1, 0.02]])
+    ], { loop: true }),
+    'skill:murga-blood-root-broth': clip('murga.broth', 2.1, [
+      channel('motionRoot', 'position.y', [[0, 0], [0.48, -0.12], [0.76, -0.16], [1, 0]]),
+      channel('cauldronRoot', 'rotation.x', [[0, 0], [0.45, -0.48], [0.72, 0.22], [1, 0]]),
+      channel('shoulderL', 'rotation.x', [[0, 0], [0.52, -1.0], [0.76, 0.38], [1, 0]]),
+      channel('shoulderR', 'rotation.x', [[0, 0], [0.52, -0.86], [0.76, 0.32], [1, 0]]),
+      channel('lid', 'rotation.x', [[0, 0], [0.58, -1.1], [1, -0.25]])
+    ], { events: [{ at: 0.72, type: 'cauldron-ground' }, { at: 0.76, type: 'impact' }] }),
+    'skill:murga-butchers-hook': clip('murga.hook', 1.2, [
+      channel('chest', 'rotation.y', [[0, 0], [0.38, -0.46], [0.68, 0.55], [1, 0]]),
+      channel('shoulderL', 'rotation.x', [[0, 0], [0.38, -1.22], [0.68, 0.62], [1, 0]]),
+      channel('hookRoot', 'rotation.z', [[0, 0], [0.38, -0.78], [0.68, 1.05], [1, 0]]),
+      channel('chainRoot', 'scale.y', [[0, 0], [0.68, 1.4], [1, 0.2]])
+    ], { events: [{ at: 0.66, type: 'hook-release' }, { at: 0.7, type: 'impact' }] }),
+    'skill:murga-war-feast': clip('murga.war-feast', 2.5, [
+      channel('motionRoot', 'position.y', [[0, 0], [0.42, -0.1], [0.68, 0.12], [1, 0]]),
+      channel('shoulderR', 'rotation.x', [[0, 0], [0.42, -1.25], [0.68, 0.55], [1, 0]]),
+      channel('cleaverRoot', 'rotation.z', [[0, 0], [0.42, -0.7], [0.68, 0.9], [1, 0]]),
+      channel('lid', 'rotation.z', [[0, 0], [0.68, 1.15], [1, 0.3]]),
+      channel('cauldronRoot', 'rotation.z', [[0, 0], [0.68, -0.18], [0.8, 0.22], [1, 0]])
+    ], { events: [{ at: 0.64, type: 'lid-gong' }, { at: 0.72, type: 'impact' }] }),
+    death: clip('murga.death', 2.5, [
+      channel('motionRoot', 'rotation.z', [[0, 0], [0.7, -0.75], [1, -1.28]]),
+      channel('cauldronRoot', 'rotation.x', [[0, 0], [1, -1.15]]),
+      channel('hookRoot', 'rotation.z', [[0, 0], [1, 1.5]]),
+      channel('lid', 'rotation.x', [[0, 0], [1, -1.6]])
+    ])
+  }),
 
 });
 

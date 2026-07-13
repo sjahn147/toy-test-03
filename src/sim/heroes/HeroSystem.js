@@ -2,6 +2,25 @@ import { getHeroDefinition, listHeroDefinitions } from '../../content/heroes/Her
 
 const DEFAULT_STATE = 'active';
 
+
+const HERO_KNOCKBACK_RESISTANCE = Object.freeze({
+  'hero.nibble': 0.06,
+  'hero.kirik': 0.38,
+  'hero.karg': 0.3,
+  'hero.jijik': 0.12,
+  'hero.tissa': 0.1,
+  'hero.murga': 0.24
+});
+
+const HERO_MASS_MULTIPLIER = Object.freeze({
+  'hero.nibble': 0.88,
+  'hero.kirik': 1.55,
+  'hero.karg': 1.45,
+  'hero.jijik': 1.05,
+  'hero.tissa': 0.92,
+  'hero.murga': 1.34
+});
+
 export class HeroSystem {
   constructor({ onEvent = () => {} } = {}) {
     this.onEvent = onEvent;
@@ -195,6 +214,8 @@ export function ensureHeroRuntime(agent, definition = getHeroDefinition(agent?.h
   agent.heroDamageStage ??= damageStage(agent, definition);
   agent.heroRevealRemaining ??= 2.2;
   agent.heroLastHp ??= agent.hp;
+  agent.heroKnockbackResistance = HERO_KNOCKBACK_RESISTANCE[definition.id] ?? 0.1;
+  agent.heroMassMultiplier = HERO_MASS_MULTIPLIER[definition.id] ?? 1;
   recomputeHeroStats(agent, definition);
   return true;
 }

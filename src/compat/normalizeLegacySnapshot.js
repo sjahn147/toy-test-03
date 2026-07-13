@@ -157,6 +157,9 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const zoneInteractions = tableOf(raw.zoneInteractions?.tasks, 'zone-interaction');
   const heroes = tableOf(raw.heroes?.heroes ?? raw.heroes, 'hero');
   const heroForms = tableOf(raw.heroForms?.forms, 'hero-form');
+  const heroDeployables = tableOf(raw.heroDeployables?.deployables, 'hero-deployable');
+  const heroProjectiles = tableOf(raw.heroDeployables?.projectiles, 'hero-projectile');
+  const heroFields = tableOf(raw.heroEnvironment?.fields, 'hero-field');
   const factions = factionTable(agents, settlements);
 
   const visited = new Set(Array.isArray(raw.visited) ? raw.visited : []);
@@ -168,7 +171,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       turn: finiteNumber(turn ?? raw.turn),
       ended: raw.ended === true
     },
-    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, heroForms, effects },
+    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, heroForms, heroDeployables, heroProjectiles, heroFields, effects },
     indexes: {
       agentsByRoom: groupIndex(agents, agent =>
         agent.alive !== false && agent.departed !== true ? agent.roomId : null
@@ -184,7 +187,10 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       heroesByFaction: groupIndex(heroes, hero => hero.factionId),
       heroesByRoom: groupIndex(heroes, hero => hero.roomId),
       heroFormsByOwner: groupIndex(heroForms, form => form.ownerHeroId),
-      heroFormsByRoom: groupIndex(heroForms, form => form.roomId)
+      heroFormsByRoom: groupIndex(heroForms, form => form.roomId),
+      heroDeployablesByRoom: groupIndex(heroDeployables, item => item.roomId),
+      heroProjectilesByRoom: groupIndex(heroProjectiles, item => item.roomId),
+      heroFieldsByRoom: groupIndex(heroFields, item => item.roomId)
     },
     events: Array.isArray(events)
       ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object')

@@ -4,12 +4,16 @@ export class HeroLeadershipSystem {
   constructor({ onEvent = () => {} } = {}) {
     this.onEvent = onEvent;
     this.activeEffects = [];
+    this.appliedRoomIds = new Set();
+    this.appliedJobIds = new Set();
     this.clock = 0;
   }
 
   update(dt, sim) {
     this.clock += dt;
     this.resetAgentModifiers(sim);
+    this.resetRoomModifiers(sim);
+    this.resetJobModifiers(sim);
     this.activeEffects = [];
     for (const hero of (sim?.agents ?? []).filter(agent => agent.alive !== false && isHeroRole(agent.role))) {
       const definition = getHeroDefinition(hero.heroId ?? hero.role);
@@ -20,6 +24,9 @@ export class HeroLeadershipSystem {
       if (definition.id === 'hero.isara') this.applyIsara(hero, definition, sim);
       if (definition.id === 'hero.orum-bell') this.applyOrumBell(hero, definition, dt, sim);
       if (definition.id === 'hero.glop') this.applyGlop(hero, definition, dt, sim);
+      if (definition.id === 'hero.jijik') this.applyJijik(hero, definition, sim);
+      if (definition.id === 'hero.tissa') this.applyTissa(hero, definition, sim);
+      if (definition.id === 'hero.murga') this.applyMurga(hero, definition, dt, sim);
     }
   }
 
@@ -31,8 +38,36 @@ export class HeroLeadershipSystem {
       if (Number.isFinite(applied.courage)) agent.courage = applied.courage;
       if (Number.isFinite(applied.armor)) agent.armor = applied.armor;
       if (Number.isFinite(applied.speedMultiplier)) agent.speedMultiplier = applied.speedMultiplier;
+      restoreOptional(agent, applied, 'heroBlastDamageMultiplier');
+      restoreOptional(agent, applied, 'heroBlastImpulseMultiplier');
+      restoreOptional(agent, applied, 'heroFireDamageMultiplier');
+      restoreOptional(agent, applied, 'heroHungerRateMultiplier');
       delete agent.heroLeadershipApplied;
+      delete agent.heroLeadershipSourceId;
     }
+  }
+
+  resetRoomModifiers(sim) {
+    for (const roomId of this.appliedRoomIds) {
+      const room = (sim?.rooms ?? []).find(candidate => candidate.id === roomId);
+      if (!room) continue;
+      delete room.heroRouteInspectionMultiplier;
+      delete room.heroWaterHazardSuppression;
+      delete room.heroLeadershipSourceId;
+    }
+    this.appliedRoomIds.clear();
+    for (const hero of (sim?.agents ?? []).filter(agent => agent.role === 'hero-tissa')) hero.heroAquaticMode = false;
+  }
+
+  resetJobModifiers(sim) {
+    for (const job of sim?.constructionSystem?.jobs ?? []) {
+      if (!job?.heroLeadershipApplied || !this.appliedJobIds.has(job.id)) continue;
+      restoreOptional(job, job.heroLeadershipApplied, 'heroSpeedMultiplier');
+      restoreOptional(job, job.heroLeadershipApplied, 'heroStructureDamageBonus');
+      delete job.heroLeadershipApplied;
+      delete job.heroLeadershipSourceId;
+    }
+    this.appliedJobIds.clear();
   }
 
   applyNibble(hero, definition, sim) {
@@ -152,6 +187,70 @@ export class HeroLeadershipSystem {
     if (affected) this.activeEffects.push({ heroId: definition.id, type: 'royal-regalia', affected, stance });
   }
 
+  applyJijik(hero, definition, sim) {
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      const baseline = capture(ally);
+      ally.heroBlastDamageMultiplier = definition.leadership.friendlyBlastDamageMultiplier ?? 0;
+      ally.heroBlastImpulseMultiplier = definition.leadership.friendlyBlastImpulseMultiplier ?? 0.72;
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    for (const job of sim?.constructionSystem?.jobs ?? []) {
+      if (job.roomId !== hero.roomId || job.factionId && job.factionId !== definition.factionId) continue;
+      if (!['demolish', 'breach', 'siege'].some(token => String(job.type ?? job.kind ?? '').includes(token))) continue;
+      job.heroLeadershipApplied = {
+        heroSpeedMultiplier: job.heroSpeedMultiplier,
+        heroStructureDamageBonus: job.heroStructureDamageBonus
+      };
+      job.heroSpeedMultiplier = Math.max(job.heroSpeedMultiplier ?? 1, definition.leadership.demolitionSpeedMultiplier ?? 1.25);
+      job.heroStructureDamageBonus = definition.leadership.structureDamageBonus ?? 0.2;
+      job.heroLeadershipSourceId = definition.id;
+      this.appliedJobIds.add(job.id);
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'calculated-blast', affected });
+  }
+
+  applyTissa(hero, definition, sim) {
+    const room = (sim.rooms ?? []).find(candidate => candidate.id === hero.roomId);
+    const flooded = isFlooded(room);
+    hero.heroAquaticMode = flooded;
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      const baseline = capture(ally);
+      if (flooded) ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.floodedMoveMultiplier ?? 1.25);
+      ally.heroFireDamageMultiplier = definition.leadership.fireDamageMultiplier ?? 0.7;
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    if (room) {
+      room.heroRouteInspectionMultiplier = definition.leadership.routeInspectionMultiplier ?? 1.8;
+      room.heroWaterHazardSuppression = definition.leadership.waterHazardSuppression ?? 0.35;
+      room.heroLeadershipSourceId = definition.id;
+      this.appliedRoomIds.add(room.id);
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'flood-adaptation', affected, flooded });
+  }
+
+  applyMurga(hero, definition, dt, sim) {
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      const baseline = capture(ally);
+      ally.courage = baseline.courage + (definition.leadership.orcCourageBonus ?? 2);
+      ally.heroHungerRateMultiplier = definition.leadership.hungerRateMultiplier ?? 0.55;
+      ally.fear = Math.max(0, (ally.fear ?? 0) - (definition.leadership.fearRecoveryPerSecond ?? 0.4) * dt);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'army-eats-first', affected });
+  }
+
   snapshot() {
     return { activeEffects: this.activeEffects.map(effect => ({ ...effect })) };
   }
@@ -166,8 +265,23 @@ function capture(agent) {
     attack: Number.isFinite(agent.attack) ? agent.attack : 0,
     courage: Number.isFinite(agent.courage) ? agent.courage : 0,
     armor: Number.isFinite(agent.armor) ? agent.armor : 0,
-    speedMultiplier: Number.isFinite(agent.speedMultiplier) ? agent.speedMultiplier : 1
+    speedMultiplier: Number.isFinite(agent.speedMultiplier) ? agent.speedMultiplier : 1,
+    heroBlastDamageMultiplier: agent.heroBlastDamageMultiplier,
+    heroBlastImpulseMultiplier: agent.heroBlastImpulseMultiplier,
+    heroFireDamageMultiplier: agent.heroFireDamageMultiplier,
+    heroHungerRateMultiplier: agent.heroHungerRateMultiplier
   };
+}
+
+function restoreOptional(target, baseline, key) {
+  if (Object.prototype.hasOwnProperty.call(baseline, key) && baseline[key] !== undefined) target[key] = baseline[key];
+  else delete target[key];
+}
+
+function isFlooded(room) {
+  if (!room) return false;
+  const tags = new Set(room.tags ?? []);
+  return room.waterLevel > 0 || room.heroEnvironmentState === 'flooded' || ['flooded', 'water', 'reservoir', 'flood-hazard'].some(tag => tags.has(tag));
 }
 
 function factionOf(agent) {

@@ -13,6 +13,10 @@ const COLORS = {
   'fungal-gold': 0xe0bc72,
   'slime-gold': 0xe4c65c,
   'slime-teal': 0x56bdb0,
+  'goblin-orange': 0xff8242,
+  'goblin-air': 0xa8d8d5,
+  'kobold-water': 0x72d3e5,
+  'orc-ember': 0xe36b42,
   hero: 0xf2d47c
 };
 
@@ -36,6 +40,12 @@ export function createHeroEffect(effect) {
   else if (effect.type === 'hero-form-reveal') buildFormReveal(group, material, effect);
   else if (effect.type === 'hero-form-merge') buildFormMerge(group, material, effect);
   else if (effect.type === 'hero-form-effect') buildFormEffect(group, material, effect);
+  else if (effect.type === 'hero-explosion') buildExplosion(group, material, effect.radius ?? 3);
+  else if (effect.type === 'hero-air-blast' || effect.type === 'hero-water-jet') buildPressureStream(group, material, effect);
+  else if (effect.type === 'hero-hook-line') buildHookLine(group, material, effect.length ?? 5.5);
+  else if (effect.type === 'hero-feast-burst') buildFeastBurst(group, material, effect.radius ?? 6);
+  else if (effect.type === 'hero-submerged-reveal') buildDrainSpiral(group, material, effect.radius ?? 3.5);
+  else if (effect.type === 'hero-butcher-complete') buildButcherBurst(group, material);
   else buildShape(group, group.userData.shape, effect.radius ?? 2, material, effect);
   captureEffectBaseTransforms(group);
   return group;
@@ -61,6 +71,12 @@ export function animateHeroEffect(mesh, effect, age, progress) {
   } else if (effect.type === 'hero-route-lock' || effect.type === 'hero-zone' || effect.type === 'hero-duel') {
     setOpacity(mesh, 0.48 + Math.sin(age * 3) * 0.14);
     animateShapeParts(mesh, shape, age, progress, false);
+  } else if (effect.type === 'hero-explosion' || effect.type === 'hero-air-blast' || effect.type === 'hero-water-jet' || effect.type === 'hero-feast-burst') {
+    mesh.scale.multiplyScalar(0.55 + progress * 1.65);
+    setOpacity(mesh, Math.max(0, 1 - progress));
+  } else if (effect.type === 'hero-hook-line') {
+    mesh.scale.z = 0.4 + Math.sin(Math.min(1, progress) * Math.PI) * 0.8;
+    setOpacity(mesh, Math.max(0, 1 - progress * 0.8));
   } else if (effect.type === 'hero-armor-drop') {
     mesh.rotation.z = age * 0.5;
     setOpacity(mesh, Math.max(0.2, 1 - progress * 0.7));
@@ -102,6 +118,14 @@ function buildShape(group, shape, radius, material, effect = {}) {
   if (shape === 'royal-sigil') return buildRoyalSigil(group, material, radius);
   if (shape === 'digest-spiral') return buildDigestSpiral(group, material, radius);
   if (shape === 'triune-court') return buildTriuneCourt(group, material, radius);
+  if (shape === 'charge-cross') return buildChargeCross(group, material, radius);
+  if (shape === 'pressure-cone' || shape === 'water-cone') return buildPressureCone(group, material, radius);
+  if (shape === 'three-impact-rings') return buildThreeImpactRings(group, material, radius);
+  if (shape === 'route-seal') return buildRouteSeal(group, material, radius);
+  if (shape === 'drain-spiral') return buildDrainSpiral(group, material, radius);
+  if (shape === 'cauldron-hearth') return buildCauldronHearth(group, material, radius);
+  if (shape === 'hook-line') return buildHookLine(group, material, effect.length ?? radius);
+  if (shape === 'feast-ring') return buildFeastRing(group, material, radius);
   return buildRing(group, material, radius);
 }
 
@@ -382,6 +406,161 @@ function buildTriuneCourt(group, material, radius) {
     group.add(court);
   }
   buildRing(group, material, radius);
+}
+
+function buildChargeCross(group, material, radius) {
+  buildRing(group, material, radius);
+  for (const rotation of [0, Math.PI / 2]) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(radius * 1.4, 0.05, 0.08), material);
+    bar.rotation.y = rotation;
+    bar.position.y = 0.04;
+    group.add(bar);
+  }
+  for (let i = 0; i < 4; i += 1) {
+    const charge = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.34, 8), material);
+    const angle = Math.PI / 4 + i * Math.PI / 2;
+    charge.position.set(Math.cos(angle) * radius * 0.55, 0.18, Math.sin(angle) * radius * 0.55);
+    charge.rotation.z = Math.PI / 2;
+    group.add(charge);
+  }
+}
+
+function buildPressureCone(group, material, radius) {
+  const segments = 7;
+  for (let i = 0; i < segments; i += 1) {
+    const t = (i + 1) / segments;
+    const arc = new THREE.Mesh(new THREE.TorusGeometry(radius * t, 0.035, 6, 20, Math.PI * 0.38), material);
+    arc.rotation.x = Math.PI / 2;
+    arc.rotation.z = Math.PI * (0.5 - 0.19);
+    arc.position.z = radius * t * 0.12;
+    group.add(arc);
+  }
+  for (const side of [-1, 1]) {
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(radius, 0.04, 0.05), material);
+    edge.position.set(side * radius * 0.18, 0.04, radius * 0.46);
+    edge.rotation.y = side * -0.34;
+    group.add(edge);
+  }
+}
+
+function buildThreeImpactRings(group, material, radius) {
+  const points = [[-radius * 0.36, -radius * 0.14], [radius * 0.34, radius * 0.2], [0.04, -radius * 0.4]];
+  for (let i = 0; i < points.length; i += 1) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius * (0.25 - i * 0.035), 0.05, 8, 32), material);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(points[i][0], 0.05 + i * 0.015, points[i][1]);
+    group.add(ring);
+    const marker = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.45, 5), material);
+    marker.position.set(points[i][0], 0.24, points[i][1]);
+    marker.rotation.x = Math.PI;
+    group.add(marker);
+  }
+}
+
+function buildRouteSeal(group, material, radius) {
+  buildRouteWall(group, material, { radius: Math.max(2.4, radius) });
+  const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.06, 8, 28), material);
+  wheel.position.y = 0.72;
+  wheel.rotation.x = Math.PI / 2;
+  group.add(wheel);
+  for (let i = 0; i < 4; i += 1) {
+    const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.04, 0.04), material);
+    spoke.position.y = 0.72;
+    spoke.rotation.z = i * Math.PI / 4;
+    group.add(spoke);
+  }
+}
+
+function buildDrainSpiral(group, material, radius) {
+  for (let i = 0; i < 4; i += 1) {
+    const spiral = new THREE.Mesh(new THREE.TorusGeometry(radius * (0.22 + i * 0.18), 0.04, 6, 36, Math.PI * 1.7), material);
+    spiral.rotation.x = Math.PI / 2;
+    spiral.rotation.z = i * 0.7;
+    group.add(spiral);
+  }
+}
+
+function buildCauldronHearth(group, material, radius) {
+  buildRing(group, material, radius);
+  const pot = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.18, 12, 8, 0, Math.PI * 2, 0.2, Math.PI * 0.65), material);
+  pot.scale.y = 0.65;
+  pot.position.y = 0.28;
+  group.add(pot);
+  for (let i = 0; i < 6; i += 1) {
+    const ember = new THREE.Mesh(new THREE.OctahedronGeometry(0.08, 0), material);
+    const angle = i / 6 * Math.PI * 2;
+    ember.position.set(Math.cos(angle) * radius * 0.25, 0.08, Math.sin(angle) * radius * 0.25);
+    group.add(ember);
+  }
+}
+
+function buildHookLine(group, material, length) {
+  const links = 14;
+  for (let i = 0; i < links; i += 1) {
+    const link = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.018, 5, 10), material);
+    link.position.z = i / Math.max(1, links - 1) * length;
+    link.position.y = Math.sin(i / Math.max(1, links - 1) * Math.PI) * -0.18;
+    link.rotation.x = i % 2 ? Math.PI / 2 : 0;
+    group.add(link);
+  }
+  const hook = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.04, 7, 18, Math.PI * 1.4), material);
+  hook.position.z = length;
+  hook.rotation.y = Math.PI / 2;
+  group.add(hook);
+}
+
+function buildFeastRing(group, material, radius) {
+  buildRing(group, material, radius);
+  for (let i = 0; i < 10; i += 1) {
+    const marker = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.42, 5), material);
+    const angle = i / 10 * Math.PI * 2;
+    marker.position.set(Math.cos(angle) * radius * 0.75, 0.12, Math.sin(angle) * radius * 0.75);
+    marker.rotation.z = -angle;
+    group.add(marker);
+  }
+}
+
+function buildExplosion(group, material, radius) {
+  for (let i = 0; i < 12; i += 1) {
+    const ray = new THREE.Mesh(new THREE.ConeGeometry(0.08, radius * 0.75, 5), material);
+    const angle = i / 12 * Math.PI * 2;
+    ray.position.set(Math.cos(angle) * radius * 0.25, 0.25, Math.sin(angle) * radius * 0.25);
+    ray.rotation.z = Math.PI / 2;
+    ray.rotation.y = -angle;
+    group.add(ray);
+  }
+  buildRing(group, material, radius * 0.45);
+}
+
+function buildPressureStream(group, material, effect) {
+  const length = effect.length ?? 5;
+  for (let i = 0; i < 8; i += 1) {
+    const streak = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.05, length * (0.45 + i * 0.045), 6), material);
+    streak.rotation.x = Math.PI / 2;
+    streak.position.set((i % 2 ? 1 : -1) * (0.12 + (i % 4) * 0.1), 0.2 + (i % 3) * 0.08, length * 0.25);
+    streak.rotation.z = (i - 3.5) * 0.035;
+    group.add(streak);
+  }
+}
+
+function buildFeastBurst(group, material, radius) {
+  buildFeastRing(group, material, radius);
+  for (let i = 0; i < 8; i += 1) {
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.16 + i * 0.015, 8, 6), material);
+    const angle = i / 8 * Math.PI * 2;
+    puff.position.set(Math.cos(angle) * radius * 0.35, 0.35 + (i % 3) * 0.14, Math.sin(angle) * radius * 0.35);
+    group.add(puff);
+  }
+}
+
+function buildButcherBurst(group, material) {
+  for (let i = 0; i < 6; i += 1) {
+    const shard = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.38, 5), material);
+    const angle = i / 6 * Math.PI * 2;
+    shard.position.set(Math.cos(angle) * 0.35, 0.3, Math.sin(angle) * 0.35);
+    shard.rotation.z = angle;
+    group.add(shard);
+  }
 }
 
 function buildFormReveal(group, material, effect) {

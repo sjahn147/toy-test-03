@@ -183,3 +183,67 @@ function seeded(value) {
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
+
+
+// WP8-C targeted spring channels coexist with the deterministic profile-driven solver above.
+export function beginSecondaryMotionFrame(mesh, time) {
+  if (!mesh?.userData) return { lastTime: time, dt: 0, springs: {} };
+  mesh.userData.heroSecondaryMotion ??= { lastTime: time, springs: {} };
+  const state = mesh.userData.heroSecondaryMotion;
+  const dt = Math.max(0, Math.min(0.05, time - (state.lastTime ?? time)));
+  state.lastTime = time;
+  state.dt = dt;
+  return state;
+}
+
+export function springRotation(mesh, joint, key, axis, target, options = {}) {
+  if (!joint) return 0;
+  const state = mesh.userData.heroSecondaryMotion ?? beginSecondaryMotionFrame(mesh, 0);
+  const spring = state.springs[key] ??= { value: target, velocity: 0 };
+  integrateHeroSpring(spring, target, state.dt ?? 0, options.stiffness ?? 52, options.damping ?? 11, options.maxVelocity ?? 8);
+  joint.rotation[axis] += spring.value;
+  return spring.value;
+}
+
+export function springPosition(mesh, joint, key, axis, target, options = {}) {
+  if (!joint) return 0;
+  const state = mesh.userData.heroSecondaryMotion ?? beginSecondaryMotionFrame(mesh, 0);
+  const spring = state.springs[key] ??= { value: target, velocity: 0 };
+  integrateHeroSpring(spring, target, state.dt ?? 0, options.stiffness ?? 58, options.damping ?? 12, options.maxVelocity ?? 6);
+  joint.position[axis] += spring.value;
+  return spring.value;
+}
+
+export function springScale(mesh, joint, key, axis, target, options = {}) {
+  if (!joint) return 0;
+  const state = mesh.userData.heroSecondaryMotion ?? beginSecondaryMotionFrame(mesh, 0);
+  const spring = state.springs[key] ??= { value: target, velocity: 0 };
+  integrateHeroSpring(spring, target, state.dt ?? 0, options.stiffness ?? 64, options.damping ?? 13, options.maxVelocity ?? 5);
+  joint.scale[axis] *= Math.max(0.05, 1 + spring.value);
+  return spring.value;
+}
+
+export function clearSecondaryMotion(mesh, prefix = null) {
+  const springs = mesh?.userData?.heroSecondaryMotion?.springs;
+  if (!springs) return;
+  if (!prefix) {
+    mesh.userData.heroSecondaryMotion.springs = {};
+    return;
+  }
+  for (const key of Object.keys(springs)) if (key.startsWith(prefix)) delete springs[key];
+}
+
+function integrateHeroSpring(spring, target, dt, stiffness, damping, maxVelocity) {
+  if (dt <= 0) return;
+  const acceleration = (target - spring.value) * stiffness - spring.velocity * damping;
+  spring.velocity = springClamp(spring.velocity + acceleration * dt, -maxVelocity, maxVelocity);
+  spring.value += spring.velocity * dt;
+  if (Math.abs(target - spring.value) < 0.0001 && Math.abs(spring.velocity) < 0.0001) {
+    spring.value = target;
+    spring.velocity = 0;
+  }
+}
+
+function springClamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}

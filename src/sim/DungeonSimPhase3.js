@@ -184,7 +184,13 @@ export class DungeonSim extends Phase2DungeonSim {
   }
 
   engagementDistance(a, b) {
-    if (a.roomCell && b.roomCell) return Math.hypot((a.roomCell.x ?? 0) - (b.roomCell.x ?? 0), (a.roomCell.z ?? 0) - (b.roomCell.z ?? 0));
+    if (a.roomCell && b.roomCell) {
+      const ax = (a.roomCell.x ?? 0) + (a.heroPhysicsOffset?.x ?? 0);
+      const az = (a.roomCell.z ?? 0) + (a.heroPhysicsOffset?.z ?? 0);
+      const bx = (b.roomCell.x ?? 0) + (b.heroPhysicsOffset?.x ?? 0);
+      const bz = (b.roomCell.z ?? 0) + (b.heroPhysicsOffset?.z ?? 0);
+      return Math.hypot(ax - bx, az - bz);
+    }
     return 0;
   }
 

@@ -11,6 +11,9 @@ import { HeroSystem } from './heroes/HeroSystem.js';
 import { HeroSkillSystem } from './heroes/HeroSkillSystem.js';
 import { HeroLeadershipSystem } from './heroes/HeroLeadershipSystem.js';
 import { HeroFormSystem } from './heroes/HeroFormSystem.js';
+import { HeroPhysicsSystem } from './heroes/HeroPhysicsSystem.js';
+import { HeroDeployableSystem } from './heroes/HeroDeployableSystem.js';
+import { HeroEnvironmentSystem } from './heroes/HeroEnvironmentSystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -52,6 +55,9 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroSkillSystem = new HeroSkillSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroLeadershipSystem = new HeroLeadershipSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroFormSystem = new HeroFormSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroPhysicsSystem = new HeroPhysicsSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroDeployableSystem = new HeroDeployableSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroEnvironmentSystem = new HeroEnvironmentSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroSystem.initialize(this);
     this.heroSkillSystem.initialize(this);
     this.heroFormSystem.initialize(this);
@@ -61,6 +67,9 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroSystem.update(dt, this);
     this.heroSkillSystem.update(dt, this);
     this.heroFormSystem.update(dt, this);
+    this.heroDeployableSystem.update(dt, this);
+    this.heroEnvironmentSystem.update(dt, this);
+    this.heroPhysicsSystem.update(dt, this);
     this.heroLeadershipSystem.update(dt, this);
     this.eliteEcologySystem.update(dt, this);
     this.eliteAbilitySystem.update(dt, this);
@@ -113,8 +122,13 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
   }
 
   applyCombatDamage(source, target, amount, metadata = {}) {
-    const resolvedAmount = this.heroSkillSystem?.modifyIncomingDamage?.(source, target, amount, metadata) ?? amount;
-    return super.applyCombatDamage(source, target, resolvedAmount, metadata);
+    let adjusted = this.heroSkillSystem?.modifyIncomingDamage?.(source, target, amount, metadata) ?? amount;
+    if (metadata.fire && Number.isFinite(target?.heroFireDamageMultiplier)) adjusted *= target.heroFireDamageMultiplier;
+    const before = Number(target?.hp ?? 0);
+    const result = super.applyCombatDamage(source, target, adjusted, metadata);
+    const dealt = Math.max(0, before - Number(target?.hp ?? before));
+    this.heroEnvironmentSystem?.onDamageDealt?.(source, target, dealt);
+    return result;
   }
 
   beginTravel(agent, toRoomId) {
@@ -138,6 +152,9 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       this.event(`${target.name} remains standing under a deathless ward.`, { type: 'elite-death-prevented', agentId: target.id });
       return;
     }
+    this.heroPhysicsSystem?.clearAgent?.(target?.id);
+    this.heroDeployableSystem?.clearOwner?.(target?.id, this);
+    this.heroEnvironmentSystem?.clearOwner?.(target?.id, this);
     this.heroFormSystem.onAgentDeath(target, this);
     this.heroSystem.onAgentDeath(target, this);
     this.eliteEcologySystem.onAgentDeath(target, this);
@@ -188,7 +205,10 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       heroes: this.heroSystem.snapshot(),
       heroSkills: this.heroSkillSystem.snapshot(),
       heroLeadership: this.heroLeadershipSystem.snapshot(),
-      heroForms: this.heroFormSystem.snapshot(this)
+      heroForms: this.heroFormSystem.snapshot(this),
+      heroPhysics: this.heroPhysicsSystem.snapshot(),
+      heroDeployables: this.heroDeployableSystem.snapshot(),
+      heroEnvironment: this.heroEnvironmentSystem.snapshot()
     };
   }
 
@@ -206,7 +226,10 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...this.heroSystem.metrics(),
       ...this.heroSkillSystem.metrics(),
       ...this.heroLeadershipSystem.metrics(),
-      ...this.heroFormSystem.metrics()
+      ...this.heroFormSystem.metrics(),
+      ...this.heroPhysicsSystem.metrics(),
+      ...this.heroDeployableSystem.metrics(),
+      ...this.heroEnvironmentSystem.metrics()
     };
   }
 }

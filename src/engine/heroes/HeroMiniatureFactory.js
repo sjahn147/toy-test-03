@@ -32,6 +32,9 @@ export function createHeroMiniature(agent) {
   else if (definition.id === 'hero.isara') assembly = buildIsara(model, definition, materials);
   else if (definition.id === 'hero.orum-bell') assembly = buildOrumBell(model, definition, materials);
   else if (definition.id === 'hero.glop') assembly = buildGlop(model, definition, materials);
+  else if (definition.id === 'hero.jijik') assembly = buildJijik(model, definition, materials);
+  else if (definition.id === 'hero.tissa') assembly = buildTissa(model, definition, materials);
+  else if (definition.id === 'hero.murga') assembly = buildMurga(model, definition, materials);
   else return null;
 
   root.userData.joints = assembly.joints;
@@ -842,6 +845,476 @@ function buildGlop(model, definition, materials) {
   };
 }
 
+function buildJijik(model, definition, materials) {
+  const joints = buildHierarchy(model, {
+    motionRoot: { parent: null, position: [0, 0, 0] },
+    pelvis: { parent: 'motionRoot', position: [0, 0.47, 0] },
+    legL: { parent: 'pelvis', position: [-0.15, -0.28, 0] },
+    footL: { parent: 'legL', position: [0, -0.28, 0.08] },
+    legR: { parent: 'pelvis', position: [0.15, -0.28, 0] },
+    footR: { parent: 'legR', position: [0, -0.28, 0.08] },
+    spineLower: { parent: 'pelvis', position: [0, 0.24, 0] },
+    chest: { parent: 'spineLower', position: [-0.04, 0.34, 0] },
+    neck: { parent: 'chest', position: [-0.08, 0.34, 0] },
+    head: { parent: 'neck', position: [0, 0.23, 0.02] },
+    shoulderL: { parent: 'chest', position: [-0.31, 0.17, 0] },
+    upperArmL: { parent: 'shoulderL', position: [-0.11, -0.13, 0] },
+    forearmL: { parent: 'upperArmL', position: [0, -0.23, 0] },
+    handL: { parent: 'forearmL', position: [0, -0.16, 0] },
+    mechanicalShoulder: { parent: 'chest', position: [0.42, 0.2, 0] },
+    mechanicalUpper: { parent: 'mechanicalShoulder', position: [0.22, -0.14, 0] },
+    mechanicalElbow: { parent: 'mechanicalUpper', position: [0.18, -0.28, 0] },
+    toolRotor: { parent: 'mechanicalElbow', position: [0.02, -0.3, 0] },
+    toolHammer: { parent: 'toolRotor', position: [0, -0.18, 0] },
+    toolNozzle: { parent: 'toolRotor', position: [0.22, 0.02, 0] },
+    toolMortar: { parent: 'toolRotor', position: [-0.2, 0.02, 0] },
+    recoilBrace: { parent: 'mechanicalShoulder', position: [0.06, -0.04, -0.22] },
+    powderPack: { parent: 'chest', position: [-0.08, 0.02, -0.34] },
+    tankL: { parent: 'powderPack', position: [-0.17, 0.03, 0] },
+    tankR: { parent: 'powderPack', position: [0.17, 0.03, 0] },
+    gauge: { parent: 'mechanicalShoulder', position: [0.02, 0.18, 0.2] },
+    fuseRoot: { parent: 'head', position: [0, 0.28, -0.02] },
+    baseFx: { parent: 'motionRoot', position: [0, 0.02, 0] }
+  });
+
+  add(joints.pelvis, box('hero:jijik:pelvis', [0.4, 0.24, 0.31], materials.leather));
+  const torso = capsule('hero:jijik:torso', 0.23, 0.36, materials.cloth);
+  torso.scale.x = 0.94;
+  joints.chest.add(torso);
+  for (const side of ['L', 'R']) {
+    add(joints[`leg${side}`], capsule('hero:jijik:leg', 0.08, 0.38, materials.clothInner));
+    add(joints[`foot${side}`], box('hero:jijik:boot', [0.18, 0.12, 0.29], materials.dark));
+  }
+  add(joints.upperArmL, capsule('hero:jijik:left-upper-arm', 0.075, 0.27, materials.skin));
+  add(joints.forearmL, capsule('hero:jijik:left-forearm', 0.065, 0.22, materials.skin));
+  add(joints.handL, sphere('hero:jijik:left-hand', 0.09, materials.skin));
+
+  const head = sphere('hero:jijik:head', 0.28, materials.skin);
+  head.scale.set(1.08, 1.0, 0.9);
+  joints.head.add(head);
+  const nose = cone('hero:jijik:nose', 0.085, 0.3, materials.skin);
+  nose.rotation.x = Math.PI / 2;
+  nose.position.set(0, -0.03, 0.27);
+  joints.head.add(nose);
+  addEyes(joints.head, materials.dark, materials.accent, 0.17, 0.08, 0.24);
+  for (const side of [-1, 1]) {
+    const ear = cone('hero:jijik:ear', 0.11, 0.36, materials.skin);
+    ear.rotation.z = side * -Math.PI / 2;
+    ear.position.x = side * 0.33;
+    joints.head.add(ear);
+  }
+  const potHelmet = dome('hero:jijik:pot-helmet', 0.34, materials.metal);
+  potHelmet.position.y = 0.04;
+  potHelmet.scale.set(1.05, 0.65, 1.0);
+  joints.fuseRoot.add(potHelmet);
+  const fuses = [];
+  for (let i = 0; i < 7; i += 1) {
+    const fuse = cylinder('hero:jijik:fuse', 0.012, 0.32 + (i % 3) * 0.07, materials.dark);
+    const angle = -0.72 + i * 0.24;
+    fuse.position.set(Math.sin(angle) * 0.19, 0.25 + (i % 2) * 0.04, Math.cos(angle) * 0.09);
+    fuse.rotation.z = -angle * 0.7;
+    const ember = sphere('hero:jijik:fuse-ember', 0.035, materials.ember);
+    ember.position.y = 0.18 + (i % 3) * 0.035;
+    fuse.add(ember);
+    joints.fuseRoot.add(fuse);
+    fuses.push(fuse);
+  }
+
+  const shoulderHousing = sphere('hero:jijik:shoulder-housing', 0.28, materials.brass);
+  shoulderHousing.scale.set(1.15, 0.9, 0.95);
+  joints.mechanicalShoulder.add(shoulderHousing);
+  const upper = cylinder('hero:jijik:mechanical-upper', 0.11, 0.48, materials.metal);
+  upper.position.y = -0.12;
+  joints.mechanicalUpper.add(upper);
+  const upperPiston = cylinder('hero:jijik:upper-piston', 0.04, 0.5, materials.accent);
+  upperPiston.position.set(0.1, -0.11, 0.07);
+  joints.mechanicalUpper.add(upperPiston);
+  const elbow = sphere('hero:jijik:elbow', 0.17, materials.brass);
+  joints.mechanicalElbow.add(elbow);
+  const lower = cylinder('hero:jijik:mechanical-lower', 0.095, 0.46, materials.metal);
+  lower.position.y = -0.16;
+  joints.mechanicalElbow.add(lower);
+  const rotor = cylinder('hero:jijik:tool-rotor', 0.24, 0.16, materials.brass);
+  rotor.rotation.x = Math.PI / 2;
+  joints.toolRotor.add(rotor);
+  for (let i = 0; i < 8; i += 1) {
+    const tooth = box('hero:jijik:rotor-tooth', [0.08, 0.1, 0.1], materials.metal);
+    const angle = i / 8 * Math.PI * 2;
+    tooth.position.set(Math.cos(angle) * 0.25, Math.sin(angle) * 0.25, 0);
+    tooth.rotation.z = angle;
+    joints.toolRotor.add(tooth);
+  }
+
+  const hammerHandle = cylinder('hero:jijik:hammer-handle', 0.045, 0.44, materials.metal);
+  hammerHandle.position.y = -0.16;
+  const hammerHead = box('hero:jijik:hammer-head', [0.38, 0.2, 0.2], materials.metal);
+  hammerHead.position.y = -0.42;
+  joints.toolHammer.add(hammerHandle, hammerHead);
+
+  const nozzle = cylinder('hero:jijik:air-nozzle', 0.12, 0.52, materials.metal, true);
+  nozzle.position.x = 0.18;
+  const nozzleRing = torus('hero:jijik:nozzle-ring', 0.14, 0.028, materials.brass);
+  nozzleRing.rotation.y = Math.PI / 2;
+  nozzleRing.position.x = 0.44;
+  joints.toolNozzle.add(nozzle, nozzleRing);
+
+  const mortarCup = cylinder('hero:jijik:mortar-cup', 0.17, 0.42, materials.dark);
+  mortarCup.position.y = 0.15;
+  const mortarRim = torus('hero:jijik:mortar-rim', 0.18, 0.025, materials.brass);
+  mortarRim.rotation.x = Math.PI / 2;
+  mortarRim.position.y = 0.37;
+  joints.toolMortar.add(mortarCup, mortarRim);
+
+  const brace = box('hero:jijik:recoil-brace', [0.16, 0.52, 0.16], materials.metal);
+  brace.rotation.x = -0.22;
+  joints.recoilBrace.add(brace);
+  const bracePad = box('hero:jijik:brace-pad', [0.34, 0.14, 0.24], materials.leather);
+  bracePad.position.y = -0.28;
+  joints.recoilBrace.add(bracePad);
+
+  const packFrame = box('hero:jijik:pack-frame', [0.5, 0.62, 0.16], materials.leather);
+  joints.powderPack.add(packFrame);
+  for (const name of ['tankL', 'tankR']) {
+    const tank = cylinder('hero:jijik:powder-tank', 0.13, 0.58, materials.dark);
+    tank.position.y = 0;
+    joints[name].add(tank);
+    for (const y of [-0.2, 0.2]) {
+      const band = torus('hero:jijik:tank-band', 0.14, 0.018, materials.brass);
+      band.rotation.x = Math.PI / 2;
+      band.position.y = y;
+      joints[name].add(band);
+    }
+  }
+  const gaugeFace = cylinder('hero:jijik:gauge-face', 0.11, 0.04, materials.glass);
+  gaugeFace.rotation.x = Math.PI / 2;
+  const gaugeNeedle = box('hero:jijik:gauge-needle', [0.018, 0.15, 0.018], materials.accent);
+  gaugeNeedle.position.y = 0.04;
+  joints.gauge.add(gaugeFace, gaugeNeedle);
+
+  const smoke = makeSmokePuff(materials.darkTransparent, 5);
+  smoke.visible = false;
+  smoke.name = 'hero-damage:stage1-show:powder-smoke';
+  joints.powderPack.add(smoke);
+  const brokenTank = makeSparkCluster(materials.ember, 6);
+  brokenTank.visible = false;
+  brokenTank.name = 'hero-damage:stage2-show:tank-sparks';
+  joints.tankR.add(brokenTank);
+  const intactTankR = joints.tankR.children[0];
+
+  return {
+    joints,
+    secondary: { powderPack: joints.powderPack, fuseRoot: joints.fuseRoot, mechanicalShoulder: joints.mechanicalShoulder, recoilBrace: joints.recoilBrace },
+    damageParts: {
+      stage1Hide: [fuses[1], fuses[5]],
+      stage2Hide: [intactTankR, fuses[0], fuses[3]],
+      stage1Show: [smoke],
+      stage2Show: [brokenTank]
+    },
+    skillParts: { toolRotor: joints.toolRotor, toolHammer: joints.toolHammer, toolNozzle: joints.toolNozzle, toolMortar: joints.toolMortar, recoilBrace: joints.recoilBrace }
+  };
+}
+
+function buildTissa(model, definition, materials) {
+  const joints = buildHierarchy(model, {
+    motionRoot: { parent: null, position: [0, 0, 0] },
+    pelvis: { parent: 'motionRoot', position: [0, 0.5, 0] },
+    legL: { parent: 'pelvis', position: [-0.15, -0.3, 0] },
+    footL: { parent: 'legL', position: [0, -0.28, 0.1] },
+    legR: { parent: 'pelvis', position: [0.15, -0.3, 0] },
+    footR: { parent: 'legR', position: [0, -0.28, 0.1] },
+    spineLower: { parent: 'pelvis', position: [0, 0.24, 0] },
+    chest: { parent: 'spineLower', position: [0, 0.34, 0] },
+    neck: { parent: 'chest', position: [0, 0.34, 0] },
+    head: { parent: 'neck', position: [0, 0.22, 0] },
+    helmet: { parent: 'head', position: [0, 0.03, 0] },
+    shoulderL: { parent: 'chest', position: [-0.31, 0.18, 0] },
+    upperArmL: { parent: 'shoulderL', position: [-0.11, -0.14, 0] },
+    forearmL: { parent: 'upperArmL', position: [0, -0.23, 0] },
+    handL: { parent: 'forearmL', position: [0, -0.16, 0] },
+    shoulderR: { parent: 'chest', position: [0.31, 0.18, 0] },
+    upperArmR: { parent: 'shoulderR', position: [0.11, -0.14, 0] },
+    forearmR: { parent: 'upperArmR', position: [0, -0.23, 0] },
+    handR: { parent: 'forearmR', position: [0, -0.16, 0] },
+    wrench: { parent: 'handR', position: [0, -0.04, 0] },
+    harpoon: { parent: 'handL', position: [0, -0.04, 0] },
+    tankRoot: { parent: 'chest', position: [0, 0.02, -0.32] },
+    tankL: { parent: 'tankRoot', position: [-0.16, 0, 0] },
+    tankR: { parent: 'tankRoot', position: [0.16, 0, 0] },
+    hoseL: { parent: 'tankRoot', position: [-0.18, -0.1, 0.05] },
+    hoseR: { parent: 'tankRoot', position: [0.18, -0.1, 0.05] },
+    tailBase: { parent: 'pelvis', position: [0, -0.02, -0.22] },
+    tailMid: { parent: 'tailBase', position: [0, -0.04, -0.42] },
+    tailFin: { parent: 'tailMid', position: [0, 0, -0.38] },
+    gauge: { parent: 'chest', position: [0.19, 0.08, 0.24] },
+    baseFx: { parent: 'motionRoot', position: [0, 0.02, 0] }
+  });
+
+  add(joints.pelvis, box('hero:tissa:pelvis', [0.4, 0.25, 0.32], materials.leather));
+  const torso = capsule('hero:tissa:torso', 0.23, 0.38, materials.cloth);
+  torso.scale.x = 0.94;
+  joints.chest.add(torso);
+  for (const side of ['L', 'R']) {
+    add(joints[`leg${side}`], capsule('hero:tissa:leg', 0.075, 0.39, materials.skin));
+    add(joints[`upperArm${side}`], capsule('hero:tissa:upper-arm', 0.07, 0.28, materials.skin));
+    add(joints[`forearm${side}`], capsule('hero:tissa:forearm', 0.06, 0.23, materials.skin));
+    add(joints[`hand${side}`], sphere('hero:tissa:hand', 0.085, materials.skin));
+    const boot = box('hero:tissa:webbed-boot', [0.2, 0.1, 0.32], materials.dark);
+    joints[`foot${side}`].add(boot);
+    const fin = cone('hero:tissa:foot-fin', 0.12, 0.32, materials.skin);
+    fin.rotation.x = Math.PI / 2;
+    fin.position.z = 0.18;
+    fin.scale.x = 0.65;
+    joints[`foot${side}`].add(fin);
+  }
+
+  const head = sphere('hero:tissa:head', 0.25, materials.skin);
+  head.scale.set(1.02, 0.88, 1.0);
+  joints.head.add(head);
+  const snout = cone('hero:tissa:snout', 0.065, 0.22, materials.skin);
+  snout.rotation.x = Math.PI / 2;
+  snout.position.set(0, -0.04, 0.2);
+  joints.head.add(snout);
+  addEyes(joints.head, materials.dark, materials.accent, 0.14, 0.06, 0.19);
+  const helmetGlass = sphere('hero:tissa:helmet-glass', 0.39, materials.glass);
+  helmetGlass.scale.set(1.05, 1.02, 1.0);
+  joints.helmet.add(helmetGlass);
+  const helmetRim = torus('hero:tissa:helmet-rim', 0.37, 0.04, materials.brass);
+  helmetRim.rotation.x = Math.PI / 2;
+  helmetRim.position.y = -0.18;
+  joints.helmet.add(helmetRim);
+  for (let i = 0; i < 4; i += 1) {
+    const brace = box('hero:tissa:helmet-brace', [0.035, 0.58, 0.035], materials.metal);
+    brace.rotation.z = i * Math.PI / 2;
+    brace.position.z = 0.31;
+    joints.helmet.add(brace);
+  }
+
+  const tankFrame = box('hero:tissa:tank-frame', [0.5, 0.58, 0.12], materials.leather);
+  joints.tankRoot.add(tankFrame);
+  for (const name of ['tankL', 'tankR']) {
+    const tank = cylinder('hero:tissa:air-tank', 0.12, 0.58, materials.metal);
+    joints[name].add(tank);
+    const cap = dome('hero:tissa:tank-cap', 0.12, materials.brass);
+    cap.position.y = 0.29;
+    joints[name].add(cap);
+    for (const y of [-0.2, 0.18]) {
+      const band = torus('hero:tissa:tank-band', 0.13, 0.018, materials.brass);
+      band.rotation.x = Math.PI / 2;
+      band.position.y = y;
+      joints[name].add(band);
+    }
+  }
+  for (const name of ['hoseL', 'hoseR']) {
+    const hose = makeSegmentedHose(materials.dark, materials.brass, 5);
+    hose.rotation.x = 0.4;
+    joints[name].add(hose);
+  }
+
+  const wrench = makeValveWrench(materials.metal, materials.brass);
+  wrench.position.y = -0.12;
+  joints.wrench.add(wrench);
+  const harpoon = makeHarpoon(materials.metal, materials.leather);
+  harpoon.position.y = 0.24;
+  joints.harpoon.add(harpoon);
+
+  const tailA = capsule('hero:tissa:tail-base', 0.1, 0.48, materials.skin);
+  tailA.rotation.x = Math.PI / 2;
+  tailA.position.z = -0.2;
+  joints.tailBase.add(tailA);
+  const tailB = capsule('hero:tissa:tail-mid', 0.075, 0.4, materials.skin);
+  tailB.rotation.x = Math.PI / 2;
+  tailB.position.z = -0.17;
+  joints.tailMid.add(tailB);
+  const finL = cone('hero:tissa:tail-fin', 0.17, 0.48, materials.skin);
+  finL.rotation.z = Math.PI / 2;
+  finL.position.x = -0.13;
+  finL.scale.z = 0.32;
+  const finR = cone('hero:tissa:tail-fin', 0.17, 0.48, materials.skin);
+  finR.rotation.z = -Math.PI / 2;
+  finR.position.x = 0.13;
+  finR.scale.z = 0.32;
+  joints.tailFin.add(finL, finR);
+
+  const gaugeFace = cylinder('hero:tissa:gauge-face', 0.09, 0.035, materials.glass);
+  gaugeFace.rotation.x = Math.PI / 2;
+  const needle = box('hero:tissa:gauge-needle', [0.015, 0.12, 0.015], materials.accent);
+  needle.position.y = 0.03;
+  joints.gauge.add(gaugeFace, needle);
+
+  const cracks = new THREE.Group();
+  for (const angle of [-0.45, 0.1, 0.58]) {
+    const line = box('hero:tissa:helmet-crack', [0.018, 0.24, 0.012], materials.accent);
+    line.position.set(angle * 0.2, 0.05, 0.37);
+    line.rotation.z = angle;
+    cracks.add(line);
+  }
+  cracks.visible = false;
+  cracks.name = 'hero-damage:stage1-show:helmet-cracks';
+  joints.helmet.add(cracks);
+  const bubbles = makeBubbleCluster(materials.water, 6);
+  bubbles.visible = false;
+  bubbles.name = 'hero-damage:stage2-show:tank-leak';
+  joints.tankR.add(bubbles);
+  const intactTank = joints.tankR.children[0];
+
+  return {
+    joints,
+    secondary: { tailBase: joints.tailBase, tailMid: joints.tailMid, tailFin: joints.tailFin, hoseL: joints.hoseL, hoseR: joints.hoseR, tankRoot: joints.tankRoot },
+    damageParts: { stage1Hide: [], stage2Hide: [intactTank], stage1Show: [cracks], stage2Show: [bubbles] },
+    skillParts: { wrench: joints.wrench, harpoon: joints.harpoon, tailBase: joints.tailBase, tankRoot: joints.tankRoot }
+  };
+}
+
+function buildMurga(model, definition, materials) {
+  const joints = buildHierarchy(model, {
+    motionRoot: { parent: null, position: [0, 0, 0] },
+    pelvis: { parent: 'motionRoot', position: [0, 0.62, 0] },
+    legL: { parent: 'pelvis', position: [-0.2, -0.38, 0] },
+    footL: { parent: 'legL', position: [0, -0.37, 0.1] },
+    legR: { parent: 'pelvis', position: [0.2, -0.38, 0] },
+    footR: { parent: 'legR', position: [0, -0.37, 0.1] },
+    spineLower: { parent: 'pelvis', position: [0, 0.32, 0] },
+    chest: { parent: 'spineLower', position: [0, 0.42, 0] },
+    neck: { parent: 'chest', position: [0, 0.44, 0] },
+    head: { parent: 'neck', position: [0, 0.29, 0.02] },
+    shoulderL: { parent: 'chest', position: [-0.47, 0.25, 0] },
+    upperArmL: { parent: 'shoulderL', position: [-0.17, -0.18, 0] },
+    forearmL: { parent: 'upperArmL', position: [0, -0.32, 0] },
+    handL: { parent: 'forearmL', position: [0, -0.24, 0] },
+    shoulderR: { parent: 'chest', position: [0.47, 0.25, 0] },
+    upperArmR: { parent: 'shoulderR', position: [0.17, -0.18, 0] },
+    forearmR: { parent: 'upperArmR', position: [0, -0.32, 0] },
+    handR: { parent: 'forearmR', position: [0, -0.24, 0] },
+    hookRoot: { parent: 'handL', position: [0, -0.04, 0] },
+    cleaverRoot: { parent: 'handR', position: [0, -0.04, 0] },
+    chainRoot: { parent: 'hookRoot', position: [0, 0.3, 0] },
+    cauldronRoot: { parent: 'chest', position: [0, 0.02, -0.42] },
+    cauldron: { parent: 'cauldronRoot', position: [0, 0, 0] },
+    lid: { parent: 'cauldronRoot', position: [0, 0.42, -0.02] },
+    brazier: { parent: 'cauldronRoot', position: [0, -0.43, 0] },
+    necklace: { parent: 'chest', position: [0, 0.22, 0.28] },
+    pouchL: { parent: 'pelvis', position: [-0.3, -0.06, 0.22] },
+    pouchR: { parent: 'pelvis', position: [0.3, -0.06, 0.22] },
+    baseFx: { parent: 'motionRoot', position: [0, 0.03, 0] }
+  });
+
+  add(joints.pelvis, box('hero:murga:pelvis', [0.58, 0.32, 0.44], materials.leather));
+  const torso = capsule('hero:murga:torso', 0.34, 0.74, materials.skin);
+  torso.scale.set(1.02, 1.08, 0.88);
+  joints.chest.add(torso);
+  const apron = openCone('hero:murga:apron', 0.42, 0.9, 8, materials.cloth);
+  apron.position.y = -0.2;
+  apron.scale.z = 0.32;
+  joints.chest.add(apron);
+  for (const side of ['L', 'R']) {
+    add(joints[`leg${side}`], capsule('hero:murga:leg', 0.13, 0.68, materials.clothInner));
+    add(joints[`foot${side}`], box('hero:murga:boot', [0.3, 0.16, 0.44], materials.dark));
+    add(joints[`upperArm${side}`], capsule('hero:murga:upper-arm', 0.13, 0.58, materials.skin));
+    add(joints[`forearm${side}`], capsule('hero:murga:forearm', 0.12, 0.48, materials.skin));
+    add(joints[`hand${side}`], sphere('hero:murga:hand', 0.15, materials.skin));
+  }
+
+  const head = sphere('hero:murga:head', 0.32, materials.skin);
+  head.scale.set(1.0, 1.12, 0.88);
+  joints.head.add(head);
+  const jaw = box('hero:murga:jaw', [0.42, 0.18, 0.3], materials.skin);
+  jaw.position.set(0, -0.22, 0.06);
+  joints.head.add(jaw);
+  addEyes(joints.head, materials.dark, materials.accent, 0.18, 0.08, 0.27);
+  for (const side of [-1, 1]) {
+    const tusk = cone('hero:murga:tusk', 0.06, 0.24, materials.bone);
+    tusk.rotation.x = -Math.PI / 2;
+    tusk.position.set(side * 0.14, -0.22, 0.27);
+    joints.head.add(tusk);
+  }
+
+  const frame = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const ribA = cylinder('hero:murga:rib-frame', 0.035, 0.92, materials.bone, true);
+    ribA.position.set(side * 0.28, 0.02, 0);
+    ribA.rotation.y = side * 0.12;
+    frame.add(ribA);
+    for (let i = 0; i < 3; i += 1) {
+      const brace = cylinder('hero:murga:rib-brace', 0.025, 0.45, materials.bone, true);
+      brace.position.set(side * 0.23, -0.25 + i * 0.25, 0.08);
+      brace.rotation.z = side * (0.65 - i * 0.08);
+      frame.add(brace);
+    }
+  }
+  joints.cauldronRoot.add(frame);
+
+  const pot = sphere('hero:murga:war-cauldron', 0.48, materials.dark);
+  pot.scale.set(1.05, 0.82, 0.92);
+  joints.cauldron.add(pot);
+  const rim = torus('hero:murga:cauldron-rim', 0.42, 0.055, materials.metal);
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.28;
+  joints.cauldron.add(rim);
+  const broth = cylinder('hero:murga:broth', 0.36, 0.025, materials.broth);
+  broth.position.y = 0.29;
+  joints.cauldron.add(broth);
+  const lid = cylinder('hero:murga:lid', 0.44, 0.08, materials.metal);
+  lid.position.y = 0;
+  const lidHandle = torus('hero:murga:lid-handle', 0.12, 0.025, materials.brass);
+  lidHandle.rotation.x = Math.PI / 2;
+  lidHandle.position.y = 0.07;
+  joints.lid.add(lid, lidHandle);
+  const brazierBowl = dome('hero:murga:brazier', 0.28, materials.metal);
+  brazierBowl.rotation.x = Math.PI;
+  joints.brazier.add(brazierBowl);
+  for (let i = 0; i < 5; i += 1) {
+    const coal = sphere('hero:murga:coal', 0.07, materials.ember);
+    coal.position.set((i % 3 - 1) * 0.1, 0.02, (Math.floor(i / 3) - 0.3) * 0.1);
+    joints.brazier.add(coal);
+  }
+
+  const hook = makeButcherHook(materials.metal, materials.leather);
+  hook.position.y = 0.28;
+  joints.hookRoot.add(hook);
+  const chain = makeChain(materials.metal, 10, 0.1);
+  chain.position.y = 0.2;
+  joints.chainRoot.add(chain);
+  const cleaver = makeWarCleaver(materials.metal, materials.leather, materials.accent);
+  cleaver.position.y = 0.3;
+  joints.cleaverRoot.add(cleaver);
+
+  for (let i = 0; i < 7; i += 1) {
+    const spoon = makeBrokenSpoon(materials.metal, i);
+    const angle = -0.9 + i * 0.3;
+    spoon.position.set(Math.sin(angle) * 0.24, Math.cos(angle) * -0.08, 0);
+    spoon.rotation.z = angle;
+    joints.necklace.add(spoon);
+  }
+  for (const name of ['pouchL', 'pouchR']) {
+    const pouch = box('hero:murga:spice-pouch', [0.22, 0.28, 0.16], materials.leather);
+    joints[name].add(pouch);
+    const cord = torus('hero:murga:pouch-cord', 0.09, 0.012, materials.brass);
+    cord.rotation.x = Math.PI / 2;
+    cord.position.y = 0.12;
+    joints[name].add(cord);
+  }
+
+  const steam = makeSmokePuff(materials.steam, 5);
+  steam.position.y = 0.35;
+  joints.cauldron.add(steam);
+  const crack = makeSparkCluster(materials.ember, 5);
+  crack.visible = false;
+  crack.name = 'hero-damage:stage1-show:cauldron-crack';
+  joints.cauldron.add(crack);
+  const spill = makeBrothSpill(materials.broth);
+  spill.visible = false;
+  spill.name = 'hero-damage:stage2-show:broth-spill';
+  joints.brazier.add(spill);
+  const intactLid = lid;
+
+  return {
+    joints,
+    secondary: { cauldronRoot: joints.cauldronRoot, lid: joints.lid, chainRoot: joints.chainRoot, necklace: joints.necklace, pouchL: joints.pouchL, pouchR: joints.pouchR },
+    damageParts: { stage1Hide: [], stage2Hide: [intactLid], stage1Show: [crack], stage2Show: [spill] },
+    skillParts: { cauldronRoot: joints.cauldronRoot, lid: joints.lid, hookRoot: joints.hookRoot, chainRoot: joints.chainRoot, cleaverRoot: joints.cleaverRoot }
+  };
+}
+
 function createHeroFormMiniature(agent) {
   const root = new THREE.Group();
   root.name = `hero-form:${agent.heroFormKind ?? 'unknown'}`;
@@ -991,6 +1464,10 @@ function makeMaterials(definition) {
   result.veil = materialFor(`${definition.id}:veil`, definition.visual.palette.cloth, { roughness: 0.28, transparent: true, opacity: 0.78, emissive: definition.visual.palette.clothInner, emissiveIntensity: 0.08, depthWrite: false });
   result.slimeShell = materialFor(`${definition.id}:slime-shell`, definition.visual.palette.skin, { roughness: 0.12, transparent: true, opacity: 0.62, emissive: definition.visual.palette.dark, emissiveIntensity: 0.06, depthWrite: false });
   result.spore = materialFor(`${definition.id}:spore`, definition.visual.palette.accent, { roughness: 0.18, transparent: true, opacity: 0.7, emissive: definition.visual.palette.accent, emissiveIntensity: 0.22, depthWrite: false });
+  result.steam = materialFor(`${definition.id}:steam`, 0xd7d9d3, { roughness: 0.1, transparent: true, opacity: 0.3, depthWrite: false });
+  result.water = materialFor(`${definition.id}:water`, 0x75d4e5, { roughness: 0.06, transparent: true, opacity: 0.46, depthWrite: false });
+  result.ember = materialFor(`${definition.id}:ember`, 0xff713d, { roughness: 0.28, emissive: 0xff4b21, emissiveIntensity: 0.24 });
+  result.broth = materialFor(`${definition.id}:broth`, 0x883c2e, { roughness: 0.2, transparent: true, opacity: 0.82, depthWrite: false });
   return result;
 }
 
@@ -1132,6 +1609,134 @@ function makeTornBanner(material, length, tilt) {
   strip.position.y = -length * 0.5;
   strip.rotation.z = tilt;
   group.add(strip);
+  return group;
+}
+
+function makeSegmentedHose(dark, brass, segments) {
+  const group = new THREE.Group();
+  group.name = 'hero-part:pressure-hose';
+  for (let i = 0; i < segments; i += 1) {
+    const segment = torus('hero:tissa:hose-segment', 0.075, 0.018, i % 2 ? brass : dark);
+    segment.rotation.x = Math.PI / 2;
+    segment.position.set(0, -i * 0.085, i * 0.035);
+    segment.rotation.z = i * 0.18;
+    group.add(segment);
+  }
+  return group;
+}
+
+function makeValveWrench(metal, brass) {
+  const group = new THREE.Group();
+  group.name = 'hero-part:valve-wrench';
+  const handle = cylinder('hero:tissa:wrench-handle', 0.035, 0.72, metal);
+  handle.position.y = 0.18;
+  const wheel = torus('hero:tissa:wrench-wheel', 0.18, 0.035, brass);
+  wheel.position.y = 0.56;
+  wheel.rotation.x = Math.PI / 2;
+  group.add(handle, wheel);
+  for (let i = 0; i < 4; i += 1) {
+    const spoke = box('hero:tissa:wrench-spoke', [0.3, 0.025, 0.025], brass);
+    spoke.position.y = 0.56;
+    spoke.rotation.z = i * Math.PI / 4;
+    group.add(spoke);
+  }
+  return group;
+}
+
+function makeHarpoon(metal, leather) {
+  const group = new THREE.Group();
+  group.name = 'hero-part:short-harpoon';
+  const shaft = cylinder('hero:tissa:harpoon-shaft', 0.028, 0.86, leather);
+  shaft.position.y = 0.16;
+  const head = cone('hero:tissa:harpoon-head', 0.09, 0.28, metal);
+  head.position.y = 0.72;
+  const barbL = box('hero:tissa:harpoon-barb', [0.04, 0.18, 0.04], metal);
+  barbL.position.set(-0.07, 0.62, 0);
+  barbL.rotation.z = -0.55;
+  const barbR = box('hero:tissa:harpoon-barb', [0.04, 0.18, 0.04], metal);
+  barbR.position.set(0.07, 0.62, 0);
+  barbR.rotation.z = 0.55;
+  group.add(shaft, head, barbL, barbR);
+  return group;
+}
+
+function makeBubbleCluster(material, count) {
+  const group = new THREE.Group();
+  group.name = 'hero-part:bubble-cluster';
+  for (let i = 0; i < count; i += 1) {
+    const bubble = sphere('hero:tissa:bubble', 0.05 + (i % 3) * 0.018, material);
+    bubble.position.set((i % 2 ? 1 : -1) * (0.05 + (i % 3) * 0.025), 0.12 + i * 0.08, (i % 3 - 1) * 0.04);
+    group.add(bubble);
+  }
+  return group;
+}
+
+function makeButcherHook(metal, leather) {
+  const group = new THREE.Group();
+  group.name = 'hero-part:long-butcher-hook';
+  const handle = cylinder('hero:murga:hook-handle', 0.045, 0.72, leather);
+  handle.position.y = 0.1;
+  const curve = torus('hero:murga:hook-curve', 0.22, 0.045, metal);
+  curve.rotation.x = Math.PI / 2;
+  curve.rotation.z = Math.PI * 0.25;
+  curve.position.set(0.13, 0.54, 0);
+  const point = cone('hero:murga:hook-point', 0.055, 0.28, metal);
+  point.position.set(0.31, 0.46, 0);
+  point.rotation.z = -0.8;
+  group.add(handle, curve, point);
+  return group;
+}
+
+function makeChain(material, count, spacing) {
+  const group = new THREE.Group();
+  group.name = 'hero-part:chain';
+  for (let i = 0; i < count; i += 1) {
+    const link = torus('hero:murga:chain-link', 0.055, 0.014, material);
+    link.rotation.x = i % 2 ? Math.PI / 2 : 0;
+    link.position.y = -i * spacing;
+    group.add(link);
+  }
+  return group;
+}
+
+function makeWarCleaver(metal, leather, accent) {
+  const group = new THREE.Group();
+  group.name = 'hero-part:broad-war-cleaver';
+  const handle = cylinder('hero:murga:cleaver-handle', 0.05, 0.58, leather);
+  handle.position.y = 0.04;
+  const blade = box('hero:murga:cleaver-blade', [0.42, 0.68, 0.09], metal);
+  blade.position.set(0.12, 0.52, 0);
+  blade.rotation.z = -0.08;
+  const edge = box('hero:murga:cleaver-edge', [0.05, 0.64, 0.1], accent);
+  edge.position.set(0.34, 0.52, 0);
+  const hole = torus('hero:murga:cleaver-hole', 0.08, 0.015, leather);
+  hole.position.set(-0.02, 0.7, 0.06);
+  hole.rotation.x = Math.PI / 2;
+  group.add(handle, blade, edge, hole);
+  return group;
+}
+
+function makeBrokenSpoon(material, index) {
+  const group = new THREE.Group();
+  group.name = `hero-part:broken-spoon-${index}`;
+  const handle = box('hero:murga:spoon-handle', [0.025, 0.22, 0.018], material);
+  handle.position.y = -0.08;
+  const bowl = sphere('hero:murga:spoon-bowl', 0.045, material);
+  bowl.scale.set(0.7, 1.1, 0.35);
+  bowl.position.y = 0.05;
+  group.add(handle, bowl);
+  group.scale.setScalar(0.85 + (index % 3) * 0.08);
+  return group;
+}
+
+function makeBrothSpill(material) {
+  const group = new THREE.Group();
+  group.name = 'hero-part:broth-spill';
+  for (let i = 0; i < 5; i += 1) {
+    const drop = sphere('hero:murga:broth-drop', 0.06 + i * 0.01, material);
+    drop.position.set((i % 2 ? 1 : -1) * (0.08 + i * 0.03), -0.05 - i * 0.08, (i % 3 - 1) * 0.05);
+    group.add(drop);
+  }
   return group;
 }
 

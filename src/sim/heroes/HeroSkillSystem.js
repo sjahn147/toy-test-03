@@ -34,6 +34,7 @@ export class HeroSkillSystem {
 
   update(dt, sim) {
     this.clock += dt;
+    this.consumeCompletedTethers(sim);
     this.updateRouteLocks(dt, sim);
     this.updateZones(dt, sim);
     this.updateDuels(dt, sim);
@@ -62,7 +63,9 @@ export class HeroSkillSystem {
     if (action?.type !== 'hero-cast') return false;
     const definition = getHeroDefinition(agent?.heroId ?? agent?.role);
     const skill = definition?.skills.find(candidate => candidate.id === action.skillId);
-    if (!definition || !skill || !this.canCast(agent, skill)) return false;
+    if (!definition || !skill || !this.canCast(agent, skill, sim)) return false;
+    const reservation = this.reserveSkillCosts(agent, skill, sim);
+    if (reservation === false) return false;
     agent.heroCast = {
       id: `hero-cast-${this.sequence++}`,
       heroId: definition.id,
@@ -80,7 +83,10 @@ export class HeroSkillSystem {
       targetCorpseId: action.targetCorpseId ?? null,
       commandMode: action.commandMode ?? null,
       startHp: agent.hp,
-      impactApplied: false
+      impactApplied: false,
+      reservedCosts: reservation?.costs ?? {},
+      costSource: reservation?.source ?? null,
+      costsCommitted: false
     };
     agent.heroCastLastHp = agent.hp;
     this.castCount += 1;
@@ -103,8 +109,77 @@ export class HeroSkillSystem {
     return true;
   }
 
-  canCast(agent, skill) {
-    return Boolean(agent?.alive !== false && !agent.departed && !agent.hidden && !agent.downed && !agent.travel && !agent.combat && !agent.heroCast && (agent.heroCooldowns?.[skill.id] ?? 0) <= 0);
+  canCast(agent, skill, sim = null) {
+    return Boolean(agent?.alive !== false && !agent.departed && !agent.hidden && !agent.downed && !agent.travel && !agent.combat && !agent.heroCast && (agent.heroCooldowns?.[skill.id] ?? 0) <= 0 && this.canAffordSkill(agent, skill, sim));
+  }
+
+  canAffordSkill(agent, skill, sim) {
+    const costs = skill?.costs ?? {};
+    if (!Object.keys(costs).length) return true;
+    const stores = this.resourceStores(agent, sim);
+    for (const [resource, amount] of Object.entries(costs)) {
+      const available = stores.reduce((sum, store) => sum + resourceAmount(store.pool, resource), 0);
+      if (available + 0.0001 < amount) return false;
+    }
+    return true;
+  }
+
+  reserveSkillCosts(agent, skill, sim) {
+    const costs = skill?.costs ?? {};
+    if (!Object.keys(costs).length) return { costs: {}, source: null };
+    const stores = this.resourceStores(agent, sim);
+    if (!this.canAffordSkill(agent, skill, sim)) return false;
+    const withdrawals = [];
+    for (const [resource, requested] of Object.entries(costs)) {
+      let remaining = requested;
+      for (const store of stores) {
+        if (remaining <= 0) break;
+        for (const [key, available] of resourceEntries(store.pool, resource)) {
+          if (remaining <= 0) break;
+          const take = Math.min(remaining, available);
+          if (take <= 0) continue;
+          store.pool[key] -= take;
+          withdrawals.push({ storeId: store.id, key, amount: take });
+          remaining -= take;
+        }
+      }
+    }
+    return { costs: { ...costs }, source: withdrawals };
+  }
+
+  refundSkillCosts(cast, fraction, sim) {
+    const withdrawals = Array.isArray(cast?.costSource) ? cast.costSource : [];
+    if (!withdrawals.length || fraction <= 0) return;
+    for (const withdrawal of withdrawals) {
+      const store = this.resourceStoresById(sim).get(withdrawal.storeId);
+      if (!store) continue;
+      store.pool[withdrawal.key] = (Number(store.pool[withdrawal.key]) || 0) + withdrawal.amount * fraction;
+    }
+  }
+
+  resourceStores(agent, sim) {
+    const factionId = factionOf(agent);
+    const stores = [];
+    const sites = sim?.spawnNetworkSystem?.sites;
+    if (sites instanceof Map) {
+      for (const site of sites.values()) {
+        if (site.factionId !== factionId || site.state !== 'active') continue;
+        site.supply ??= {};
+        stores.push({ id: `site:${site.id}`, pool: site.supply, priority: site.roomId === agent.roomId ? 0 : site.type === 'core' ? 1 : 2 });
+      }
+    }
+    sim.heroResourceLedger ??= {};
+    if (!sim.heroResourceLedger[factionId]) sim.heroResourceLedger[factionId] = defaultLedgerFor(factionId);
+    stores.push({ id: `ledger:${factionId}`, pool: sim.heroResourceLedger[factionId], priority: 3 });
+    return stores.sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
+  }
+
+  resourceStoresById(sim) {
+    const result = new Map();
+    const sites = sim?.spawnNetworkSystem?.sites;
+    if (sites instanceof Map) for (const site of sites.values()) result.set(`site:${site.id}`, { id: `site:${site.id}`, pool: site.supply ??= {} });
+    for (const [factionId, pool] of Object.entries(sim?.heroResourceLedger ?? {})) result.set(`ledger:${factionId}`, { id: `ledger:${factionId}`, pool });
+    return result;
   }
 
   updateCast(agent, definition, dt, sim) {
@@ -156,6 +231,9 @@ export class HeroSkillSystem {
     const definition = getHeroDefinition(agent?.heroId ?? agent?.role);
     const skillId = agent?.heroCast?.skillId;
     if (!definition || !skillId) return false;
+    const cast = agent.heroCast;
+    const skill = definition.skills.find(candidate => candidate.id === skillId);
+    if (cast && !cast.costsCommitted) this.refundSkillCosts(cast, skill?.interruptRefund ?? 0.5, sim);
     agent.heroCooldowns[skillId] = Math.max(agent.heroCooldowns[skillId] ?? 0, 2.5);
     agent.heroCast = null;
     this.interruptCount += 1;
@@ -167,6 +245,7 @@ export class HeroSkillSystem {
   }
 
   applySkill(agent, definition, skill, cast, sim) {
+    cast.costsCommitted = true;
     for (const effect of skill.effects) this.applyEffect(effect, agent, definition, cast, sim);
     sim?.emitEffect?.('hero-impact', {
       roomId: cast.targetRoomId ?? agent.roomId,
@@ -214,6 +293,18 @@ export class HeroSkillSystem {
       case 'royal-command': return this.royalCommand(agent, cast, effect, sim);
       case 'digest-evidence': return this.digestEvidence(agent, cast, effect, sim);
       case 'split-hero-court': return this.splitHeroCourt(agent, effect, sim);
+      case 'deploy-breach-charge': return this.deployBreachCharge(agent, cast, effect, sim);
+      case 'directional-blast': return this.directionalBlast(agent, cast, effect, sim, false);
+      case 'directional-water-jet': return this.directionalBlast(agent, cast, effect, sim, true);
+      case 'clear-environment': return this.clearEnvironment(agent, effect, sim);
+      case 'dilute-slime': return this.diluteSlimes(agent, effect, sim);
+      case 'launch-barrage': return this.launchBarrage(agent, effect, sim);
+      case 'deploy-pressure-seal': return this.deployPressureSeal(agent, cast, effect, sim);
+      case 'reveal-submerged-socket': return this.revealSubmergedSockets(agent, sim);
+      case 'emergency-drain-field': return this.emergencyDrain(agent, effect, sim);
+      case 'deploy-healing-cauldron': return this.deployHealingCauldron(agent, effect, sim);
+      case 'hook-corpse-or-downed': return this.hookCorpseOrDowned(agent, cast, effect, sim);
+      case 'war-feast-field': return this.createWarFeast(agent, effect, sim);
       case 'emit-command': return true;
       default: return false;
     }
@@ -282,7 +373,7 @@ export class HeroSkillSystem {
     const allies = (sim.agents ?? []).filter(candidate => candidate.id !== agent.id && candidate.alive !== false && candidate.roomId === agent.roomId && factionOf(candidate) === effect.factionId);
     let ordered = 0;
     for (const ally of allies) {
-      if (ally.heroStatuses?.secondDefeat?.noRetreat) continue;
+      if (ally.heroStatuses?.secondDefeat?.noRetreat || ally.heroStatuses?.warFeast?.noRetreat) continue;
       ally.combat = null;
       ally.mood = 'retreating';
       const destination = this.retreatDestination(ally, sim, agent.roomId);
@@ -646,6 +737,212 @@ export class HeroSkillSystem {
     return Boolean(sim?.heroFormSystem?.splitCourt?.(agent, { duration: effect.duration ?? 11, aspects: effect.aspects ?? ['king', 'guard', 'scribe'] }, sim));
   }
 
+  deployBreachCharge(agent, cast, effect, sim) {
+    if (!sim?.heroDeployableSystem) return false;
+    const structure = cast.targetStructureId ? this.allStructures(sim).find(item => item.id === cast.targetStructureId) : this.findHostileOrDamagedStructure(agent, sim);
+    const deployable = sim.heroDeployableSystem.createBreachCharge(agent, {
+      ...effect,
+      targetStructureId: structure?.id ?? null,
+      ox: structure?.placement?.ox ?? 0.8,
+      oz: structure?.placement?.oz ?? 0.2
+    }, sim);
+    return Boolean(deployable);
+  }
+
+  directionalBlast(agent, cast, effect, sim, water) {
+    const target = (sim.agents ?? []).find(candidate => candidate.id === cast.targetId && candidate.alive !== false && candidate.roomId === agent.roomId) ?? this.hostilesInRoom(agent, sim)[0] ?? null;
+    const sourcePosition = sim?.heroPhysicsSystem?.localPosition?.(agent, sim) ?? { x: 0, z: 0 };
+    const targetPosition = target ? (sim?.heroPhysicsSystem?.localPosition?.(target, sim) ?? { x: 0, z: 1 }) : { x: 0, z: 1 };
+    const direction = normalizeVector(targetPosition.x - sourcePosition.x, targetPosition.z - sourcePosition.z);
+    const hostiles = this.hostilesInRoom(agent, sim);
+    const affected = sim?.heroPhysicsSystem?.applyDirectionalImpulse?.(agent, hostiles, direction, effect.impulse ?? 5, sim, {
+      length: effect.length ?? 5,
+      width: effect.width ?? 3,
+      kind: water ? 'water-jet' : 'air-cannon',
+      collisionStagger: water ? 0.55 : 0.8
+    }) ?? 0;
+    for (const hostile of hostiles) {
+      const position = sim?.heroPhysicsSystem?.localPosition?.(hostile, sim) ?? { x: 0, z: 0 };
+      const dx = position.x - sourcePosition.x;
+      const dz = position.z - sourcePosition.z;
+      const longitudinal = dx * direction.x + dz * direction.z;
+      const lateral = Math.abs(dx * -direction.z + dz * direction.x);
+      if (longitudinal < -0.2 || longitudinal > (effect.length ?? 5) || lateral > (effect.width ?? 3) * 0.5) continue;
+      if ((effect.damage ?? 0) > 0) sim.applyCombatDamage?.(agent, hostile, effect.damage, { heroSkill: true, pressure: true, water });
+    }
+    sim?.emitEffect?.(water ? 'hero-water-jet' : 'hero-air-blast', {
+      roomId: agent.roomId, agentId: agent.id, duration: 0.85, heroId: agent.heroId,
+      length: effect.length ?? 5, width: effect.width ?? 3, directionX: direction.x, directionZ: direction.z,
+      colorRole: water ? 'kobold-water' : 'goblin-air'
+    });
+    return affected > 0 || hostiles.length > 0;
+  }
+
+  clearEnvironment(agent, effect, sim) {
+    sim?.heroEnvironmentSystem?.clearKinds?.(agent.roomId, effect.kinds ?? [], agent.heroId, sim);
+    const room = (sim.rooms ?? []).find(candidate => candidate.id === agent.roomId);
+    if (room) {
+      room.heroPressureClearedKinds = [...new Set([...(room.heroPressureClearedKinds ?? []), ...(effect.kinds ?? [])])];
+      room.heroPressureClearedUntil = (sim.time ?? this.clock) + 5;
+    }
+    return true;
+  }
+
+  diluteSlimes(agent, effect, sim) {
+    let count = 0;
+    for (const target of this.hostilesInRoom(agent, sim).filter(candidate => String(candidate.role).includes('slime'))) {
+      target.heroStatuses ??= {};
+      target.heroStatuses.diluted = {
+        remaining: effect.duration ?? 5,
+        originalAttack: target.attack ?? 0,
+        attackMultiplier: effect.attackMultiplier ?? 0.7,
+        splitChance: effect.splitChance ?? 0
+      };
+      target.attack = Math.max(1, Math.round((target.attack ?? 1) * (effect.attackMultiplier ?? 0.7)));
+      count += 1;
+    }
+    return count > 0;
+  }
+
+  launchBarrage(agent, effect, sim) {
+    return Boolean(sim?.heroDeployableSystem?.launchBarrage?.(agent, effect, sim)?.length);
+  }
+
+  deployPressureSeal(agent, cast, effect, sim) {
+    const route = cast.targetRouteId ? sim?.routeGraph?.getRoute?.(cast.targetRouteId) : this.selectWaterRoute(agent, sim)?.route ?? null;
+    if (!route || !sim?.heroDeployableSystem || !sim?.heroEnvironmentSystem) return false;
+    const deployable = sim.heroDeployableSystem.createPressureSeal(agent, route.id, effect, sim);
+    sim.heroEnvironmentSystem.createPressureSeal(agent, deployable, effect, sim);
+    return true;
+  }
+
+  revealSubmergedSockets(agent, sim) {
+    const room = (sim.rooms ?? []).find(candidate => candidate.id === agent.roomId);
+    if (!room) return false;
+    room.heroSubmergedSocketsRevealed = true;
+    room.heroSubmergedRevealTime = sim.time ?? this.clock;
+    sim?.emitEffect?.('hero-submerged-reveal', { roomId: room.id, agentId: agent.id, heroId: agent.heroId, duration: 1.2, colorRole: 'kobold-water' });
+    return true;
+  }
+
+  emergencyDrain(agent, effect, sim) {
+    if (!sim?.heroEnvironmentSystem) return false;
+    sim.heroEnvironmentSystem.createEmergencyDrain(agent, { ...effect, radius: effect.radius ?? 6 }, sim);
+    return true;
+  }
+
+  deployHealingCauldron(agent, effect, sim) {
+    if (!sim?.heroDeployableSystem || !sim?.heroEnvironmentSystem) return false;
+    const existing = sim.heroDeployableSystem.deployablesInRoom?.(agent.roomId, 'healing-cauldron') ?? [];
+    for (const item of existing) sim.heroDeployableSystem.damageDeployable(item.id, item.hp ?? 999, agent, sim);
+    const deployable = sim.heroDeployableSystem.createCauldron(agent, { ...effect, kind: 'healing-cauldron' }, sim);
+    sim.heroEnvironmentSystem.createHealingCauldron(agent, deployable, effect, sim);
+    return true;
+  }
+
+  hookCorpseOrDowned(agent, cast, effect, sim) {
+    const target = cast.targetId ? this.findCorpseOrDownedById(cast.targetId, agent, sim) : this.findCorpseOrDowned(agent, sim);
+    if (!target || !sim?.heroPhysicsSystem) return false;
+    const targetType = target.role ? 'agent' : 'corpse';
+    const tether = sim.heroPhysicsSystem.createTether(agent, target, {
+      targetType,
+      duration: effect.pullDuration ?? 1.5,
+      strength: 6,
+      maximumDistance: effect.maximumDistance ?? 5.5,
+      payload: { action: 'murga-butcher', butcherDuration: effect.butcherDuration ?? 2, meatYield: effect.meatYield ?? 2, heroId: agent.heroId }
+    });
+    if (!tether) return false;
+    sim?.emitEffect?.('hero-hook-line', { roomId: agent.roomId, agentId: agent.id, duration: effect.pullDuration ?? 1.5, heroId: agent.heroId, targetId: target.id, colorRole: 'orc-ember' });
+    return true;
+  }
+
+  createWarFeast(agent, effect, sim) {
+    if (!sim?.heroEnvironmentSystem) return false;
+    sim.heroEnvironmentSystem.createWarFeast(agent, effect, sim);
+    sim?.emitEffect?.('hero-feast-burst', { roomId: agent.roomId, agentId: agent.id, duration: 1.1, heroId: agent.heroId, radius: effect.radius ?? 6, colorRole: 'orc-ember' });
+    return true;
+  }
+
+  consumeCompletedTethers(sim) {
+    const completed = sim?.heroPhysicsSystem?.takeCompletedTethers?.() ?? [];
+    for (const tether of completed) {
+      if (tether.payload?.action !== 'murga-butcher') continue;
+      const hero = (sim.agents ?? []).find(agent => agent.id === tether.sourceAgentId && agent.alive !== false);
+      if (!hero) continue;
+      hero.heroStatuses ??= {};
+      hero.heroStatuses.butchering = {
+        remaining: tether.payload.butcherDuration ?? 2,
+        targetId: tether.targetId,
+        targetType: tether.targetType,
+        meatYield: tether.payload.meatYield ?? 2
+      };
+      hero.combat = null;
+      hero.mood = 'butchering';
+    }
+  }
+
+  completeButchering(agent, status, sim) {
+    let yieldAmount = status.meatYield ?? 2;
+    if (status.targetType === 'corpse') {
+      const corpses = sim?.ecosystem?.corpses ?? [];
+      const corpse = corpses.find(item => item.id === status.targetId);
+      if (!corpse) return false;
+      yieldAmount += Math.max(0, Math.floor((corpse.food ?? 0) * 0.5));
+      sim.ecosystem.corpses = corpses.filter(item => item.id !== corpse.id);
+    } else {
+      const target = (sim.agents ?? []).find(candidate => candidate.id === status.targetId && candidate.alive !== false);
+      if (!target) return false;
+      target.hp = 0;
+      target.downed = false;
+      target.combat = null;
+      sim.finalizeDeath?.(agent, target);
+      if (target.alive !== false) target.alive = false;
+    }
+    this.addFactionResource(agent, 'meat', yieldAmount, sim);
+    sim?.emitEffect?.('hero-butcher-complete', { roomId: agent.roomId, agentId: agent.id, duration: 0.9, heroId: agent.heroId, colorRole: 'orc-ember' });
+    this.emit(`${agent.displayName ?? agent.name} converted the hooked remains into ${yieldAmount} meat.`, { type: 'hero-butchering-complete', heroId: agent.heroId, agentId: agent.id, roomId: agent.roomId, amount: yieldAmount });
+    return true;
+  }
+
+  addFactionResource(agent, resource, amount, sim) {
+    const stores = this.resourceStores(agent, sim);
+    const preferred = stores.find(store => store.id.startsWith('site:')) ?? stores[0];
+    if (!preferred) return false;
+    const key = resourceKey(preferred.pool, resource) ?? resource;
+    preferred.pool[key] = (Number(preferred.pool[key]) || 0) + amount;
+    return true;
+  }
+
+  findHostileOrDamagedStructure(agent, sim) {
+    return this.allStructures(sim).find(item => item.roomId === agent.roomId && item.factionId && item.factionId !== factionOf(agent))
+      ?? this.allStructures(sim).find(item => item.roomId === agent.roomId && ((Number.isFinite(item.hp) && item.hp < (item.maxHp ?? 100)) || (Number.isFinite(item.integrity) && item.integrity < (item.maxIntegrity ?? 100))))
+      ?? null;
+  }
+
+  findCorpseOrDowned(agent, sim) {
+    const downed = (sim.agents ?? []).find(candidate => candidate.id !== agent.id && candidate.alive !== false && candidate.downed && candidate.roomId === agent.roomId && factionOf(candidate) !== factionOf(agent));
+    if (downed) return downed;
+    return (sim?.ecosystem?.corpses ?? []).find(corpse => corpse.roomId === agent.roomId) ?? null;
+  }
+
+  findCorpseOrDownedById(id, agent, sim) {
+    return (sim.agents ?? []).find(candidate => candidate.id === id && candidate.roomId === agent.roomId && candidate.downed)
+      ?? (sim?.ecosystem?.corpses ?? []).find(corpse => corpse.id === id && corpse.roomId === agent.roomId)
+      ?? null;
+  }
+
+  selectWaterRoute(agent, sim) {
+    const route = this.connectedRoutes(agent.roomId, sim).find(candidate => {
+      if (sim?.heroEnvironmentSystem?.isWaterRouteSuppressed?.(candidate.id)) return false;
+      return candidate.water === true || candidate.hazard === 'flooded' || candidate.state === 'flooded' || String(candidate.type ?? '').includes('hydraulic') || String(candidate.id).includes('C1');
+    }) ?? null;
+    return route ? { targetRouteId: route.id, targetRoomId: agent.roomId, route } : null;
+  }
+
+  hasEnvironmentField(roomId, kind, sim) {
+    return [...(sim?.heroEnvironmentSystem?.fields?.values?.() ?? [])].some(field => field.roomId === roomId && field.kind === kind && field.remaining > 0);
+  }
+
   updateRouteLocks(dt, sim) {
     for (const lock of this.routeLocks) lock.remaining -= dt;
     this.routeLocks = this.routeLocks.filter(lock => lock.remaining > 0);
@@ -795,6 +1092,16 @@ export class HeroSkillSystem {
     }
     if (statuses.etherealDomain) statuses.etherealDomain.remaining = Math.max(0, statuses.etherealDomain.remaining - dt);
     if (statuses.mourningVeil) statuses.mourningVeil.remaining = Math.max(0, statuses.mourningVeil.remaining - dt);
+    if (statuses.butchering) {
+      statuses.butchering.remaining -= dt;
+      agent.combat = null;
+      agent.mood = 'butchering';
+      if (statuses.butchering.remaining <= 0) {
+        const completed = this.completeButchering(agent, statuses.butchering, sim);
+        delete statuses.butchering;
+        agent.mood = completed ? 'fed-the-warband' : 'butchering-failed';
+      }
+    }
   }
 
   updateExternalStatuses(dt, sim) {
@@ -836,6 +1143,20 @@ export class HeroSkillSystem {
         agent.travel = null;
         if (rooted.remaining <= 0) delete statuses.rooted;
       }
+      const diluted = statuses.diluted;
+      if (diluted) {
+        diluted.remaining -= dt;
+        if (diluted.remaining <= 0) {
+          agent.attack = diluted.originalAttack;
+          delete statuses.diluted;
+        }
+      }
+      for (const key of ['brothWarmth', 'warFeast', 'hooked']) {
+        const status = statuses[key];
+        if (!status) continue;
+        status.remaining -= dt;
+        if (status.remaining <= 0) delete statuses[key];
+      }
       for (const key of ['royalApproach', 'veilConcealment', 'etherealPassage', 'procession']) {
         const status = statuses[key];
         if (!status) continue;
@@ -861,7 +1182,13 @@ export class HeroSkillSystem {
   }
 
   isMovementBlocked(agent) {
-    return Boolean(agent?.heroStatuses?.bastion?.rooted || agent?.heroStatuses?.rooted);
+    return Boolean(
+      agent?.heroStatuses?.bastion?.rooted ||
+      agent?.heroStatuses?.rooted ||
+      agent?.heroStatuses?.butchering ||
+      (agent?.heroStatuses?.displaced?.remaining ?? 0) > 0 ||
+      (agent?.heroStatuses?.hooked?.remaining ?? 0) > 0
+    );
   }
 
   modifyIncomingDamage(source, target, amount, metadata = {}) {
@@ -874,6 +1201,8 @@ export class HeroSkillSystem {
     }
     if (target?.heroStatuses?.veilConcealment && !metadata.holy) result *= 0.82;
     if (target?.heroFormKind === 'guard') result *= 0.8;
+    const fire = metadata.fire === true || metadata.projectileType === 'fire' || metadata.damageType === 'fire';
+    if (fire && Number.isFinite(target?.heroFireDamageMultiplier)) result *= target.heroFireDamageMultiplier;
     return Math.max(1, Math.round(result));
   }
 
@@ -887,6 +1216,7 @@ export class HeroSkillSystem {
     }
     if (attacker?.heroFormKind === 'king') result *= 1.08;
     if (attacker?.heroFormKind === 'scribe' && target?.heroStatuses?.courtAnnotation) result *= 1.12;
+    if (attacker?.heroStatuses?.warFeast) result *= attacker.heroStatuses.warFeast.damageMultiplier ?? 1.18;
     return Math.max(1, Math.round(result));
   }
 
@@ -1052,6 +1382,43 @@ function applyAttackPenalty(agent, amount, duration, sourceId) {
   const original = Number.isFinite(agent.attack) ? agent.attack : 1;
   agent.heroStatuses.externalAttackPenalty = { sourceId, remaining: duration, originalAttack: original };
   agent.attack = Math.max(1, original - Math.max(0, amount ?? 0));
+}
+
+const RESOURCE_ALIASES = Object.freeze({
+  powder: ['powder', 'explosives', 'siegePowder', 'powderStock'],
+  scrap: ['scrap', 'scrapStock', 'mechanismParts', 'metal'],
+  meat: ['meat', 'meatStock', 'foodStock', 'fieldRations']
+});
+
+function resourceEntries(pool, resource) {
+  const aliases = RESOURCE_ALIASES[resource] ?? [resource];
+  return aliases
+    .filter(key => Object.prototype.hasOwnProperty.call(pool ?? {}, key))
+    .map(key => [key, Math.max(0, Number(pool?.[key]) || 0)])
+    .filter(([, amount]) => amount > 0);
+}
+
+function resourceKey(pool, resource) {
+  const aliases = RESOURCE_ALIASES[resource] ?? [resource];
+  return aliases.find(key => Object.prototype.hasOwnProperty.call(pool ?? {}, key)) ?? null;
+}
+
+function resourceAmount(pool, resource) {
+  const aliases = RESOURCE_ALIASES[resource] ?? [resource];
+  return aliases.reduce((sum, key) => sum + Math.max(0, Number(pool?.[key]) || 0), 0);
+}
+
+function defaultLedgerFor(factionId) {
+  if (factionId === 'goblin-clan') return { powder: 8, scrap: 6 };
+  if (factionId === 'copper-tail-clutch') return { scrap: 10 };
+  if (factionId === 'red-tusk-tribe') return { meat: 14 };
+  return {};
+}
+
+function normalizeVector(x, z) {
+  const length = Math.hypot(x, z);
+  if (length <= 0.0001) return { x: 0, z: 1 };
+  return { x: x / length, z: z / length };
 }
 
 function strongest(list) {

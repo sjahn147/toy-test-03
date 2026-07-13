@@ -16,6 +16,8 @@ const skill = (id, name, options = {}) => Object.freeze({
     cue: options.telegraph?.cue ?? id
   }),
   effects: Object.freeze((options.effects ?? []).map(effect => Object.freeze({ ...effect }))),
+  costs: Object.freeze({ ...(options.costs ?? {}) }),
+  interruptRefund: options.interruptRefund ?? 0.5,
   ai: Object.freeze({ priority: options.ai?.priority ?? 1, ...options.ai })
 });
 
@@ -534,7 +536,258 @@ export const HERO_DEFINITIONS = Object.freeze({
         ai: { priority: 10, healthBelow: 0.48, minimumHostiles: 2 }
       })
     ]
-  })
+  }),
+
+  'hero.jijik': hero({
+    id: 'hero.jijik',
+    role: 'hero-jijik',
+    displayName: 'Jijik Soot-Hand',
+    localizedName: '찌직 검댕손',
+    factionId: 'goblin-clan',
+    species: 'goblin',
+    size: 'small',
+    initialRoomId: 'D20',
+    encounterRoomId: 'D20',
+    baseStats: { hp: 76, attack: 8, courage: 15, armor: 2, speed: 1.02 },
+    relationship: { initial: -10 },
+    visual: {
+      bodyPlan: 'hero-goblin-bombardier',
+      animationProfile: 'jijik-mechanical-arm',
+      scale: 0.88,
+      palette: {
+        skin: 0x718f47,
+        cloth: 0x5f2f2a,
+        clothInner: 0x322927,
+        leather: 0x453127,
+        metal: 0x6f7470,
+        brass: 0xc48635,
+        accent: 0xff8c3e,
+        dark: 0x211c1a
+      },
+      silhouette: ['oversized-transforming-right-arm', 'asymmetric-powder-pack', 'fuse-crown-helmet'],
+      dedicatedParts: ['tool-rotor-arm', 'hammer-tool', 'air-cannon-nozzle', 'mortar-cup', 'powder-backpack', 'fuse-crown', 'pressure-gauge', 'recoil-brace']
+    },
+    passive: {
+      id: 'jijik-calculated-blast',
+      name: 'Calculated Blast',
+      description: 'Jijik prevents friendly blast damage while preserving the physical impulse that throws goblins clear.'
+    },
+    leadership: {
+      radius: 'same-room',
+      demolitionSpeedMultiplier: 1.25,
+      structureDamageBonus: 0.2,
+      friendlyBlastDamageMultiplier: 0,
+      friendlyBlastImpulseMultiplier: 0.72
+    },
+    skills: [
+      skill('jijik-breach-charge', 'Breach Charge', {
+        cooldown: 12,
+        windup: 1.8,
+        recovery: 0.7,
+        targetPolicy: 'structure-or-ground',
+        costs: { powder: 2, scrap: 1 },
+        telegraph: { shape: 'charge-cross', radius: 3.4, colorRole: 'goblin-orange', cue: 'arm-hammer-three-count' },
+        effects: [
+          { type: 'deploy-breach-charge', arming: 1.2, fuse: 2.2, damage: 9, structureDamage: 36, radius: 3.4, impulse: 4.8, friendlyDamage: false },
+          { type: 'emit-command', command: 'clear-the-charge' }
+        ],
+        ai: { priority: 6, preferStructure: true, minimumHostiles: 2 }
+      }),
+      skill('jijik-air-cannon', 'Compressed-Air Cannon', {
+        cooldown: 9,
+        windup: 1.05,
+        recovery: 0.9,
+        targetPolicy: 'hostile-direction',
+        telegraph: { shape: 'pressure-cone', radius: 5.2, length: 5.2, width: 2.8, colorRole: 'goblin-air', cue: 'pressure-gauge-whine' },
+        effects: [
+          { type: 'directional-blast', damage: 4, impulse: 6, length: 5.2, width: 2.8 },
+          { type: 'clear-environment', kinds: ['fire', 'spore', 'smoke'], radius: 5.2 },
+          { type: 'dilute-slime', duration: 5, attackMultiplier: 0.72 }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('jijik-three-point-barrage', 'Three-Point Barrage', {
+        cooldown: 30,
+        windup: 2.25,
+        recovery: 1.15,
+        interruptDamageRatio: 0.22,
+        targetPolicy: 'three-room-points',
+        costs: { powder: 5 },
+        telegraph: { shape: 'three-impact-rings', radius: 5.8, colorRole: 'goblin-orange', cue: 'mortar-ratchet-three' },
+        effects: [
+          { type: 'launch-barrage', count: 3, interval: 0.55, flightDuration: 1.15, arcHeight: 3.6, damage: [8, 12, 16], structureDamage: [8, 14, 24], impulse: [3, 4.5, 6], radius: [2.6, 2.2, 1.8] }
+        ],
+        ai: { priority: 10, minimumHostiles: 3 }
+      })
+    ]
+  }),
+
+  'hero.tissa': hero({
+    id: 'hero.tissa',
+    role: 'hero-tissa',
+    displayName: 'Tissa Water-Scale',
+    localizedName: '물비늘 티사',
+    factionId: 'copper-tail-clutch',
+    species: 'kobold',
+    size: 'small',
+    initialRoomId: 'C14',
+    encounterRoomId: 'C14',
+    baseStats: { hp: 74, attack: 7, courage: 16, armor: 2, speed: 0.96 },
+    relationship: { initial: 5 },
+    visual: {
+      bodyPlan: 'hero-kobold-diver',
+      animationProfile: 'tissa-diver',
+      scale: 0.9,
+      palette: {
+        skin: 0x6c8e79,
+        cloth: 0x3e5961,
+        clothInner: 0x2b454b,
+        leather: 0x48382d,
+        metal: 0x6d7777,
+        brass: 0xa9783d,
+        accent: 0x7fd7e6,
+        dark: 0x1d282d
+      },
+      silhouette: ['large-bell-diving-helmet', 'twin-air-tanks', 'long-fin-tail'],
+      dedicatedParts: ['glass-dive-helmet', 'twin-air-tanks', 'pressure-hose-set', 'valve-wrench', 'short-harpoon', 'broad-tail-fin', 'webbed-feet', 'pressure-gauge']
+    },
+    passive: {
+      id: 'tissa-flood-adaptation',
+      name: 'Flood Adaptation',
+      description: 'Tissa ignores flooded movement penalties, reveals submerged access points and resists fire.'
+    },
+    leadership: {
+      radius: 'same-room-and-routes',
+      floodedMoveMultiplier: 1.25,
+      routeInspectionMultiplier: 1.8,
+      fireDamageMultiplier: 0.7,
+      waterHazardSuppression: 0.35
+    },
+    skills: [
+      skill('tissa-pressure-jet', 'Pressure Jet', {
+        cooldown: 8,
+        windup: 1.1,
+        recovery: 0.75,
+        targetPolicy: 'hostile-direction',
+        telegraph: { shape: 'water-cone', radius: 5, length: 5, width: 3.2, colorRole: 'kobold-water', cue: 'tank-valve-open' },
+        effects: [
+          { type: 'directional-water-jet', damage: 3, impulse: 5.6, length: 5, width: 3.2 },
+          { type: 'clear-environment', kinds: ['fire', 'smoke'], radius: 5 },
+          { type: 'dilute-slime', duration: 6, attackMultiplier: 0.66, splitChance: 0.25 }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('tissa-pressure-seal', 'Pressure Seal', {
+        cooldown: 14,
+        windup: 1.65,
+        recovery: 0.65,
+        targetPolicy: 'water-route',
+        costs: { scrap: 1 },
+        telegraph: { shape: 'route-seal', radius: 3, colorRole: 'kobold-water', cue: 'seal-clamp-turn' },
+        effects: [
+          { type: 'deploy-pressure-seal', duration: 12, hp: 24, suppressWater: true, suppressAquaticSpawns: true },
+          { type: 'reveal-submerged-socket' }
+        ],
+        ai: { priority: 5, preferHazardRoute: true }
+      }),
+      skill('tissa-emergency-drain', 'Emergency Drain', {
+        cooldown: 32,
+        windup: 2.4,
+        recovery: 1,
+        interruptDamageRatio: 0.24,
+        targetPolicy: 'current-room',
+        telegraph: { shape: 'drain-spiral', radius: 6, colorRole: 'kobold-water', cue: 'cistern-roar' },
+        effects: [
+          { type: 'emergency-drain-field', duration: 16, waterLevelDelta: -1, alliedSpeedMultiplier: 1.12, aquaticEnemyMultiplier: 0.72 },
+          { type: 'reveal-submerged-socket' }
+        ],
+        ai: { priority: 10, floodedRoom: true, minimumAllies: 1 }
+      })
+    ]
+  }),
+
+  'hero.murga': hero({
+    id: 'hero.murga',
+    role: 'hero-murga',
+    displayName: 'Murga Blood-Pot',
+    localizedName: '무르가 피솥',
+    factionId: 'red-tusk-tribe',
+    species: 'orc',
+    size: 'medium',
+    initialRoomId: 'J48',
+    encounterRoomId: 'J48',
+    baseStats: { hp: 104, attack: 10, courage: 20, armor: 3, speed: 0.86 },
+    relationship: { initial: -30 },
+    visual: {
+      bodyPlan: 'hero-orc-war-kitchen',
+      animationProfile: 'murga-cauldron',
+      scale: 1.05,
+      palette: {
+        skin: 0x69784d,
+        cloth: 0x4f2926,
+        clothInner: 0x7f3c31,
+        leather: 0x3d2c23,
+        metal: 0x565b59,
+        brass: 0x9b784a,
+        accent: 0xd65a3d,
+        dark: 0x1f1d1a
+      },
+      silhouette: ['towering-black-cauldron-backpack', 'long-butchers-hook', 'broad-war-cleaver'],
+      dedicatedParts: ['black-war-cauldron', 'rib-frame-harness', 'cauldron-lid-shield', 'long-meat-hook', 'broad-cleaver', 'broken-spoon-necklace', 'spice-pouches', 'ember-brazier']
+    },
+    passive: {
+      id: 'murga-army-eats-first',
+      name: 'The Army Eats First',
+      description: 'Red-Tusk hunger rises more slowly and wounded warriors recover morale around Murga.'
+    },
+    leadership: {
+      radius: 'same-room',
+      hungerRateMultiplier: 0.55,
+      orcCourageBonus: 2,
+      corpseMeatYieldBonus: 0.5,
+      fearRecoveryPerSecond: 0.4
+    },
+    skills: [
+      skill('murga-blood-root-broth', 'Blood-and-Root Broth', {
+        cooldown: 16,
+        windup: 2.1,
+        recovery: 0.8,
+        targetPolicy: 'room-center',
+        costs: { meat: 2 },
+        telegraph: { shape: 'cauldron-hearth', radius: 4.2, colorRole: 'orc-ember', cue: 'cauldron-set-down' },
+        effects: [
+          { type: 'deploy-healing-cauldron', duration: 9, hp: 36, radius: 4.2, healPerSecond: 2.1, fearRecoveryPerSecond: 0.8 }
+        ],
+        ai: { priority: 7, woundedAllies: 2 }
+      }),
+      skill('murga-butchers-hook', "Butcher's Hook", {
+        cooldown: 10,
+        windup: 1.2,
+        recovery: 0.9,
+        targetPolicy: 'corpse-or-downed-hostile',
+        telegraph: { shape: 'hook-line', radius: 5.5, length: 5.5, colorRole: 'orc-ember', cue: 'chain-hook-cast' },
+        effects: [
+          { type: 'hook-corpse-or-downed', pullDuration: 1.5, butcherDuration: 2, meatYield: 2, maximumDistance: 5.5 }
+        ],
+        ai: { priority: 6, requireCorpseOrDowned: true }
+      }),
+      skill('murga-war-feast', 'War Feast', {
+        cooldown: 36,
+        windup: 2.5,
+        recovery: 1.05,
+        interruptDamageRatio: 0.25,
+        targetPolicy: 'allied-room',
+        costs: { meat: 6 },
+        telegraph: { shape: 'feast-ring', radius: 6, colorRole: 'orc-ember', cue: 'lid-struck-like-gong' },
+        effects: [
+          { type: 'war-feast-field', duration: 12, radius: 6, attackMultiplier: 1.24, lifesteal: 0.12, noRetreat: true },
+          { type: 'emit-command', command: 'eat-then-fight' }
+        ],
+        ai: { priority: 10, minimumAllies: 3, minimumHostiles: 2 }
+      })
+    ]
+  }),
+
 
 });
 

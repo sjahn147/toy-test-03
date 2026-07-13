@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "campaignId": "sleeping-citadel",
-  "scope": "WP8-1 foundation + WP8-2A frontline trio + WP8-B irregular physics trio",
+  "scope": "WP8-A foundation + WP8-B irregular physics trio + WP8-C field physics frontline trio",
   "heroes": [
     {
       "id": "hero.nibble",
@@ -38,7 +38,11 @@
       "factionId": "undead-host",
       "initialRoomId": "E25",
       "slice": "wp8b",
-      "frameworkContribution": ["spectral-secondary-motion", "temporary-shades", "ethereal-projectile-field"]
+      "frameworkContribution": [
+        "spectral-secondary-motion",
+        "temporary-shades",
+        "ethereal-projectile-field"
+      ]
     },
     {
       "id": "hero.orum-bell",
@@ -48,7 +52,11 @@
       "factionId": "bluecap-colony",
       "initialRoomId": "F28",
       "slice": "wp8b",
-      "frameworkContribution": ["root-locomotion", "organic-growth-weapon", "memory-spore-field"]
+      "frameworkContribution": [
+        "root-locomotion",
+        "organic-growth-weapon",
+        "memory-spore-field"
+      ]
     },
     {
       "id": "hero.glop",
@@ -58,7 +66,54 @@
       "factionId": "slime-bloom",
       "initialRoomId": "L57",
       "slice": "wp8b",
-      "frameworkContribution": ["volume-preserving-amorphous-body", "internal-artifact-rig", "split-merge-hero-forms"]
+      "frameworkContribution": [
+        "volume-preserving-amorphous-body",
+        "internal-artifact-rig",
+        "split-merge-hero-forms"
+      ]
+    },
+    {
+      "id": "hero.jijik",
+      "role": "hero-jijik",
+      "name": "Jijik Soot-Hand",
+      "localizedName": "찌직 검댕손",
+      "factionId": "goblin-clan",
+      "initialRoomId": "D20",
+      "slice": "wp8c",
+      "frameworkContribution": [
+        "room-local-impulse-physics",
+        "destructible-explosives",
+        "arcing-barrage-projectiles"
+      ]
+    },
+    {
+      "id": "hero.tissa",
+      "role": "hero-tissa",
+      "name": "Tissa Water-Scale",
+      "localizedName": "물비늘 티사",
+      "factionId": "copper-tail-clutch",
+      "initialRoomId": "C14",
+      "slice": "wp8c",
+      "frameworkContribution": [
+        "water-pressure-fields",
+        "route-mounted-deployables",
+        "aquatic-locomotion-secondary-motion"
+      ]
+    },
+    {
+      "id": "hero.murga",
+      "role": "hero-murga",
+      "name": "Murga Blood-Pot",
+      "localizedName": "무르가 피솥",
+      "factionId": "red-tusk-tribe",
+      "initialRoomId": "J48",
+      "slice": "wp8c",
+      "frameworkContribution": [
+        "physical-tethers",
+        "corpse-drag-work-cycle",
+        "deployable-support-hearths"
+      ]
     }
-  ]
+  ],
+  "qualityTier": "hero-key-visual"
 }

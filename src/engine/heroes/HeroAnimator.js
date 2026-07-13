@@ -1,6 +1,6 @@
 import { getHeroDefinition } from '../../content/heroes/HeroDefinitions.js';
 import { getHeroAnimationClip } from '../../content/heroes/HeroAnimationClips.js';
-import { updateHeroSecondaryMotion, applyVolumePreservingSquash } from './HeroSecondaryMotion.js';
+import { updateHeroSecondaryMotion, applyVolumePreservingSquash, beginSecondaryMotionFrame, springRotation, springPosition } from './HeroSecondaryMotion.js';
 
 export function animateHeroMiniature(mesh, agent, time = 0) {
   if (mesh?.userData?.isHeroForm) return animateHeroFormMiniature(mesh, agent, time);
@@ -9,6 +9,8 @@ export function animateHeroMiniature(mesh, agent, time = 0) {
   if (!definition) return false;
   const joints = mesh.userData.joints ?? {};
   resetJoints(joints);
+  beginSecondaryMotionFrame(mesh, time);
+  configureSkillParts(mesh, definition, agent);
 
   const moving = Boolean(agent.travel) || agent.mood === 'retreating';
   if (definition.id === 'hero.nibble') animateNibbleLocomotion(joints, agent, time, moving);
@@ -17,12 +19,16 @@ export function animateHeroMiniature(mesh, agent, time = 0) {
   else if (definition.id === 'hero.isara') animateIsaraLocomotion(joints, agent, time, moving);
   else if (definition.id === 'hero.orum-bell') animateOrumLocomotion(joints, agent, time, moving);
   else if (definition.id === 'hero.glop') animateGlopLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.jijik') animateJijikLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.tissa') animateTissaLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.murga') animateMurgaLocomotion(joints, agent, time, moving);
 
   if (agent.heroCast) animateHeroCast(joints, definition, agent.heroCast);
   else if (agent.combat) animateCombat(joints, definition, agent.combat);
   else animateIdle(joints, definition, time, agent);
 
   animateSecondary(joints, definition, time, agent);
+  animatePhysicalSecondary(mesh, joints, definition, time, agent);
   updateHeroSecondaryMotion(mesh, agent, time);
   animateDynamicMaterials(mesh, agent, definition, time);
   applyDamageStage(mesh, agent.heroDamageStage ?? 0, agent.heroVariant);
@@ -102,6 +108,51 @@ function animateGlopLocomotion(joints, agent, time, moving) {
   if (joints.crown) joints.crown.rotation.y += time * 0.08;
 }
 
+function animateJijikLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 5.8 : 1.9) + seed(agent.id);
+  const gait = moving ? Math.sin(phase) : 0;
+  rotate(joints.legL, 'x', gait * 0.46);
+  rotate(joints.legR, 'x', -gait * 0.46);
+  rotate(joints.upperArmL, 'x', -gait * 0.24);
+  rotate(joints.mechanicalShoulder, 'x', gait * 0.08);
+  if (joints.pelvis) joints.pelvis.position.y += moving ? Math.abs(Math.sin(phase * 2)) * 0.03 : Math.sin(phase * 0.5) * 0.007;
+  if (joints.chest) joints.chest.rotation.z += moving ? -0.05 + gait * 0.025 : -0.03;
+}
+
+function animateTissaLocomotion(joints, agent, time, moving) {
+  const swimming = Boolean(agent.heroAquaticMode || agent.heroStatuses?.swimming);
+  const phase = time * (moving ? (swimming ? 4.2 : 5.2) : 1.7) + seed(agent.id);
+  if (swimming) {
+    if (joints.motionRoot) joints.motionRoot.rotation.x += -0.62;
+    rotate(joints.tailBase, 'y', Math.sin(phase) * 0.38);
+    rotate(joints.tailMid, 'y', Math.sin(phase - 0.7) * 0.48);
+    rotate(joints.tailFin, 'y', Math.sin(phase - 1.2) * 0.55);
+    rotate(joints.legL, 'x', 0.35 + Math.sin(phase) * 0.08);
+    rotate(joints.legR, 'x', 0.35 - Math.sin(phase) * 0.08);
+    if (joints.motionRoot) joints.motionRoot.position.y += Math.sin(phase * 0.5) * 0.04;
+  } else {
+    const gait = moving ? Math.sin(phase) : 0;
+    rotate(joints.legL, 'x', gait * 0.4);
+    rotate(joints.legR, 'x', -gait * 0.4);
+    rotate(joints.upperArmL, 'x', -gait * 0.2);
+    rotate(joints.upperArmR, 'x', gait * 0.2);
+    if (joints.chest) joints.chest.rotation.x += moving ? 0.08 : 0.05;
+    if (joints.pelvis) joints.pelvis.position.y += moving ? Math.abs(Math.sin(phase)) * 0.025 : Math.sin(phase * 0.4) * 0.006;
+  }
+}
+
+function animateMurgaLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 2.8 : 1.35) + seed(agent.id);
+  const gait = moving ? Math.sin(phase) : 0;
+  rotate(joints.legL, 'x', gait * 0.36);
+  rotate(joints.legR, 'x', -gait * 0.36);
+  rotate(joints.upperArmL, 'x', -gait * 0.12);
+  rotate(joints.upperArmR, 'x', gait * 0.12);
+  if (joints.pelvis) joints.pelvis.position.y += moving ? Math.abs(Math.sin(phase)) * 0.026 : Math.sin(phase * 0.45) * 0.006;
+  if (joints.chest) joints.chest.rotation.y += moving ? gait * 0.06 : 0;
+  if (joints.chest) joints.chest.rotation.x += 0.06;
+}
+
 function animateIdle(joints, definition, time, agent) {
   const profile = definition.visual.animationProfile;
   const primary = getHeroAnimationClip(profile, 'idle-primary');
@@ -126,6 +177,22 @@ function animateHeroCast(joints, definition, cast) {
 
 function animateCombat(joints, definition, combat) {
   const progress = clamp(combat.progress ?? 0, 0, 1);
+  if (definition.id === 'hero.jijik') {
+    rotate(joints.mechanicalShoulder, 'x', combat.phase === 'impact' ? 0.72 : -progress * 0.72);
+    rotate(joints.toolRotor, 'y', combat.phase === 'impact' ? 0.5 : -progress * 0.35);
+    return;
+  }
+  if (definition.id === 'hero.tissa') {
+    rotate(joints.shoulderL, 'x', combat.phase === 'impact' ? 0.72 : -progress * 0.82);
+    rotate(joints.harpoon, 'z', combat.phase === 'impact' ? 0.28 : -progress * 0.35);
+    return;
+  }
+  if (definition.id === 'hero.murga') {
+    rotate(joints.shoulderR, 'x', combat.phase === 'impact' ? 0.8 : -progress * 0.9);
+    rotate(joints.cleaverRoot, 'z', combat.phase === 'impact' ? 0.75 : -progress * 0.72);
+    rotate(joints.chest, 'y', combat.phase === 'impact' ? 0.35 : -progress * 0.22);
+    return;
+  }
   if (definition.id === 'hero.karg') {
     if (combat.phase === 'windup') {
       rotate(joints.weaponRoot, 'z', -progress * 0.9);
@@ -259,6 +326,55 @@ function animateHeroFormMiniature(mesh, agent, time) {
   return true;
 }
 
+function animatePhysicalSecondary(mesh, joints, definition, time, agent) {
+  const phase = time + seed(agent.id);
+  const moving = Boolean(agent.travel) || agent.mood === 'retreating';
+  if (definition.id === 'hero.jijik') {
+    const recoil = agent.heroCast?.skillId === 'jijik-air-cannon' || agent.heroCast?.skillId === 'jijik-three-point-barrage' ? -0.16 : moving ? -0.04 : 0;
+    springRotation(mesh, joints.powderPack, 'jijik:powder-pack', 'z', Math.sin(phase * 1.4) * 0.035 - (moving ? 0.05 : 0), { stiffness: 45, damping: 9 });
+    springRotation(mesh, joints.mechanicalShoulder, 'jijik:heavy-arm', 'z', Math.sin(phase * 1.1) * 0.025 + (moving ? 0.04 : 0), { stiffness: 58, damping: 12 });
+    springPosition(mesh, joints.recoilBrace, 'jijik:recoil-brace', 'z', recoil, { stiffness: 85, damping: 16 });
+    springRotation(mesh, joints.fuseRoot, 'jijik:fuse-crown', 'z', Math.sin(phase * 2.3) * 0.035, { stiffness: 28, damping: 6 });
+    if (joints.toolRotor && !agent.heroCast) joints.toolRotor.rotation.y += Math.sin(phase * 0.7) * 0.04;
+  }
+  if (definition.id === 'hero.tissa') {
+    const swim = agent.heroAquaticMode ? 1 : 0;
+    springRotation(mesh, joints.tailBase, 'tissa:tail-base', 'y', Math.sin(phase * (swim ? 3.8 : 1.4)) * (swim ? 0.32 : 0.14), { stiffness: 34, damping: 7 });
+    springRotation(mesh, joints.tailMid, 'tissa:tail-mid', 'y', Math.sin(phase * (swim ? 3.8 : 1.4) - 0.7) * (swim ? 0.42 : 0.18), { stiffness: 29, damping: 6 });
+    springRotation(mesh, joints.tailFin, 'tissa:tail-fin', 'y', Math.sin(phase * (swim ? 3.8 : 1.4) - 1.2) * (swim ? 0.5 : 0.22), { stiffness: 25, damping: 5.5 });
+    springRotation(mesh, joints.hoseL, 'tissa:hose-left', 'z', Math.sin(phase * 1.6) * 0.08, { stiffness: 24, damping: 5 });
+    springRotation(mesh, joints.hoseR, 'tissa:hose-right', 'z', -Math.sin(phase * 1.55 + 0.3) * 0.08, { stiffness: 24, damping: 5 });
+    springRotation(mesh, joints.tankRoot, 'tissa:tanks', 'x', moving ? -0.05 : Math.sin(phase) * 0.015, { stiffness: 48, damping: 10 });
+  }
+  if (definition.id === 'hero.murga') {
+    const setDown = agent.heroCast?.skillId === 'murga-blood-root-broth';
+    springRotation(mesh, joints.cauldronRoot, 'murga:cauldron-swing', 'z', Math.sin(phase * 1.15) * (moving ? 0.08 : 0.035), { stiffness: 30, damping: 6.5, maxVelocity: 4 });
+    springRotation(mesh, joints.cauldronRoot, 'murga:cauldron-pitch', 'x', setDown ? -0.3 : moving ? 0.06 : 0, { stiffness: 44, damping: 9 });
+    springRotation(mesh, joints.lid, 'murga:lid', 'x', Math.sin(phase * 2.1) * 0.035, { stiffness: 26, damping: 5.5 });
+    springRotation(mesh, joints.chainRoot, 'murga:chain', 'z', Math.sin(phase * 1.8) * 0.11 + (moving ? -0.08 : 0), { stiffness: 22, damping: 4.8 });
+    springRotation(mesh, joints.necklace, 'murga:necklace', 'z', Math.sin(phase * 2.25) * 0.09, { stiffness: 24, damping: 5 });
+    springRotation(mesh, joints.pouchL, 'murga:pouch-left', 'z', Math.sin(phase * 1.65) * 0.06, { stiffness: 24, damping: 5 });
+    springRotation(mesh, joints.pouchR, 'murga:pouch-right', 'z', -Math.sin(phase * 1.55 + 0.5) * 0.06, { stiffness: 24, damping: 5 });
+    if (agent.heroStatuses?.butchering) {
+      rotate(joints.chest, 'x', 0.28);
+      rotate(joints.hookRoot, 'z', -0.45 + Math.sin(phase * 7) * 0.16);
+    }
+  }
+}
+
+function configureSkillParts(mesh, definition, agent) {
+  const parts = mesh.userData.skillParts ?? {};
+  if (definition.id === 'hero.jijik') {
+    const skillId = agent.heroCast?.skillId;
+    if (parts.toolHammer) parts.toolHammer.visible = !skillId || skillId === 'jijik-breach-charge';
+    if (parts.toolNozzle) parts.toolNozzle.visible = skillId === 'jijik-air-cannon';
+    if (parts.toolMortar) parts.toolMortar.visible = skillId === 'jijik-three-point-barrage';
+  }
+  if (definition.id === 'hero.murga' && parts.chainRoot) {
+    parts.chainRoot.scale.y = agent.heroCast?.skillId === 'murga-butchers-hook' || agent.heroStatuses?.butchering ? 1.4 : 1;
+  }
+}
+
 function applyDamageStage(mesh, stage, variant) {
   const parts = mesh.userData.damageParts ?? {};
   for (const node of parts.stage1Hide ?? []) node.visible = stage < 1;
@@ -281,8 +397,10 @@ function animateIndicators(mesh, agent, definition, time) {
   }
   if (inner) inner.rotation.z = -time * 0.31;
   if (marker) {
+    marker.userData ??= {};
+    marker.userData.baseHeroMarkerY ??= marker.position.y;
     marker.rotation.y = time * 0.72;
-    marker.position.y += Math.sin(time * 2.2 + seed(agent.id)) * 0.04;
+    marker.position.y = marker.userData.baseHeroMarkerY + Math.sin(time * 2.2 + seed(agent.id)) * 0.04;
   }
   if (hp) hp.scale.x = Math.max(0.02, (agent.hp ?? 0) / Math.max(1, agent.maxHp ?? definition.baseStats.hp));
 }

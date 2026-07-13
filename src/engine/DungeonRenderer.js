@@ -3,6 +3,7 @@ import { AssetRegistry } from './AssetRegistry.js';
 import { animateEliteMiniature } from '../miniatures/MiniatureAnimator.js';
 import { animateHeroMiniature } from './heroes/HeroAnimator.js';
 import { animateHeroEffect } from './heroes/HeroTelegraphRenderer.js';
+import { HeroWorldActorRenderer } from './heroes/HeroWorldActorRenderer.js';
 import { buildDungeonTopology, sampleConnection, roomSurfaceY } from './DungeonTopology.js';
 import { AuthoredRouteRenderer } from './AuthoredRouteRenderer.js';
 
@@ -24,6 +25,7 @@ export class DungeonRenderer {
     this.pointer = new THREE.Vector2();
     this.group = new THREE.Group();
     three.scene.add(this.group);
+    this.heroWorldActorRenderer = new HeroWorldActorRenderer(this.group, this.agentMeshes);
     this.routeRenderer = null;
     this.buildRooms();
     if (this.topology.authored) {
@@ -145,6 +147,12 @@ export class DungeonRenderer {
     this.routeRenderer?.sync(snapshot.routes ?? []);
     this.renderProps(snapshot.props, snapshot.rooms);
     this.renderAgents(snapshot.agents, snapshot.rooms, snapshot.time);
+    this.heroWorldActorRenderer.render({
+      deployables: snapshot.heroDeployables?.deployables ?? [],
+      projectiles: snapshot.heroDeployables?.projectiles ?? [],
+      fields: snapshot.heroEnvironment?.fields ?? [],
+      tethers: snapshot.heroPhysics?.tethers ?? []
+    }, snapshot.rooms, snapshot.time);
     this.renderEffects(snapshot.effects ?? [], snapshot.rooms, snapshot.time);
   }
 
@@ -209,7 +217,8 @@ export class DungeonRenderer {
       if (!target) continue;
 
       const bob = agent.role === 'slime' ? Math.sin(time * 5 + agent.index) * 0.05 : Math.sin(time * 4 + agent.index) * 0.025;
-      const targetPosition = new THREE.Vector3(target.x, target.y + bob, target.z);
+      const physicsOffset = agent.heroPhysicsOffset ?? { x: 0, z: 0 };
+      const targetPosition = new THREE.Vector3(target.x + physicsOffset.x, target.y + bob, target.z + physicsOffset.z);
       if (created) mesh.position.copy(targetPosition);
       else {
         const interpolation = agent.travel?.phase === 'entering' ? 0.42 : agent.travel ? 0.3 : 0.2;
@@ -349,6 +358,7 @@ export class DungeonRenderer {
   }
 
   destroy() {
+    this.heroWorldActorRenderer?.destroy?.();
     this.routeRenderer?.destroy();
     this.routeRenderer = null;
     this.three.scene.remove(this.group);
