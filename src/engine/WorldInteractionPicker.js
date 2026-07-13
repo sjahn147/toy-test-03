@@ -152,6 +152,7 @@ export class WorldInteractionPicker {
     const directChildren = this.renderer.group?.children ?? [];
     const seenIds = new Set();
     for (const object of directChildren) {
+      if (object?.userData?.pickable === false) continue;
       const routeId = object?.userData?.routeId ?? object?.userData?.connectionId;
       if (!routeId || seenIds.has(routeId)) continue;
       seenIds.add(routeId);

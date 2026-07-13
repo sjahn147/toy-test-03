@@ -1,3 +1,5 @@
+export const DEFAULT_FLOOR_HEIGHT = 5.4;
+
 const DOOR_WIDTH = 1.5;
 const PORT_CLEARANCE = 0.9;
 
@@ -72,8 +74,47 @@ export function sampleConnection(connection, progress) {
   return { x: last.x, z: last.z, tx: 1, tz: 0, yOffset: pointY(last, connection) };
 }
 
-export function roomSurfaceY(room, floorHeight = 2.85) {
-  return (room.floor ?? 0) * floorHeight;
+export function roomSurfaceY(room, floorHeight = DEFAULT_FLOOR_HEIGHT) {
+  return (room?.floor ?? 0) * floorHeight;
+}
+
+export function connectionSurfaceY(connection, topology, progress, floorHeight = DEFAULT_FLOOR_HEIGHT) {
+  const t = clamp(progress, 0, 1);
+  const aRoom = topology?.roomById?.get?.(connection?.aId) ?? null;
+  const bRoom = topology?.roomById?.get?.(connection?.bId) ?? null;
+  const ay = roomSurfaceY(aRoom, floorHeight);
+  const by = roomSurfaceY(bRoom, floorHeight);
+  const sample = sampleConnection(connection, t);
+  return ay + (by - ay) * t + (Number.isFinite(sample?.yOffset) ? sample.yOffset : 0);
+}
+
+export function connectionProgressAtPoint(connection, point) {
+  const points = connection?.points ?? [];
+  if (points.length < 2 || !point) return 0.5;
+  const lengths = [];
+  let total = 0;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const length = Math.hypot(points[index + 1].x - points[index].x, points[index + 1].z - points[index].z);
+    lengths.push(length);
+    total += length;
+  }
+  if (total <= 0.0001) return 0.5;
+  let best = { distance: Infinity, progress: 0.5 };
+  let travelled = 0;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const a = points[index];
+    const b = points[index + 1];
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const lengthSq = dx * dx + dz * dz;
+    const local = lengthSq > 0 ? clamp(((point.x - a.x) * dx + (point.z - a.z) * dz) / lengthSq, 0, 1) : 0;
+    const x = a.x + dx * local;
+    const z = a.z + dz * local;
+    const distance = Math.hypot(point.x - x, point.z - z);
+    if (distance < best.distance) best = { distance, progress: (travelled + lengths[index] * local) / total };
+    travelled += lengths[index];
+  }
+  return clamp(best.progress, 0, 1);
 }
 
 function normalizeRoutes(linksOrRoutes = []) {

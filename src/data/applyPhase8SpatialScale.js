@@ -15,10 +15,16 @@ const KIND_MINIMUMS = {
 
 const POSITION_SCALE = 1.72;
 const SIZE_SCALE = 1.58;
+const LEGACY_FLOOR_HEIGHT = 2.85;
+const MINIMUM_FLOOR_HEIGHT = 5.4;
 
 export function applyPhase8SpatialScale(source) {
   const scenario = clone(source);
-  if (scenario.phase8SpatialScaleApplied) return scenario;
+  if (scenario.phase8SpatialScaleApplied) {
+    scenario.floorHeight = Math.max(Number(scenario.floorHeight) || 0, MINIMUM_FLOOR_HEIGHT);
+    scenario.spatialScale = { ...(scenario.spatialScale ?? {}), floorHeight: scenario.floorHeight };
+    return scenario;
+  }
   if (!scenario.rooms?.length) return scenario;
 
   const centerX = average(scenario.rooms.map(room => room.x));
@@ -51,6 +57,7 @@ export function applyPhase8SpatialScale(source) {
     };
   }
 
+  scenario.floorHeight = round(Math.max(Number(scenario.floorHeight) || LEGACY_FLOOR_HEIGHT, MINIMUM_FLOOR_HEIGHT));
   scenario.phase8SpatialScaleApplied = true;
   scenario.spatialScale = {
     position: POSITION_SCALE,

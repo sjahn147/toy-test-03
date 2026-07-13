@@ -27,7 +27,7 @@ assert.ok(phase3.includes('a.heroPhysicsOffset?.x'));
 for (const token of [
   'HeroWorldActorRenderer', 'snapshot.heroDeployables?.deployables',
   'snapshot.heroEnvironment?.fields', 'snapshot.heroPhysics?.tethers',
-  'target.x + physicsOffset.x', 'animateHeroMiniature'
+  'target.x + (Number.isFinite(physicsOffset.x) ? physicsOffset.x : 0)', 'animateHeroMiniature'
 ]) assert.ok(renderer.includes(token), `DungeonRenderer missing ${token}`);
 
 for (const table of ['heroes', 'heroForms', 'heroDeployables', 'heroProjectiles', 'heroFields']) {

@@ -4,10 +4,9 @@ import { animateEliteMiniature } from '../miniatures/MiniatureAnimator.js';
 import { animateHeroMiniature } from './heroes/HeroAnimator.js';
 import { animateHeroEffect } from './heroes/HeroTelegraphRenderer.js';
 import { HeroWorldActorRenderer } from './heroes/HeroWorldActorRenderer.js';
-import { buildDungeonTopology, sampleConnection, roomSurfaceY } from './DungeonTopology.js';
+import { buildDungeonTopology, sampleConnection, roomSurfaceY, connectionSurfaceY, DEFAULT_FLOOR_HEIGHT } from './DungeonTopology.js';
 import { AuthoredRouteRenderer } from './AuthoredRouteRenderer.js';
 
-const FLOOR_HEIGHT = 2.85;
 const AGENT_HEIGHT = 0.43;
 
 export class DungeonRenderer {
@@ -15,6 +14,7 @@ export class DungeonRenderer {
     this.three = three;
     this.scenario = scenario;
     this.assets = assets;
+    this.floorHeight = Number.isFinite(scenario.floorHeight) ? scenario.floorHeight : DEFAULT_FLOOR_HEIGHT;
     this.topology = buildDungeonTopology(scenario.rooms, scenario.routes ?? scenario.links, { includeInactive: true });
     this.connectionById = new Map(this.topology.connections.map(connection => [connection.id, connection]));
     this.roomMeshes = new Map();
@@ -25,7 +25,7 @@ export class DungeonRenderer {
     this.pointer = new THREE.Vector2();
     this.group = new THREE.Group();
     three.scene.add(this.group);
-    this.heroWorldActorRenderer = new HeroWorldActorRenderer(this.group, this.agentMeshes);
+    this.heroWorldActorRenderer = new HeroWorldActorRenderer(this.group, this.agentMeshes, room => this.roomY(room));
     this.routeRenderer = null;
     this.buildRooms();
     if (this.topology.authored) {
@@ -43,7 +43,7 @@ export class DungeonRenderer {
   }
 
   roomY(room) {
-    return roomSurfaceY(room, FLOOR_HEIGHT);
+    return roomSurfaceY(room, this.floorHeight);
   }
 
   buildRooms() {
@@ -214,18 +214,28 @@ export class DungeonRenderer {
       }
 
       const target = agent.travel
-        ? this.travelPosition(agent)
-        : this.roomPosition(agent, rooms, roomMembers);
+        ? this.travelPosition(agent, mesh)
+        : this.roomPosition(agent, rooms, roomMembers, mesh);
       if (!target) continue;
 
-      const bob = agent.role === 'slime' ? Math.sin(time * 5 + agent.index) * 0.05 : Math.sin(time * 4 + agent.index) * 0.025;
       const physicsOffset = agent.heroPhysicsOffset ?? { x: 0, z: 0 };
-      const targetPosition = new THREE.Vector3(target.x + physicsOffset.x, target.y + bob, target.z + physicsOffset.z);
-      if (created) mesh.position.copy(targetPosition);
+      const targetPosition = new THREE.Vector3(
+        target.x + (Number.isFinite(physicsOffset.x) ? physicsOffset.x : 0),
+        target.y,
+        target.z + (Number.isFinite(physicsOffset.z) ? physicsOffset.z : 0)
+      );
+      const previousTime = Number(mesh.userData.lastRenderTime);
+      const renderDt = Number.isFinite(previousTime) ? Math.max(0, Math.min(0.1, time - previousTime)) : 0;
+      const horizontalAlpha = 1 - Math.exp(-18 * Math.max(renderDt, 1 / 120));
+      const verticalAlpha = agent.travel ? 1 - Math.exp(-24 * Math.max(renderDt, 1 / 120)) : 1;
+      if (created || !finiteVector(mesh.position)) mesh.position.copy(targetPosition);
       else {
-        const interpolation = agent.travel?.phase === 'entering' ? 0.42 : agent.travel ? 0.3 : 0.2;
-        mesh.position.lerp(targetPosition, interpolation);
+        mesh.position.x += (targetPosition.x - mesh.position.x) * horizontalAlpha;
+        mesh.position.z += (targetPosition.z - mesh.position.z) * horizontalAlpha;
+        mesh.position.y += (targetPosition.y - mesh.position.y) * verticalAlpha;
+        if (!agent.travel && Math.abs(mesh.position.y - targetPosition.y) < 0.001) mesh.position.y = targetPosition.y;
       }
+      mesh.userData.lastRenderTime = time;
       if (target.rotation !== undefined) mesh.rotation.y = target.rotation;
       if (!animateHeroMiniature(mesh, agent, time)) animateEliteMiniature(mesh, agent, time);
       mesh.visible = true;
@@ -241,10 +251,10 @@ export class DungeonRenderer {
     }
   }
 
-  roomPosition(agent, rooms, roomMembers) {
+  roomPosition(agent, rooms, roomMembers, mesh = null) {
     const room = rooms.find(candidate => candidate.id === agent.roomId);
     if (!room) return null;
-    const height = agentRenderHeight(agent);
+    const height = this.agentGroundOffset(agent, mesh);
 
     if (agent.roomCell) {
       return {
@@ -264,7 +274,7 @@ export class DungeonRenderer {
     return { x: room.x + ox, y: this.roomY(room) + height, z: room.z + oz };
   }
 
-  travelPosition(agent) {
+  travelPosition(agent, mesh = null) {
     const travel = agent.travel;
     const destinationRoom = this.topology.roomById.get(travel.toRoomId);
     const height = agentRenderHeight(agent);
@@ -288,8 +298,7 @@ export class DungeonRenderer {
     const forward = travel.fromRoomId === connection.aId;
     const progress = forward ? travel.progress : 1 - travel.progress;
     const sample = sampleConnection(connection, progress);
-    const fromRoom = this.topology.roomById.get(travel.fromRoomId);
-    const y = this.roomY(fromRoom) + (this.roomY(destinationRoom) - this.roomY(fromRoom)) * travel.progress;
+    const y = connectionSurfaceY(connection, this.topology, progress, this.floorHeight);
     const laneOffset = travel.laneOffset ?? 0;
     const normalX = -sample.tz;
     const normalZ = sample.tx;
@@ -299,6 +308,30 @@ export class DungeonRenderer {
       z: sample.z + normalZ * laneOffset,
       rotation: Math.atan2(sample.tx * (forward ? 1 : -1), sample.tz * (forward ? 1 : -1))
     };
+  }
+
+  agentGroundOffset(agent, mesh = null) {
+    if (Number.isFinite(mesh?.userData?.groundOffset)) return mesh.userData.groundOffset;
+    let offset = agentRenderHeight(agent);
+    const model = mesh?.getObjectByName?.('hero-model') ?? mesh?.getObjectByName?.('miniature-model') ?? null;
+    if (model && typeof THREE.Box3 === 'function') {
+      try {
+        mesh.updateMatrixWorld?.(true);
+        const bounds = new THREE.Box3().setFromObject(model);
+        if (Number.isFinite(bounds.min?.y) && Number.isFinite(bounds.max?.y)) {
+          offset = Math.max(-0.15, Math.min(1.4, -bounds.min.y + 0.025));
+        }
+      } catch {
+        // Procedural test stubs may not expose full bounds support.
+      }
+    }
+    if (['stirge', 'wraith'].includes(agent?.role)) offset += agent.role === 'stirge' ? 0.55 : 0.18;
+    if (mesh) mesh.userData.groundOffset = offset;
+    return offset;
+  }
+
+  agentGroundY(agent, mesh, room) {
+    return this.roomY(room) + this.agentGroundOffset(agent, mesh);
   }
 
   getAgentWorldPosition(agentId) {
@@ -377,4 +410,9 @@ function agentRenderHeight(agent) {
 function smoothstep(value) {
   const t = Math.max(0, Math.min(1, value));
   return t * t * (3 - 2 * t);
+}
+
+
+function finiteVector(vector) {
+  return Number.isFinite(vector?.x) && Number.isFinite(vector?.y) && Number.isFinite(vector?.z);
 }

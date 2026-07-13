@@ -435,7 +435,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
 
   focusRoom(roomId, immediate = false, distance = null) {
     const room = this.scenario.rooms.find(candidate => candidate.id === roomId);
-    if (room) this.three.setCameraTarget(room.x, (room.floor ?? 0) * 2.85 + 3, room.z, distance, immediate);
+    if (room) this.three.setCameraTarget(room.x, (this.renderer?.roomY?.(room) ?? (room.floor ?? 0) * (this.scenario.floorHeight ?? 5.4)) + 3, room.z, distance, immediate);
   }
 
   resetCamera(immediate = false) {

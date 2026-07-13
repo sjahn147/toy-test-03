@@ -1,4 +1,5 @@
 import { clamp, copyPoint } from './CameraMath.js';
+import { roomSurfaceY, DEFAULT_FLOOR_HEIGHT } from '../engine/DungeonTopology.js';
 
 const SMALL_ROLES = new Set(['stirge', 'rat', 'parasite', 'goblin', 'kobold', 'slime']);
 const LARGE_ROLES = new Set(['ogre', 'giant', 'carrion', 'gardener', 'goldback']);
@@ -6,6 +7,7 @@ const LARGE_ROLES = new Set(['ogre', 'giant', 'carrion', 'gardener', 'goldback']
 export class CameraTargetResolver {
   constructor({ scenario, renderer, worldPicker = null, getViewModel = () => null } = {}) {
     this.scenario = scenario ?? { rooms: [] };
+    this.floorHeight = Number.isFinite(this.scenario.floorHeight) ? this.scenario.floorHeight : DEFAULT_FLOOR_HEIGHT;
     this.renderer = renderer ?? null;
     this.worldPicker = worldPicker;
     this.getViewModel = getViewModel;
@@ -46,7 +48,7 @@ export class CameraTargetResolver {
     const distance = clamp(Math.max(room.w ?? 8, room.d ?? 8) * 1.7 + 12, 22, 64);
     return this.result({ type: 'room', id }, {
       x: room.x,
-      y: (room.floor ?? 0) * 2.85 + 2.8,
+      y: roomSurfaceY(room, this.floorHeight) + 2.8,
       z: room.z
     }, distance, false, fallbackLabel ?? room.name ?? id, room);
   }
@@ -68,7 +70,7 @@ export class CameraTargetResolver {
     if (!owned.length) return null;
     const rooms = owned.map(item => this.scenario.rooms?.find(room => room.id === item.roomId)).filter(Boolean);
     if (!rooms.length) return null;
-    const point = rooms.reduce((sum, room) => ({ x: sum.x + room.x, y: sum.y + (room.floor ?? 0) * 2.85 + 2.8, z: sum.z + room.z }), { x: 0, y: 0, z: 0 });
+    const point = rooms.reduce((sum, room) => ({ x: sum.x + room.x, y: sum.y + roomSurfaceY(room, this.floorHeight) + 2.8, z: sum.z + room.z }), { x: 0, y: 0, z: 0 });
     point.x /= rooms.length; point.y /= rooms.length; point.z /= rooms.length;
     return this.result({ type: 'faction', id }, point, clamp(28 + rooms.length * 2, 28, 72), false, id);
   }
