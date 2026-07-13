@@ -475,6 +475,61 @@ export const HERO_ANIMATION_CLIPS = Object.freeze({
     ])
   }),
 
+
+  'pev-clear-drop': Object.freeze({
+    'idle-primary': clip('pev.idle-primary',3.2,[channel('blobRoot','scale.y',[[0,0],[.5,.06],[1,0]]),channel('crest','rotation.z',[[0,-.04],[.5,.06],[1,-.04]]),channel('artifactOrbit','rotation.y',[[0,0],[1,1.3]],'linear')],{loop:true}),
+    'idle-secondary': clip('pev.idle-secondary',4.1,[channel('trinket0','position.y',[[0,0],[.5,.08],[1,0]]),channel('trinket1','position.y',[[0,.04],[.5,-.05],[1,.04]]),channel('trinket2','position.y',[[0,-.03],[.5,.06],[1,-.03]])],{loop:true}),
+    'skill:pev-purifying-bubble': clip('pev.purify',1.35,[channel('blobRoot','scale.x',[[0,0],[.55,.28],[1,.08]]),channel('blobRoot','scale.z',[[0,0],[.55,.28],[1,.08]]),channel('bubbleFilm','scale.x',[[0,0],[.65,.72],[1,.2]]),channel('artifactOrbit','rotation.y',[[0,0],[1,4.6]],'linear')],{events:[{at:.68,type:'impact'}]}),
+    'skill:pev-borrowed-shape': clip('pev.borrow',1.15,[channel('blobRoot','scale.y',[[0,0],[.48,-.18],[.72,.24],[1,0]]),channel('artifactOrbit','rotation.y',[[0,0],[1,5.2]],'linear'),channel('crest','scale.y',[[0,0],[.7,.55],[1,.15]])],{events:[{at:.7,type:'impact'}]}),
+    'skill:pev-selective-assimilation': clip('pev.assimilate',2.25,[channel('motionRoot','position.y',[[0,0],[.5,.25],[.72,.48],[1,.12]]),channel('blobRoot','scale.x',[[0,0],[.45,.42],[.75,-.2],[1,0]]),channel('blobRoot','scale.z',[[0,0],[.45,.42],[.75,-.2],[1,0]]),channel('artifactOrbit','rotation.y',[[0,0],[1,9]],'linear')],{events:[{at:.74,type:'impact'}]}),
+    death: clip('pev.death',2.2,[channel('blobRoot','scale.y',[[0,0],[1,-.75]]),channel('blobRoot','scale.x',[[0,0],[1,.55]]),channel('artifactOrbit','position.y',[[0,0],[1,-.7]]),channel('crest','rotation.z',[[0,0],[1,1.4]])])
+  }),
+
+  'eighth-cocoon-knight': Object.freeze({
+    'idle-primary': clip('cocoon.idle-primary',3.6,[channel('knightChest','rotation.y',[[0,-.02],[.5,.025],[1,-.02]]),channel('shieldRoot','rotation.z',[[0,.03],[.5,-.04],[1,.03]]),channel('abdomen','rotation.y',[[0,-.025],[.5,.035],[1,-.025]])],{loop:true}),
+    'idle-secondary': clip('cocoon.idle-secondary',2.8,[channel('lanceRoot','rotation.z',[[0,.04],[.5,-.05],[1,.04]]),channel('silkRig','rotation.y',[[0,0],[1,.7]],'linear')],{loop:true}),
+    'skill:cocoon-silk-lance': clip('cocoon.lance',1.2,[channel('knightChest','rotation.y',[[0,0],[.36,-.4],[.72,.35],[1,0]]),channel('lanceRoot','rotation.x',[[0,0],[.36,-1.05],[.72,.42],[1,0]]),channel('motionRoot','position.z',[[0,0],[.72,.38],[1,.05]])],{events:[{at:.7,type:'impact'}]}),
+    'skill:cocoon-thread-guard': clip('cocoon.guard',1.55,[channel('shieldRoot','position.x',[[0,0],[.6,.34],[1,.12]]),channel('shieldRoot','scale.x',[[0,0],[.6,.4],[1,.15]]),channel('knightChest','rotation.z',[[0,0],[.6,-.16],[1,-.04]])],{events:[{at:.65,type:'impact'}]}),
+    'skill:cocoon-cast-off-shell': clip('cocoon.cast-off',2.35,[channel('knightChest','scale.x',[[0,0],[.58,.3],[.72,-.4],[1,-.2]]),channel('knightChest','position.y',[[0,0],[.72,.5],[1,.2]]),channel('abdomen','scale.x',[[0,0],[.74,.28],[1,.12]]),channel('fangL','rotation.y',[[0,0],[.74,-.8],[1,-.2]]),channel('fangR','rotation.y',[[0,0],[.74,.8],[1,.2]])],{events:[{at:.73,type:'shell-break'},{at:.76,type:'impact'}]}),
+    death: clip('cocoon.death',2.7,[channel('motionRoot','rotation.z',[[0,0],[1,1.2]]),channel('knightChest','rotation.x',[[0,0],[1,-1.1]]),channel('abdomen','position.y',[[0,0],[1,-.45]])])
+  }),
+
+  'empty-queen-hand': Object.freeze({
+    'idle-primary': clip('queen.idle-primary',4.5,[channel('sacRoot','position.y',[[0,0],[.5,.08],[1,0]]),channel('neuralCore','rotation.y',[[0,0],[1,1.2]],'linear'),channel('crownRoot','rotation.z',[[0,.03],[.5,-.04],[1,.03]])],{loop:true}),
+    'idle-secondary': clip('queen.idle-secondary',5.2,[channel('silkTrail','rotation.z',[[0,.04],[.5,-.06],[1,.04]]),channel('egg0','scale.y',[[0,0],[.5,.08],[1,0]]),channel('egg1','scale.y',[[0,.04],[.5,-.05],[1,.04]]),channel('egg2','scale.y',[[0,-.03],[.5,.07],[1,-.03]])],{loop:true}),
+    'skill:queen-lay-royal-clutch': clip('queen.clutch',2.0,[channel('sacRoot','position.y',[[0,0],[.55,-.18],[1,-.05]]),channel('egg0','position.y',[[0,0],[.72,-.6],[1,-.2]]),channel('egg1','position.y',[[0,0],[.72,-.7],[1,-.25]]),channel('egg2','position.y',[[0,0],[.72,-.6],[1,-.2]])],{events:[{at:.72,type:'impact'}]}),
+    'skill:queen-reassign-brood': clip('queen.reassign',1.5,[channel('crownRoot','rotation.y',[[0,0],[1,4.2]],'linear'),channel('neuralCore','scale.x',[[0,0],[.65,.5],[1,.15]]),channel('sacRoot','scale.x',[[0,0],[.65,.14],[1,0]])],{events:[{at:.66,type:'impact'}]}),
+    'skill:queen-without-body': clip('queen.domain',2.8,[channel('motionRoot','position.y',[[0,0],[.65,.28],[1,.1]]),channel('sacRoot','scale.x',[[0,0],[.72,.55],[1,.25]]),channel('sacRoot','scale.z',[[0,0],[.72,.55],[1,.25]]),channel('crownRoot','position.y',[[0,0],[.72,.48],[1,.2]]),channel('neuralCore','rotation.y',[[0,0],[1,8.4]],'linear')],{events:[{at:.74,type:'impact'}]}),
+    death: clip('queen.death',3.0,[channel('sacRoot','position.y',[[0,0],[1,-1.0]]),channel('sacRoot','scale.y',[[0,0],[1,-.65]]),channel('crownRoot','rotation.z',[[0,0],[1,1.6]]),channel('silkTrail','scale.y',[[0,0],[1,-.7]])])
+  }),
+
+  'failed-successor': Object.freeze({
+    'idle-primary': clip('successor.idle-primary',4.0,[channel('head','rotation.y',[[0,0],[.45,.08],[.55,.08],[1,0]]),channel('handL','rotation.z',[[0,0],[.45,-.18],[.55,-.18],[1,0]]),channel('shadow','rotation.y',[[0,-.03],[.58,.09],[1,-.03]])],{loop:true}),
+    'idle-secondary': clip('successor.idle-secondary',5.0,[channel('coatL','rotation.z',[[0,.03],[.5,-.04],[1,.03]]),channel('coatR','rotation.z',[[0,-.03],[.5,.04],[1,-.03]]),channel('mask','rotation.x',[[0,0],[.8,0],[.9,.08],[1,0]])],{loop:true}),
+    'skill:successor-borrowed-gesture': clip('successor.borrow',1.4,[channel('chest','rotation.y',[[0,0],[.4,-.28],[.72,.3],[1,0]]),channel('armR','rotation.x',[[0,0],[.4,-.9],[.72,.42],[1,0]]),channel('shadow','rotation.y',[[0,0],[1,3.5]],'linear')],{events:[{at:.7,type:'impact'}]}),
+    'skill:successor-false-investiture': clip('successor.invest',1.9,[channel('seal','position.z',[[0,0],[.66,.42],[1,.1]]),channel('handL','rotation.x',[[0,0],[.66,-1.0],[1,-.2]]),channel('mask','position.y',[[0,0],[.66,.12],[1,.04]])],{events:[{at:.68,type:'impact'}]}),
+    'skill:successor-shed-the-prince': clip('successor.shed',2.55,[channel('mask','scale.x',[[0,0],[.62,.35],[.72,-.55],[1,-.25]]),channel('extraArms','scale.x',[[0,0],[.72,.8],[1,.35]]),channel('parasiteFace','scale.x',[[0,0],[.72,.9],[1,.4]]),channel('coatL','rotation.z',[[0,0],[.72,-.8],[1,-.2]]),channel('coatR','rotation.z',[[0,0],[.72,.8],[1,.2]])],{events:[{at:.72,type:'mask-break'},{at:.76,type:'impact'}]}),
+    death: clip('successor.death',2.6,[channel('motionRoot','rotation.z',[[0,0],[1,-1.25]]),channel('mask','position.y',[[0,0],[1,-.8]]),channel('shadow','scale.y',[[0,0],[1,-.75]])])
+  }),
+
+  'sleeping-gardener': Object.freeze({
+    'idle-primary': clip('gardener.idle-primary',6.0,[channel('trunk','rotation.z',[[0,-.01],[.5,.015],[1,-.01]]),channel('crown','rotation.y',[[0,0],[1,.35]],'linear'),channel('gardenBed','position.y',[[0,0],[.5,.025],[1,0]])],{loop:true}),
+    'idle-secondary': clip('gardener.idle-secondary',7.0,[channel('armL','rotation.z',[[0,.02],[.5,-.03],[1,.02]]),channel('armR','rotation.z',[[0,-.02],[.5,.03],[1,-.02]]),channel('nest','rotation.y',[[0,0],[1,.22]],'linear')],{loop:true}),
+    'skill:gardener-rooted-orchard': clip('gardener.orchard',2.0,[channel('motionRoot','position.y',[[0,0],[.62,-.16],[1,-.05]]),channel('armL','rotation.x',[[0,0],[.62,-.8],[1,-.15]]),channel('armR','rotation.x',[[0,0],[.62,-.8],[1,-.15]]),channel('gardenBed','scale.x',[[0,0],[.7,.35],[1,.12]])],{events:[{at:.7,type:'impact'}]}),
+    'skill:gardener-prune-the-blight': clip('gardener.prune',1.45,[channel('armL','rotation.z',[[0,0],[.38,-.9],[.72,.55],[1,0]]),channel('armR','rotation.z',[[0,0],[.38,.9],[.72,-.55],[1,0]]),channel('trunk','rotation.y',[[0,0],[.72,.42],[1,0]])],{events:[{at:.7,type:'impact'}]}),
+    'skill:gardener-turn-of-seasons': clip('gardener.seasons',2.4,[channel('crown','rotation.y',[[0,0],[1,6.4]],'linear'),channel('gardenBed','scale.x',[[0,0],[.68,.45],[1,.18]]),channel('trunk','position.y',[[0,0],[.68,.18],[1,.06]])],{events:[{at:.72,type:'impact'}]}),
+    death: clip('gardener.death',3.4,[channel('trunk','rotation.z',[[0,0],[1,1.28]]),channel('crown','rotation.z',[[0,0],[1,-.75]]),channel('gardenBed','rotation.x',[[0,0],[1,-.8]])])
+  }),
+
+  'goldcrown-back': Object.freeze({
+    'idle-primary': clip('goldcrown.idle-primary',3.8,[channel('body1','rotation.y',[[0,-.03],[.5,.04],[1,-.03]]),channel('body2','rotation.y',[[0,.04],[.5,-.05],[1,.04]]),channel('crown','rotation.z',[[0,.03],[.5,-.04],[1,.03]])],{loop:true}),
+    'idle-secondary': clip('goldcrown.idle-secondary',4.6,[channel('trophies','rotation.y',[[0,0],[1,.4]],'linear'),channel('carapace','position.y',[[0,0],[.5,.035],[1,0]]),channel('glow','scale.x',[[0,0],[.5,.08],[1,0]])],{loop:true}),
+    'skill:goldcrown-bone-rake-charge': clip('goldcrown.charge',1.35,[channel('motionRoot','position.z',[[0,0],[.42,-.22],[.72,.82],[1,.12]]),channel('head','rotation.x',[[0,0],[.42,.25],[.72,-.22],[1,0]]),channel('rakeL','rotation.y',[[0,0],[.72,-.45],[1,-.1]]),channel('rakeR','rotation.y',[[0,0],[.72,.45],[1,.1]])],{events:[{at:.7,type:'impact'}]}),
+    'skill:goldcrown-trophy-volley': clip('goldcrown.volley',1.8,[channel('carapace','scale.x',[[0,0],[.62,.35],[1,.08]]),channel('trophies','position.y',[[0,0],[.62,.48],[1,.12]]),channel('trophies','rotation.y',[[0,0],[1,4.8]],'linear')],{events:[{at:.66,type:'impact'}]}),
+    'skill:goldcrown-royal-molt': clip('goldcrown.molt',2.7,[channel('carapace','scale.x',[[0,0],[.58,.5],[.74,-.55],[1,-.25]]),channel('trophies','position.y',[[0,0],[.74,.85],[1,.25]]),channel('crown','position.y',[[0,0],[.74,.55],[1,.18]]),channel('body1','scale.x',[[0,0],[.74,-.18],[1,-.08]])],{events:[{at:.73,type:'shell-splits'},{at:.76,type:'impact'}]}),
+    death: clip('goldcrown.death',3.0,[channel('motionRoot','rotation.z',[[0,0],[1,1.1]]),channel('crown','position.y',[[0,0],[1,-.9]]),channel('trophies','position.y',[[0,0],[1,-.7]])])
+  }),
+
 });
 
 export function getHeroAnimationClip(profile, clipId) {

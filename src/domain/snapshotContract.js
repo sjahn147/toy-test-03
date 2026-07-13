@@ -59,6 +59,11 @@ export const ENTITY_TABLES = [
   'heroFormations',
   'heroSummons',
   'heroBarriers',
+  'heroAdaptationFields',
+  'heroBroodActors',
+  'heroMimicActors',
+  'heroGardenPatches',
+  'heroHoardActors',
   'effects'
 ];
 
@@ -81,7 +86,12 @@ export const INDEX_NAMES = [
   'heroFieldsByRoom',
   'heroFormationsByRoom',
   'heroSummonsByRoom',
-  'heroBarriersByRoom'
+  'heroBarriersByRoom',
+  'heroAdaptationFieldsByRoom',
+  'heroBroodActorsByRoom',
+  'heroMimicActorsByRoom',
+  'heroGardenPatchesByRoom',
+  'heroHoardActorsByRoom'
 ];
 
 const CLOCK_KEYS = ['time', 'turn', 'ended'];

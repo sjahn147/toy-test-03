@@ -129,6 +129,9 @@ function buildDeployable(record) {
   if (record.kind === 'breach-charge') buildBreachCharge(group);
   else if (record.kind === 'pressure-seal') buildPressureSeal(group);
   else if (record.kind === 'healing-cauldron' || record.kind === 'war-cauldron') buildCauldron(group, record);
+  else if (record.kind === 'royal-clutch') buildRoyalClutch(group, record);
+  else if (record.kind === 'knight-husk' || record.kind === 'prince-husk') buildHeroHusk(group, record);
+  else if (record.kind === 'relic-shell') buildRelicShell(group, record);
   else buildGenericDeployable(group);
   return group;
 }
@@ -215,6 +218,32 @@ function buildCauldron(group, record) {
   group.userData.warFeast = record.kind === 'war-cauldron';
 }
 
+
+function buildRoyalClutch(group, record) {
+  const silk=mat('clutch:silk',0xd9b5c8,{transparent:true,opacity:.72,emissive:0x6f4257,emissiveIntensity:.18});
+  const dark=mat('clutch:dark',0x3b2832,{roughness:.68});
+  const sac=new THREE.Mesh(geo('clutch:sac',()=>new THREE.SphereGeometry(.48,14,10)),silk);sac.scale.set(1,.78,1.12);sac.position.y=.42;sac.name='clutch-sac';group.add(sac);
+  for(let i=0;i<6;i++){const strand=new THREE.Mesh(geo('clutch:strand',()=>new THREE.CylinderGeometry(.018,.024,.65,6)),dark);const a=i/6*Math.PI*2;strand.position.set(Math.cos(a)*.32,.22,Math.sin(a)*.32);strand.rotation.z=Math.cos(a)*.5;strand.name='clutch-strand';strand.userData.phase=i*.6;group.add(strand);}
+  const core=new THREE.Mesh(geo('clutch:core',()=>new THREE.SphereGeometry(.14,9,7)),mat('clutch:core-mat',0xf1cad6,{transparent:true,opacity:.8,emissive:0xa95d78,emissiveIntensity:.4}));core.position.y=.44;core.name='clutch-core';group.add(core);
+}
+function buildHeroHusk(group, record) {
+  const knight=record.kind==='knight-husk';const metal=mat(`husk:${record.kind}:metal`,knight?0x7e7b84:0xe1ddd6,{metalness:knight?.25:.04,roughness:.58});const dark=mat(`husk:${record.kind}:dark`,0x342c34,{roughness:.76});
+  const torso=new THREE.Mesh(geo(`husk:${record.kind}:torso`,()=>new THREE.BoxGeometry(.72,.78,.38)),metal);torso.position.y=.48;torso.rotation.z=knight?.18:-.12;group.add(torso);
+  const head=new THREE.Mesh(geo(`husk:${record.kind}:head`,()=>knight?new THREE.SphereGeometry(.24,10,7):new THREE.BoxGeometry(.38,.5,.08)),metal);head.position.set(.1,1.04,.04);head.rotation.z=.22;group.add(head);
+  const silk=new THREE.Mesh(geo('husk:silk',()=>new THREE.TorusGeometry(.36,.035,6,20)),dark);silk.rotation.x=Math.PI/2;silk.position.y=.32;group.add(silk);
+}
+function buildRelicShell(group, record) {
+  const gold=mat('relic-shell:gold',0xd0a84e,{metalness:.34,roughness:.4});const dark=mat('relic-shell:dark',0x4a4138,{roughness:.7});
+  for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const plate=new THREE.Mesh(geo('relic-shell:plate',()=>new THREE.BoxGeometry(.32,.46,.09)),i%3?dark:gold);plate.position.set(Math.cos(a)*.58,.26+(i%2)*.22,Math.sin(a)*.58);plate.rotation.y=-a;plate.rotation.z=(i%3-1)*.18;plate.name='relic-shell-plate';plate.userData.phase=i*.4;group.add(plate);}
+  const crown=new THREE.Mesh(geo('relic-shell:crown',()=>new THREE.TorusGeometry(.3,.055,7,24)),gold);crown.rotation.x=Math.PI/2;crown.position.y=.86;crown.name='relic-shell-crown';group.add(crown);
+}
+function buildSilkGuardBarrier(group, record) {
+  const silk=mat('barrier:silk',0xd7d0df,{transparent:true,opacity:.62,emissive:0x72647d,emissiveIntensity:.22,depthWrite:false});const width=group.userData.baseWidth;
+  for(let i=0;i<12;i++){const a=-.9+i*(1.8/11);const thread=new THREE.Mesh(geo('barrier:silk-thread',()=>new THREE.BoxGeometry(.025,1.55,.025)),silk);thread.position.set(Math.sin(a)*width*.46,.78,Math.cos(a)*.18);thread.rotation.z=-a*.6;thread.name='silk-guard-thread';thread.userData.phase=i*.35;group.add(thread);}
+  const rim=new THREE.Mesh(geo('barrier:silk-rim',()=>new THREE.TorusGeometry(width*.52,.045,7,36,Math.PI)),silk);rim.rotation.x=Math.PI/2;rim.rotation.z=Math.PI;rim.position.y=.16;group.add(rim);
+  const hp=new THREE.Mesh(geo('barrier:silk-hp',()=>new THREE.BoxGeometry(1,.055,.04)),silk);hp.position.y=1.75;hp.name='barrier-hp';group.add(hp);
+}
+
 function buildGenericDeployable(group) {
   const mesh = new THREE.Mesh(geo('deploy:generic', () => new THREE.BoxGeometry(0.6, 0.5, 0.6)), mat('deploy:generic-mat', 0x8c744e));
   mesh.position.y = 0.25;
@@ -224,6 +253,13 @@ function buildGenericDeployable(group) {
 function buildProjectile(record) {
   const group = new THREE.Group();
   group.name = `hero-world-projectile:${record.id}`;
+  if (record.kind === 'relic-projectile') {
+    const metal = mat('projectile:relic-metal', 0xc9a34f, { metalness: 0.35, roughness: 0.38, emissive: 0x5a3d12, emissiveIntensity: 0.15 });
+    const shard = new THREE.Mesh(geo('projectile:relic-shard', () => new THREE.DodecahedronGeometry(0.16, 0)), metal);
+    shard.scale.set(0.7, 1.6, 0.7); group.add(shard);
+    const ring = new THREE.Mesh(geo('projectile:relic-ring', () => new THREE.TorusGeometry(0.2, 0.025, 6, 18)), metal); ring.rotation.x = Math.PI / 2; group.add(ring);
+    return group;
+  }
   const shell = new THREE.Mesh(geo('projectile:shell', () => new THREE.CapsuleGeometry(0.08, 0.25, 4, 8)), mat('projectile:shell-mat', 0x4c4b46, { metalness: 0.25, roughness: 0.45 }));
   shell.rotation.x = Math.PI / 2;
   group.add(shell);
@@ -271,6 +307,13 @@ function buildField(record) {
     const inner = new THREE.Mesh(geo('field:broth-inner', () => new THREE.TorusGeometry(radius * 0.55, 0.035, 7, 40)), material);
     inner.rotation.x = Math.PI / 2;
     group.add(inner);
+  } else if (record.kind === 'purifying-bubble') {
+    for (let i=0;i<10;i+=1) { const a=i/10*Math.PI*2; const bubble=new THREE.Mesh(geo('field:purity-bubble',()=>new THREE.SphereGeometry(0.11+(i%3)*0.03,8,6)),material);bubble.position.set(Math.cos(a)*radius*.62,.12+(i%2)*.12,Math.sin(a)*radius*.62);bubble.name='purity-bubble';bubble.userData.phase=i*.5;group.add(bubble); }
+  } else if (record.kind === 'brood-domain') {
+    for (let i=0;i<5;i+=1) { const a=i/5*Math.PI*2; const claw=new THREE.Mesh(geo('field:brood-claw',()=>new THREE.ConeGeometry(.14,radius*.42,6)),material);claw.position.set(Math.cos(a)*radius*.62,.2,Math.sin(a)*radius*.62);claw.rotation.z=Math.PI/2;claw.rotation.y=-a;claw.name='brood-claw';claw.userData.phase=i*.7;group.add(claw); }
+  } else if (record.kind === 'rooted-orchard') {
+    for (let i=0;i<16;i+=1) { const a=i/16*Math.PI*2; const root=new THREE.Mesh(geo('field:orchard-root',()=>new THREE.ConeGeometry(.055,radius*(.22+(i%4)*.04),6)),material);root.position.set(Math.cos(a)*radius*.48,.06,Math.sin(a)*radius*.48);root.rotation.z=Math.PI/2;root.rotation.y=-a;root.name='orchard-root';root.userData.phase=i*.35;group.add(root); }
+    for (let i=0;i<8;i+=1) { const a=i/8*Math.PI*2; const bloom=new THREE.Mesh(geo('field:orchard-bloom',()=>new THREE.SphereGeometry(.13,8,6)),material);bloom.position.set(Math.cos(a)*radius*.7,.15,Math.sin(a)*radius*.7);bloom.name='orchard-bloom';bloom.userData.phase=i*.6;group.add(bloom); }
   }
   return group;
 }
@@ -327,6 +370,7 @@ function buildBarrier(record) {
   group.name = `hero-world-barrier:${record.id}`;
   group.userData.heroWorldActor = true;
   group.userData.baseWidth = Math.max(2.4, record.width ?? 2.8);
+  if (record.kind === 'silk-guard') { buildSilkGuardBarrier(group, record); return group; }
   const iron = mat('barrier:iron', 0x344853, { metalness: 0.18, roughness: 0.4, transparent: true, opacity: 0.72, emissive: 0x25495f, emissiveIntensity: 0.48 });
   const soul = mat('barrier:soul', 0x86c7e6, { transparent: true, opacity: 0.52, depthWrite: false, emissive: 0x5faed1, emissiveIntensity: 0.76 });
   const width = group.userData.baseWidth;
@@ -404,6 +448,9 @@ function animateDeployable(mesh, record, time) {
     const ring = mesh.getObjectByName('water-ring');
     if (ring) ring.scale.setScalar(0.92 + Math.sin(time * 3) * 0.08);
   }
+  if (record.kind === 'royal-clutch') { const sac=mesh.getObjectByName('clutch-sac'); if(sac)sac.scale.set(1+Math.sin(time*2.2)*.035,.78+Math.cos(time*2.4)*.04,1.12+Math.sin(time*1.8)*.04); const core=mesh.getObjectByName('clutch-core');if(core)core.scale.setScalar(.9+Math.sin(time*4)*.12); }
+  if (record.kind === 'relic-shell') mesh.rotation.y = Math.sin(time*.7)*.04;
+  if (record.kind === 'knight-husk' || record.kind === 'prince-husk') mesh.rotation.z = Math.sin(time*1.2)*.015;
   if (record.kind.includes('cauldron')) {
     const liquid = mesh.getObjectByName('liquid');
     if (liquid) liquid.scale.set(1 + Math.sin(time * 2.4) * 0.03, 1, 1 + Math.cos(time * 2.2) * 0.03);
@@ -421,8 +468,12 @@ function animateField(mesh, record, time) {
   const ring = mesh.getObjectByName('field-ring');
   if (ring) ring.material.opacity = 0.34 + Math.sin(time * 3) * 0.12;
   for (const child of mesh.children) {
-    if (!child.name?.startsWith('drain-')) continue;
-    child.rotation.z = (child.userData.baseRotationZ ?? 0) + time * 0.08 * (1 + Number(child.name.at(-1)));
+    const phase=child.userData?.phase??0;
+    if (child.name?.startsWith('drain-')) child.rotation.z = (child.userData.baseRotationZ ?? 0) + time * 0.08 * (1 + Number(child.name.at(-1)));
+    if (child.name === 'purity-bubble') child.position.y += Math.sin(time*2.4+phase)*.06;
+    if (child.name === 'brood-claw') child.scale.y = .82+Math.sin(time*2.2+phase)*.15;
+    if (child.name === 'orchard-root') child.scale.y = .82+Math.sin(time*1.4+phase)*.12;
+    if (child.name === 'orchard-bloom') child.scale.setScalar(.9+Math.sin(time*2.6+phase)*.1);
   }
 }
 
@@ -466,6 +517,9 @@ function fieldColor(kind) {
   if (kind === 'emergency-drain' || kind === 'pressure-seal') return 0x75d4e5;
   if (kind === 'war-feast') return 0xd84f36;
   if (kind === 'healing-cauldron') return 0xe39a56;
+  if (kind === 'purifying-bubble') return 0x9debdc;
+  if (kind === 'brood-domain') return 0xd68da6;
+  if (kind === 'rooted-orchard') return 0x8ebf70;
   return 0xe0c06b;
 }
 

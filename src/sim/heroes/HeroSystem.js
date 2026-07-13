@@ -15,7 +15,13 @@ const HERO_KNOCKBACK_RESISTANCE = Object.freeze({
   'hero.murga': 0.24,
   'hero.aldren': 0.42,
   'hero.malcor': 0.18,
-  'hero.arvek': 0.58
+  'hero.arvek': 0.58,
+  'hero.pev': 0.04,
+  'hero.eighth-cocoon': 0.46,
+  'hero.empty-queen-hand': 0.62,
+  'hero.failed-successor': 0.2,
+  'hero.sleeping-gardener': 0.72,
+  'hero.goldcrown-back': 0.68
 });
 
 const HERO_MASS_MULTIPLIER = Object.freeze({
@@ -30,7 +36,13 @@ const HERO_MASS_MULTIPLIER = Object.freeze({
   'hero.murga': 1.34,
   'hero.aldren': 1.42,
   'hero.malcor': 1.06,
-  'hero.arvek': 1.92
+  'hero.arvek': 1.92,
+  'hero.pev': 0.55,
+  'hero.eighth-cocoon': 1.72,
+  'hero.empty-queen-hand': 2.25,
+  'hero.failed-successor': 1.08,
+  'hero.sleeping-gardener': 2.5,
+  'hero.goldcrown-back': 2.35
 });
 
 export class HeroSystem {
@@ -217,6 +229,12 @@ export function ensureHeroRuntime(agent, definition = getHeroDefinition(agent?.h
   if (definition.id === 'hero.aldren') agent.royalOrders ??= 1;
   if (definition.id === 'hero.malcor') agent.appetite ??= 0;
   if (definition.id === 'hero.arvek') agent.gateGuilt ??= 1;
+  if (definition.id === 'hero.pev') { agent.heroAdaptation ??= 'clear'; agent.adaptationHistory ??= []; agent.mimicTrinkets ??= []; }
+  if (definition.id === 'hero.eighth-cocoon') { agent.knightShellIntact ??= true; agent.heroVariant ??= 'knight-shell'; }
+  if (definition.id === 'hero.empty-queen-hand') { agent.carrierCount ??= 5; agent.clutchIds ??= []; }
+  if (definition.id === 'hero.failed-successor') { agent.observedArchetypes ??= []; agent.copiedSkillIds ??= []; agent.heroRoyalAccess ??= false; }
+  if (definition.id === 'hero.sleeping-gardener') { agent.heroSeason ??= 'spring'; agent.gardenPatchIds ??= []; agent.gardenAwake ??= false; }
+  if (definition.id === 'hero.goldcrown-back') { agent.hoardArmor ??= 0; agent.swallowedTrophies ??= []; agent.moltCount ??= 0; }
   agent.maxHp = Math.max(agent.maxHp ?? 0, definition.baseStats.hp);
   agent.hp = agent.alive === false ? 0 : Math.max(1, Math.min(agent.hp ?? definition.baseStats.hp, agent.maxHp));
   agent.baseAttack = definition.baseStats.attack;

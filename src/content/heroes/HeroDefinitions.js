@@ -1049,6 +1049,500 @@ export const HERO_DEFINITIONS = Object.freeze({
   }),
 
 
+  'hero.pev': hero({
+    id: 'hero.pev',
+    role: 'hero-pev',
+    displayName: 'Pev, the Clear Drop',
+    localizedName: '맑은 방울 페브',
+    factionId: 'slime-bloom',
+    species: 'slime',
+    size: 'small',
+    initialRoomId: 'C11',
+    encounterRoomId: 'C11',
+    baseStats: { hp: 62, attack: 6, courage: 18, armor: 1, speed: 1.24 },
+    relationship: { initial: 18 },
+    runtimeDefaults: { heroAdaptation: 'clear', adaptationHistory: [], mimicTrinkets: [] },
+    visual: {
+      bodyPlan: 'hero-clear-drop',
+      animationProfile: 'pev-clear-drop',
+      scale: 0.78,
+      indicatorRadius: 0.48,
+      markerHeight: 1.55,
+      damageThresholds: [0.62, 0.28],
+      palette: {
+        skin: 0xa8ecdf,
+        cloth: 0x79c9c0,
+        clothInner: 0xe4fff8,
+        leather: 0x6e8f85,
+        metal: 0x9aa8a4,
+        brass: 0xdac86d,
+        accent: 0xf4fff9,
+        dark: 0x2b5752
+      },
+      silhouette: ['small-perfect-droplet', 'floating-mimic-trinkets', 'elastic-crownless-crest'],
+      dedicatedParts: ['volume-preserving-clear-shell', 'three-orbiting-mimic-trinkets', 'purity-core', 'adaptive-metal-plates', 'fungal-caplet', 'spectral-tail', 'bubble-guard-film', 'damage-clouding-stage']
+    },
+    passive: {
+      id: 'pev-learning-body',
+      name: 'A Body That Learns',
+      description: 'Pev records the last environment or material it safely absorbs and changes its body, resistances and silhouette.'
+    },
+    leadership: {
+      radius: 'same-room',
+      slimeRecoveryBonus: 0.18,
+      hazardAbsorptionBonus: 0.35,
+      friendlySlimeSpeedMultiplier: 1.08
+    },
+    skills: [
+      skill('pev-purifying-bubble', 'Purifying Bubble', {
+        cooldown: 12,
+        windup: 1.35,
+        recovery: 0.7,
+        targetPolicy: 'room-center',
+        telegraph: { shape: 'rising-clear-bubble', radius: 3.8, colorRole: 'slime-clear', cue: 'single-glass-drop' },
+        effects: [
+          { type: 'pev-purifying-bubble', duration: 7, radius: 3.8, heal: 8, clearKinds: ['poison', 'spore', 'smoke', 'corrosion', 'death-mist'] }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('pev-borrowed-shape', 'Borrowed Shape', {
+        cooldown: 10,
+        windup: 1.15,
+        recovery: 0.55,
+        targetPolicy: 'nearest-ally-or-threat',
+        telegraph: { shape: 'echo-silhouette', radius: 2.4, colorRole: 'slime-clear', cue: 'soft-copy-chime' },
+        effects: [
+          { type: 'pev-borrow-shape', duration: 10, maximumArmor: 3, maximumAttack: 3, maximumSpeedMultiplier: 1.18 }
+        ],
+        ai: { priority: 5 }
+      }),
+      skill('pev-selective-assimilation', 'Selective Assimilation', {
+        cooldown: 36,
+        windup: 2.25,
+        recovery: 0.9,
+        interruptDamageRatio: 0.28,
+        targetPolicy: 'self-or-digestible',
+        telegraph: { shape: 'four-petal-evolution', radius: 3.2, colorRole: 'slime-prismatic', cue: 'body-finds-a-form' },
+        effects: [
+          { type: 'pev-selective-assimilation', adaptations: ['clear', 'metal', 'fungal', 'spectral'], heal: 18, duration: 24 }
+        ],
+        ai: { priority: 10, healthBelow: 0.52 }
+      })
+    ]
+  }),
+
+  'hero.eighth-cocoon': hero({
+    id: 'hero.eighth-cocoon',
+    role: 'hero-eighth-cocoon',
+    displayName: 'The Eighth Cocoon',
+    localizedName: '여덟 번째 고치',
+    factionId: 'red-wing-brood',
+    species: 'spider',
+    size: 'large',
+    initialRoomId: 'G34',
+    encounterRoomId: 'G34',
+    baseStats: { hp: 132, attack: 12, courage: 24, armor: 6, speed: 0.96 },
+    relationship: { initial: -15 },
+    runtimeDefaults: { heroVariant: 'knight-shell', knightShellIntact: true, duelEtiquette: true },
+    visual: {
+      bodyPlan: 'hero-spider-knight',
+      animationProfile: 'eighth-cocoon-knight',
+      scale: 1.08,
+      indicatorRadius: 0.84,
+      markerHeight: 2.7,
+      damageThresholds: [0.68, 0.32],
+      palette: {
+        skin: 0x2f2631,
+        cloth: 0x433541,
+        clothInner: 0x7f2633,
+        leather: 0x352931,
+        metal: 0x737981,
+        brass: 0xa58a55,
+        accent: 0xcfd7de,
+        dark: 0x120f15
+      },
+      silhouette: ['low-wide-eight-legged-body', 'upright-empty-knight-cuirass', 'silk-suspended-lance-and-shield'],
+      dedicatedParts: ['eight-articulated-legs', 'empty-knight-cuirass', 'hollow-helm-with-spider-eyes', 'silk-lance-rig', 'thread-controlled-kite-shield', 'abdomen-cocoon-ridges', 'breakaway-armor-shell', 'feral-fang-stage']
+    },
+    passive: {
+      id: 'eighth-cocoon-borrowed-chivalry',
+      name: 'Borrowed Chivalry',
+      description: 'While its knight shell remains intact, frontal attacks are reduced and it will hold a declared lane rather than pursue fleeing prey.'
+    },
+    leadership: {
+      radius: 'same-room',
+      spiderArmorBonus: 1,
+      webRouteSpeedMultiplier: 1.18,
+      hostCarryCourageBonus: 2
+    },
+    skills: [
+      skill('cocoon-silk-lance', 'Silk Lance', {
+        cooldown: 9,
+        windup: 1.2,
+        recovery: 0.72,
+        targetPolicy: 'line-hostile',
+        telegraph: { shape: 'needle-line', length: 6.5, width: 0.7, radius: 6.5, colorRole: 'spider-silver', cue: 'silk-drawn-tight' },
+        effects: [
+          { type: 'cocoon-silk-lance', damage: 15, length: 6.5, width: 0.75, pinDuration: 2.4 }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('cocoon-thread-guard', 'Thread-Woven Guard', {
+        cooldown: 14,
+        windup: 1.55,
+        recovery: 0.8,
+        targetPolicy: 'forward-lane',
+        telegraph: { shape: 'silk-kite-shield', radius: 3.6, width: 2.5, colorRole: 'spider-silver', cue: 'shield-pulled-by-thread' },
+        effects: [
+          { type: 'cocoon-thread-guard', duration: 9, hp: 42, projectileSlow: 0.35, frontalReduction: 0.35 }
+        ],
+        ai: { priority: 8, minimumHostiles: 2 }
+      }),
+      skill('cocoon-cast-off-shell', 'Cast Off the Knight', {
+        cooldown: 44,
+        windup: 2.35,
+        recovery: 1.0,
+        interruptDamageRatio: 0.3,
+        targetPolicy: 'self',
+        telegraph: { shape: 'shattering-cuirass', radius: 4.2, colorRole: 'spider-red', cue: 'silk-cables-snap' },
+        effects: [
+          { type: 'cocoon-cast-off-shell', duration: 16, attackBonus: 5, speedMultiplier: 1.28, armorLoss: 4, poisonDamage: 3, huskHp: 34 }
+        ],
+        ai: { priority: 10, healthBelow: 0.45 }
+      })
+    ]
+  }),
+
+  'hero.empty-queen-hand': hero({
+    id: 'hero.empty-queen-hand',
+    role: 'hero-empty-queen-hand',
+    displayName: "The Empty Queen's Hand",
+    localizedName: '빈 여왕의 손',
+    factionId: 'red-wing-brood',
+    species: 'spider',
+    size: 'huge',
+    initialRoomId: 'G35',
+    encounterRoomId: 'G35',
+    baseStats: { hp: 178, attack: 10, courage: 28, armor: 4, speed: 0.68 },
+    relationship: { initial: -30 },
+    runtimeDefaults: { carrierCount: 5, broodAuthority: 1, clutchIds: [] },
+    visual: {
+      bodyPlan: 'hero-brood-procession',
+      animationProfile: 'empty-queen-hand',
+      scale: 1.2,
+      indicatorRadius: 1.0,
+      markerHeight: 3.05,
+      damageThresholds: [0.72, 0.36],
+      palette: {
+        skin: 0x4a343f,
+        cloth: 0x5a3d47,
+        clothInner: 0xb46a78,
+        leather: 0x34262e,
+        metal: 0x73636d,
+        brass: 0xa48762,
+        accent: 0xf0c8d2,
+        dark: 0x171116
+      },
+      silhouette: ['great-translucent-egg-sac', 'five-independent-carrier-spiders', 'severed-queen-forelimbs-as-crown'],
+      dedicatedParts: ['five-carrier-rigs', 'translucent-royal-egg-sac', 'visible-neural-yolk', 'queen-forelimb-crown', 'three-egg-sockets', 'dragging-silk-trail', 'sacrificial-carrier-stages', 'brood-pulse-core']
+    },
+    passive: {
+      id: 'empty-queen-distributed-mind',
+      name: 'Distributed Mind',
+      description: 'The Hand is carried by five bodies. Losing a carrier changes its gait and speed but prevents a single killing blow from ending the brood-command organism.'
+    },
+    leadership: {
+      radius: 'same-room-and-adjacent',
+      spiderSpawnCapacityBonus: 2,
+      broodRetreatSpeedMultiplier: 1.18,
+      clutchIncubationMultiplier: 1.25
+    },
+    skills: [
+      skill('queen-lay-royal-clutch', 'Lay Royal Clutch', {
+        cooldown: 18,
+        windup: 2.0,
+        recovery: 0.95,
+        targetPolicy: 'room-site',
+        costs: { hosts: 1, silk: 2 },
+        telegraph: { shape: 'royal-egg-sigil', radius: 3.2, colorRole: 'spider-rose', cue: 'egg-sac-descends' },
+        effects: [
+          { type: 'queen-lay-royal-clutch', hp: 52, incubation: 12, hatchCount: 3, maximum: 2 }
+        ],
+        ai: { priority: 8, minimumHostiles: 1 }
+      }),
+      skill('queen-reassign-brood', 'Reassign the Brood', {
+        cooldown: 13,
+        windup: 1.5,
+        recovery: 0.7,
+        targetPolicy: 'spider-network',
+        telegraph: { shape: 'radiating-silk-orders', radius: 7, colorRole: 'spider-rose', cue: 'many-feet-answer' },
+        effects: [
+          { type: 'queen-reassign-brood', radiusRooms: 1, moveToOwnerRoom: true, retargetHomeSite: true }
+        ],
+        ai: { priority: 6 }
+      }),
+      skill('queen-without-body', 'Queen Without a Body', {
+        cooldown: 46,
+        windup: 2.8,
+        recovery: 1.1,
+        interruptDamageRatio: 0.31,
+        targetPolicy: 'room-center',
+        costs: { blood: 3, hosts: 2 },
+        telegraph: { shape: 'fivefold-brood-crown', radius: 6, colorRole: 'spider-rose', cue: 'carriers-knit-a-throne' },
+        effects: [
+          { type: 'queen-without-body', duration: 15, hatchInterval: 3.5, carrierShields: 5, attackAura: 2 }
+        ],
+        ai: { priority: 10, minimumHostiles: 3, healthBelow: 0.7 }
+      })
+    ]
+  }),
+
+  'hero.failed-successor': hero({
+    id: 'hero.failed-successor',
+    role: 'hero-failed-successor',
+    displayName: 'The Failed Successor',
+    localizedName: '실패한 계승자',
+    factionId: 'pale-brood',
+    species: 'parasite',
+    size: 'medium',
+    initialRoomId: 'K54',
+    encounterRoomId: 'K54',
+    baseStats: { hp: 112, attack: 10, courage: 23, armor: 3, speed: 1.02 },
+    relationship: { initial: -8 },
+    runtimeDefaults: { heroVariant: 'prince-shell', observedArchetypes: [], royalAccess: false, copiedSkillIds: [] },
+    visual: {
+      bodyPlan: 'hero-false-prince',
+      animationProfile: 'failed-successor',
+      scale: 1.02,
+      indicatorRadius: 0.66,
+      markerHeight: 2.45,
+      damageThresholds: [0.66, 0.3],
+      palette: {
+        skin: 0xe6d9ca,
+        cloth: 0xe9e5df,
+        clothInner: 0x9eabc1,
+        leather: 0x6c6871,
+        metal: 0xabb3bd,
+        brass: 0xc9b377,
+        accent: 0xdfefff,
+        dark: 0x342f3d
+      },
+      silhouette: ['too-perfect-princely-symmetry', 'blank-porcelain-face', 'shadow-that-moves-late'],
+      dedicatedParts: ['porcelain-expression-mask', 'royal-white-longcoat', 'empty-heraldic-chest', 'delayed-shadow-rig', 'hidden-petal-parasite-face', 'concealed-extra-arm-array', 'royal-seal-imitation', 'cracked-shell-stage']
+    },
+    passive: {
+      id: 'successor-observational-memory',
+      name: 'Observational Memory',
+      description: 'The Successor records the archetype of nearby hero skills and can replay a simplified but functional imitation.'
+    },
+    leadership: {
+      radius: 'same-room',
+      parasiteDisguiseBonus: 1,
+      infectionSpeedMultiplier: 1.16,
+      royalFacilityAccess: true
+    },
+    skills: [
+      skill('successor-borrowed-gesture', 'Borrowed Gesture', {
+        cooldown: 11,
+        windup: 1.4,
+        recovery: 0.7,
+        targetPolicy: 'observed-hero-skill',
+        telegraph: { shape: 'mirrored-gesture', radius: 4.2, colorRole: 'parasite-white', cue: 'motion-repeated-one-beat-late' },
+        effects: [
+          { type: 'successor-borrowed-gesture', fallbackArchetype: 'strike', powerMultiplier: 0.72 }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('successor-false-investiture', 'False Investiture', {
+        cooldown: 17,
+        windup: 1.9,
+        recovery: 0.8,
+        targetPolicy: 'royal-room-or-route',
+        telegraph: { shape: 'counterfeit-royal-seal', radius: 4.8, colorRole: 'parasite-white', cue: 'seal-pressed-without-ink' },
+        effects: [
+          { type: 'successor-false-investiture', duration: 14, suppressRoyalBarrier: true, convertRoyalProps: true }
+        ],
+        ai: { priority: 8 }
+      }),
+      skill('successor-shed-the-prince', 'Shed the Prince', {
+        cooldown: 44,
+        windup: 2.55,
+        recovery: 1.0,
+        interruptDamageRatio: 0.3,
+        targetPolicy: 'self',
+        telegraph: { shape: 'porcelain-mask-fracture', radius: 4, colorRole: 'parasite-pale', cue: 'perfect-posture-breaks' },
+        effects: [
+          { type: 'successor-shed-the-prince', duration: 18, attackBonus: 4, speedMultiplier: 1.2, extraArms: 4, replayCount: 2, huskHp: 38 }
+        ],
+        ai: { priority: 10, healthBelow: 0.5 }
+      })
+    ]
+  }),
+
+  'hero.sleeping-gardener': hero({
+    id: 'hero.sleeping-gardener',
+    role: 'hero-sleeping-gardener',
+    displayName: 'The Sleeping Gardener',
+    localizedName: '잠든 정원사',
+    factionId: 'bluecap-colony',
+    species: 'myconid',
+    size: 'huge',
+    initialRoomId: 'F29',
+    encounterRoomId: 'F29',
+    baseStats: { hp: 196, attack: 12, courage: 30, armor: 6, speed: 0.56 },
+    relationship: { initial: 8 },
+    runtimeDefaults: { heroSeason: 'spring', gardenAwake: false, gardenPatchIds: [] },
+    visual: {
+      bodyPlan: 'hero-walking-garden',
+      animationProfile: 'sleeping-gardener',
+      scale: 1.22,
+      indicatorRadius: 1.05,
+      markerHeight: 3.35,
+      damageThresholds: [0.7, 0.34],
+      palette: {
+        skin: 0x756b55,
+        cloth: 0x59664b,
+        clothInner: 0x9ea56f,
+        leather: 0x574735,
+        metal: 0x777b70,
+        brass: 0xa89560,
+        accent: 0xc6d69a,
+        dark: 0x302c24
+      },
+      silhouette: ['ancient-tree-trunk-body', 'small-living-garden-on-back', 'four-root-legs-and-pruning-hook-arms'],
+      dedicatedParts: ['four-root-leg-rig', 'hollow-tree-trunk-torso', 'back-garden-soil-bed', 'seasonal-flower-array', 'dead-bird-nest', 'royal-garden-placard', 'pruning-hook-hands', 'withered-rage-stage']
+    },
+    passive: {
+      id: 'gardener-seasonal-body',
+      name: 'The Season Turns Inside Him',
+      description: 'The Gardener cycles through spring, summer, autumn and winter. Each season changes the room ecology and his tactical role.'
+    },
+    leadership: {
+      radius: 'same-room-and-adjacent',
+      fungalGrowthMultiplier: 1.18,
+      biomassRecoveryBonus: 0.3,
+      hostileBlightResistance: 0.35
+    },
+    skills: [
+      skill('gardener-rooted-orchard', 'Rooted Orchard', {
+        cooldown: 15,
+        windup: 2.0,
+        recovery: 0.9,
+        targetPolicy: 'room-center',
+        telegraph: { shape: 'rooted-orchard', radius: 5.2, colorRole: 'garden-green', cue: 'roots-find-old-soil' },
+        effects: [
+          { type: 'gardener-rooted-orchard', duration: 14, radius: 5.2, healPerSecond: 1.1, hostileRoot: 1.2 }
+        ],
+        ai: { priority: 8, minimumHostiles: 1 }
+      }),
+      skill('gardener-prune-the-blight', 'Prune the Blight', {
+        cooldown: 12,
+        windup: 1.45,
+        recovery: 0.75,
+        targetPolicy: 'hostile-field-or-growth',
+        telegraph: { shape: 'crossing-pruning-arcs', radius: 4.5, colorRole: 'garden-gold', cue: 'old-hooks-cut-cleanly' },
+        effects: [
+          { type: 'gardener-prune-the-blight', damage: 10, removeFields: 2, biomassGain: 3, cleanseRoom: true }
+        ],
+        ai: { priority: 7 }
+      }),
+      skill('gardener-turn-of-seasons', 'Turn of Seasons', {
+        cooldown: 30,
+        windup: 2.4,
+        recovery: 1.0,
+        targetPolicy: 'self-and-garden',
+        telegraph: { shape: 'four-season-wheel', radius: 6, colorRole: 'garden-prismatic', cue: 'leaves-pass-through-a-year' },
+        effects: [
+          { type: 'gardener-turn-of-seasons', order: ['spring', 'summer', 'autumn', 'winter'], duration: 16 }
+        ],
+        ai: { priority: 9, minimumHostiles: 2 }
+      })
+    ]
+  }),
+
+  'hero.goldcrown-back': hero({
+    id: 'hero.goldcrown-back',
+    role: 'hero-goldcrown-back',
+    displayName: 'Goldcrown-Back',
+    localizedName: '금관등',
+    factionId: 'carrion-brood',
+    species: 'carrion',
+    size: 'huge',
+    initialRoomId: 'L58',
+    encounterRoomId: 'L58',
+    baseStats: { hp: 188, attack: 15, courage: 26, armor: 7, speed: 0.72 },
+    relationship: { initial: -45 },
+    runtimeDefaults: { hoardArmor: 0, swallowedTrophies: [], moltCount: 0 },
+    visual: {
+      bodyPlan: 'hero-relic-carrion',
+      animationProfile: 'goldcrown-back',
+      scale: 1.2,
+      indicatorRadius: 1.02,
+      markerHeight: 2.85,
+      damageThresholds: [0.72, 0.34],
+      palette: {
+        skin: 0x51463d,
+        cloth: 0x6d5c4d,
+        clothInner: 0x9b8864,
+        leather: 0x3f342d,
+        metal: 0x8b816b,
+        brass: 0xd0a84e,
+        accent: 0xf2d47c,
+        dark: 0x211c19
+      },
+      silhouette: ['long-low-many-legged-body', 'towering-jagged-relic-carapace', 'clean-crown-tilted-over-bone-rake-head'],
+      dedicatedParts: ['ten-leg-segmented-rig', 'bone-rake-mandibles', 'layered-relic-carapace', 'clean-royal-crown', 'embedded-goblets-and-helms', 'underside-carrion-glow', 'breakaway-trophy-plates', 'exposed-ravenous-molt-stage']
+    },
+    passive: {
+      id: 'goldcrown-hoard-carapace',
+      name: 'Hoard Carapace',
+      description: 'Relics and corpses swallowed by Goldcrown-Back become visible armor plates and functional defensive mass.'
+    },
+    leadership: {
+      radius: 'same-room',
+      carrionCorpseSenseBonus: 1,
+      carrionArmorBonus: 1,
+      scavengingSpeedMultiplier: 1.18
+    },
+    skills: [
+      skill('goldcrown-bone-rake-charge', 'Bone-Rake Charge', {
+        cooldown: 11,
+        windup: 1.35,
+        recovery: 0.85,
+        targetPolicy: 'line-hostile',
+        telegraph: { shape: 'low-raking-charge', length: 6, width: 1.7, radius: 6, colorRole: 'carrion-gold', cue: 'relics-rattle-then-silence' },
+        effects: [
+          { type: 'goldcrown-bone-rake-charge', damage: 17, length: 6, width: 1.7, impulse: 6.5, armorSteal: 1 }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('goldcrown-trophy-volley', 'Trophy Volley', {
+        cooldown: 14,
+        windup: 1.8,
+        recovery: 0.9,
+        targetPolicy: 'hostiles-in-room',
+        telegraph: { shape: 'relic-shard-fan', radius: 5.5, colorRole: 'carrion-gold', cue: 'carapace-opens-like-a-cabinet' },
+        effects: [
+          { type: 'goldcrown-trophy-volley', maximum: 5, damage: 8, armorCostPerShot: 1 }
+        ],
+        ai: { priority: 6, minimumHostiles: 2 }
+      }),
+      skill('goldcrown-royal-molt', 'Royal Molt', {
+        cooldown: 48,
+        windup: 2.7,
+        recovery: 1.1,
+        interruptDamageRatio: 0.32,
+        targetPolicy: 'self',
+        telegraph: { shape: 'splitting-reliquary-shell', radius: 5.2, colorRole: 'carrion-gold', cue: 'a-century-of-trophies-falls' },
+        effects: [
+          { type: 'goldcrown-royal-molt', duration: 17, shellHp: 70, speedMultiplier: 1.35, attackBonus: 5, lootRelease: 4 }
+        ],
+        ai: { priority: 10, healthBelow: 0.48 }
+      })
+    ]
+  }),
+
+
 });
 
 export const HERO_BY_ROLE = Object.freeze(Object.fromEntries(Object.values(HERO_DEFINITIONS).map(definition => [definition.role, definition])));

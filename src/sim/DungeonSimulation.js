@@ -17,6 +17,11 @@ import { HeroEnvironmentSystem } from './heroes/HeroEnvironmentSystem.js';
 import { HeroFormationSystem } from './heroes/HeroFormationSystem.js';
 import { HeroNecromancySystem } from './heroes/HeroNecromancySystem.js';
 import { HeroBarrierSystem } from './heroes/HeroBarrierSystem.js';
+import { HeroAdaptationSystem } from './heroes/HeroAdaptationSystem.js';
+import { HeroBroodSystem } from './heroes/HeroBroodSystem.js';
+import { HeroMimicrySystem } from './heroes/HeroMimicrySystem.js';
+import { HeroGardenSystem } from './heroes/HeroGardenSystem.js';
+import { HeroHoardSystem } from './heroes/HeroHoardSystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -64,6 +69,11 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroFormationSystem = new HeroFormationSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroNecromancySystem = new HeroNecromancySystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroBarrierSystem = new HeroBarrierSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroAdaptationSystem = new HeroAdaptationSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroBroodSystem = new HeroBroodSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroMimicrySystem = new HeroMimicrySystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroGardenSystem = new HeroGardenSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroHoardSystem = new HeroHoardSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroSystem.initialize(this);
     this.heroSkillSystem.initialize(this);
     this.heroFormSystem.initialize(this);
@@ -79,6 +89,11 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroFormationSystem.update(dt, this);
     this.heroNecromancySystem.update(dt, this);
     this.heroBarrierSystem.update(dt, this);
+    this.heroAdaptationSystem.update(dt, this);
+    this.heroBroodSystem.update(dt, this);
+    this.heroMimicrySystem.update(dt, this);
+    this.heroGardenSystem.update(dt, this);
+    this.heroHoardSystem.update(dt, this);
     this.heroLeadershipSystem.update(dt, this);
     this.eliteEcologySystem.update(dt, this);
     this.eliteAbilitySystem.update(dt, this);
@@ -134,6 +149,9 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     let adjusted = this.heroSkillSystem?.modifyIncomingDamage?.(source, target, amount, metadata) ?? amount;
     adjusted = this.heroFormationSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
     adjusted = this.heroBarrierSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
+    adjusted = this.heroAdaptationSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
+    adjusted = this.heroBroodSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
+    adjusted = this.heroHoardSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
     if (metadata.fire && Number.isFinite(target?.heroFireDamageMultiplier)) adjusted *= target.heroFireDamageMultiplier;
     const before = Number(target?.hp ?? 0);
     const result = super.applyCombatDamage(source, target, adjusted, metadata);
@@ -146,6 +164,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     if (this.heroSkillSystem?.isMovementBlocked(agent)) return false;
     if (this.heroNecromancySystem?.isMovementBlocked(agent)) return false;
     if (this.heroBarrierSystem?.isMovementBlocked(agent)) return false;
+    if (this.heroBroodSystem?.isMovementBlocked(agent)) return false;
+    if (this.heroGardenSystem?.isMovementBlocked(agent)) return false;
     if (this.heroSkillSystem?.isRouteBlocked(agent.roomId, toRoomId, agent)) return false;
     if (this.heroBarrierSystem?.isRouteBlocked(agent.roomId, toRoomId, agent)) return false;
     return super.beginTravel(agent, toRoomId, options);
@@ -166,6 +186,7 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroFormationSystem?.onAgentDeath?.(target, this);
     this.heroNecromancySystem?.onAgentDeath?.(target, this);
     this.heroBarrierSystem?.onAgentDeath?.(target, this);
+    this.heroBroodSystem?.onAgentDeath?.(target, this);
     this.heroFormSystem.onAgentDeath(target, this);
     this.heroSystem.onAgentDeath(target, this);
     this.eliteEcologySystem.onAgentDeath(target, this);
@@ -222,7 +243,12 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       heroEnvironment: this.heroEnvironmentSystem.snapshot(),
       heroFormations: this.heroFormationSystem.snapshot(),
       heroNecromancy: this.heroNecromancySystem.snapshot(),
-      heroBarriers: this.heroBarrierSystem.snapshot()
+      heroBarriers: this.heroBarrierSystem.snapshot(),
+      heroAdaptation: this.heroAdaptationSystem.snapshot(),
+      heroBrood: this.heroBroodSystem.snapshot(),
+      heroMimicry: this.heroMimicrySystem.snapshot(),
+      heroGarden: this.heroGardenSystem.snapshot(),
+      heroHoard: this.heroHoardSystem.snapshot()
     };
   }
 
@@ -246,7 +272,12 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...this.heroEnvironmentSystem.metrics(),
       ...this.heroFormationSystem.metrics(),
       ...this.heroNecromancySystem.metrics(),
-      ...this.heroBarrierSystem.metrics()
+      ...this.heroBarrierSystem.metrics(),
+      ...this.heroAdaptationSystem.metrics(),
+      ...this.heroBroodSystem.metrics(),
+      ...this.heroMimicrySystem.metrics(),
+      ...this.heroGardenSystem.metrics(),
+      ...this.heroHoardSystem.metrics()
     };
   }
 }

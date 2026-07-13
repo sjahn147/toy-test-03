@@ -49,7 +49,7 @@ const payload = {
   heroDeployables: deployables.snapshot(),
   heroEnvironment: environment.snapshot()
 };
-assert.equal(payload.heroes.heroes.length, 9);
+assert.ok(payload.heroes.heroes.length >= 9);
 assert.equal(payload.heroDeployables.deployables.length, 1);
 assert.equal(payload.heroDeployables.projectiles.length, 2);
 assert.equal(payload.heroEnvironment.fields.length, 1);

@@ -30,6 +30,12 @@ export class HeroLeadershipSystem {
       if (definition.id === 'hero.aldren') this.applyAldren(hero, definition, sim);
       if (definition.id === 'hero.malcor') this.applyMalcor(hero, definition, sim);
       if (definition.id === 'hero.arvek') this.applyArvek(hero, definition, sim);
+      if (definition.id === 'hero.pev') this.applyPev(hero, definition, dt, sim);
+      if (definition.id === 'hero.eighth-cocoon') this.applyEighthCocoon(hero, definition, sim);
+      if (definition.id === 'hero.empty-queen-hand') this.applyEmptyQueenHand(hero, definition, sim);
+      if (definition.id === 'hero.failed-successor') this.applyFailedSuccessor(hero, definition, sim);
+      if (definition.id === 'hero.sleeping-gardener') this.applySleepingGardener(hero, definition, dt, sim);
+      if (definition.id === 'hero.goldcrown-back') this.applyGoldcrownBack(hero, definition, sim);
     }
   }
 
@@ -303,6 +309,101 @@ export class HeroLeadershipSystem {
     if (affected || barrierActive) this.activeEffects.push({ heroId: definition.id, type: 'gatekeeper-command', affected, barrierActive });
   }
 
+  applyPev(hero, definition, dt, sim) {
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      const baseline = capture(ally);
+      ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.friendlySlimeSpeedMultiplier ?? 1);
+      ally.armor = baseline.armor + (definition.leadership.hazardAbsorptionBonus ?? 0);
+      const maximum = ally.maxHp ?? ally.hp ?? 1;
+      ally.hp = Math.min(maximum, (ally.hp ?? maximum) + (definition.leadership.slimeRecoveryBonus ?? 0) * dt);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'clear-body-nearby', affected });
+  }
+
+  applyEighthCocoon(hero, definition, sim) {
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      if (!isSpiderLike(ally)) continue;
+      const baseline = capture(ally);
+      ally.armor = baseline.armor + (definition.leadership.spiderArmorBonus ?? 0);
+      ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.webRouteSpeedMultiplier ?? 1);
+      ally.courage = baseline.courage + (definition.leadership.hostCarryCourageBonus ?? 0);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'borrowed-chivalry', affected });
+  }
+
+  applyEmptyQueenHand(hero, definition, sim) {
+    const eligibleRooms = new Set([hero.roomId, ...(sim?.graph?.get?.(hero.roomId) ?? [])]);
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || factionOf(ally) !== definition.factionId || !eligibleRooms.has(ally.roomId)) continue;
+      if (!isSpiderLike(ally)) continue;
+      const baseline = capture(ally);
+      if (ally.mood === 'retreating' || ally.retreatTargetRoomId) ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.broodRetreatSpeedMultiplier ?? 1);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'distributed-mind', affected });
+  }
+
+  applyFailedSuccessor(hero, definition, sim) {
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      const baseline = capture(ally);
+      ally.armor = baseline.armor + (definition.leadership.parasiteDisguiseBonus ?? 0);
+      ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.infectionSpeedMultiplier ?? 1);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    const room = (sim?.rooms ?? []).find(candidate => candidate.id === hero.roomId);
+    if (room && definition.leadership.royalFacilityAccess) {
+      room.heroLeadershipSourceId = definition.id;
+      this.appliedRoomIds.add(room.id);
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'observational-memory', affected });
+  }
+
+  applySleepingGardener(hero, definition, dt, sim) {
+    const eligibleRooms = new Set([hero.roomId, ...(sim?.graph?.get?.(hero.roomId) ?? [])]);
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || factionOf(ally) !== definition.factionId || !eligibleRooms.has(ally.roomId)) continue;
+      const baseline = capture(ally);
+      const maximum = ally.maxHp ?? ally.hp ?? 1;
+      ally.hp = Math.min(maximum, (ally.hp ?? maximum) + (definition.leadership.biomassRecoveryBonus ?? 0) * dt);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'seasonal-body', affected });
+  }
+
+  applyGoldcrownBack(hero, definition, sim) {
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      const baseline = capture(ally);
+      ally.armor = baseline.armor + (definition.leadership.carrionArmorBonus ?? 0);
+      ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.scavengingSpeedMultiplier ?? 1);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'hoard-carapace', affected, hoardArmor: hero.hoardArmor ?? 0 });
+  }
+
   snapshot() {
     return { activeEffects: this.activeEffects.map(effect => ({ ...effect })) };
   }
@@ -355,3 +456,5 @@ function structures(sim) {
 function round(value) {
   return Math.round(value * 100) / 100;
 }
+
+function isSpiderLike(agent) { return /spider|stirge|brood|cocoon/.test(String(agent?.role ?? agent?.species ?? '')); }

@@ -318,6 +318,24 @@ export class HeroSkillSystem {
       case 'seal-all-room-routes': return this.sealAllRoomRoutes(agent, effect, sim);
       case 'raise-spectral-guards': return sim?.heroNecromancySystem?.raiseSpectralGuards?.(agent, effect, sim) ?? false;
       case 'root-self': return sim?.heroBarrierSystem?.rootHero?.(agent, effect.duration ?? 10) ?? false;
+      case 'pev-purifying-bubble': return sim?.heroAdaptationSystem?.purifyingBubble?.(agent, effect, sim) ?? false;
+      case 'pev-borrow-shape': return sim?.heroAdaptationSystem?.borrowShape?.(agent, cast.targetId, effect, sim) ?? false;
+      case 'pev-selective-assimilation': return sim?.heroAdaptationSystem?.selectiveAssimilation?.(agent, effect, sim) ?? false;
+      case 'cocoon-silk-lance': return sim?.heroBroodSystem?.silkLance?.(agent, cast.targetId, effect, sim) ?? false;
+      case 'cocoon-thread-guard': return sim?.heroBroodSystem?.threadGuard?.(agent, effect, sim) ?? false;
+      case 'cocoon-cast-off-shell': return sim?.heroBroodSystem?.castOffShell?.(agent, effect, sim) ?? false;
+      case 'queen-lay-royal-clutch': return sim?.heroBroodSystem?.layRoyalClutch?.(agent, effect, sim) ?? false;
+      case 'queen-reassign-brood': return sim?.heroBroodSystem?.reassignBrood?.(agent, effect, sim) ?? false;
+      case 'queen-without-body': return sim?.heroBroodSystem?.queenWithoutBody?.(agent, effect, sim) ?? false;
+      case 'successor-borrowed-gesture': return sim?.heroMimicrySystem?.borrowedGesture?.(agent, effect, sim) ?? false;
+      case 'successor-false-investiture': return sim?.heroMimicrySystem?.falseInvestiture?.(agent, effect, sim) ?? false;
+      case 'successor-shed-the-prince': return sim?.heroMimicrySystem?.shedPrince?.(agent, effect, sim) ?? false;
+      case 'gardener-rooted-orchard': return sim?.heroGardenSystem?.rootedOrchard?.(agent, effect, sim) ?? false;
+      case 'gardener-prune-the-blight': return sim?.heroGardenSystem?.pruneBlight?.(agent, effect, sim) ?? false;
+      case 'gardener-turn-of-seasons': return sim?.heroGardenSystem?.turnSeasons?.(agent, effect, sim) ?? false;
+      case 'goldcrown-bone-rake-charge': return sim?.heroHoardSystem?.boneRakeCharge?.(agent, cast.targetId, effect, sim) ?? false;
+      case 'goldcrown-trophy-volley': return sim?.heroHoardSystem?.trophyVolley?.(agent, effect, sim) ?? false;
+      case 'goldcrown-royal-molt': return sim?.heroHoardSystem?.royalMolt?.(agent, effect, sim) ?? false;
       case 'emit-command': return true;
       default: return false;
     }

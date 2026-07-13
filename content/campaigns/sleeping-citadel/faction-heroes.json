@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "campaignId": "sleeping-citadel",
-  "scope": "WP8-A foundation + WP8-B irregular physics trio + WP8-C field physics frontline trio + WP8-D fallen kingdom command trio",
+  "scope": "WP8-A through WP8-E complete hero roster",
   "heroes": [
     {
       "id": "hero.nibble",
@@ -154,6 +154,90 @@
         "route-mounted-destructible-barriers",
         "barrier-collision-combat",
         "multi-route-lockdown"
+      ]
+    },
+    {
+      "id": "hero.pev",
+      "role": "hero-pev",
+      "name": "Pev, the Clear Drop",
+      "localizedName": "맑은 방울 페브",
+      "factionId": "slime-bloom",
+      "initialRoomId": "C11",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "adaptive-body-state",
+        "hazard-absorption",
+        "borrowed-silhouette"
+      ]
+    },
+    {
+      "id": "hero.eighth-cocoon",
+      "role": "hero-eighth-cocoon",
+      "name": "The Eighth Cocoon",
+      "localizedName": "여덟 번째 고치",
+      "factionId": "red-wing-brood",
+      "initialRoomId": "G34",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "arachnid-knight-rig",
+        "directional-silk-guard",
+        "breakaway-shell-transformation"
+      ]
+    },
+    {
+      "id": "hero.empty-queen-hand",
+      "role": "hero-empty-queen-hand",
+      "name": "The Empty Queen's Hand",
+      "localizedName": "빈 여왕의 손",
+      "factionId": "red-wing-brood",
+      "initialRoomId": "G35",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "multi-carrier-rig",
+        "brood-site-incubation",
+        "spawn-network-command"
+      ]
+    },
+    {
+      "id": "hero.failed-successor",
+      "role": "hero-failed-successor",
+      "name": "The Failed Successor",
+      "localizedName": "실패한 계승자",
+      "factionId": "pale-brood",
+      "initialRoomId": "K54",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "observational-skill-mimicry",
+        "royal-access-spoofing",
+        "shell-to-parasite-transformation"
+      ]
+    },
+    {
+      "id": "hero.sleeping-gardener",
+      "role": "hero-sleeping-gardener",
+      "name": "The Sleeping Gardener",
+      "localizedName": "잠든 정원사",
+      "factionId": "bluecap-colony",
+      "initialRoomId": "F29",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "seasonal-state-machine",
+        "persistent-garden-terrain",
+        "hostile-field-pruning"
+      ]
+    },
+    {
+      "id": "hero.goldcrown-back",
+      "role": "hero-goldcrown-back",
+      "name": "Goldcrown-Back",
+      "localizedName": "금관등",
+      "factionId": "carrion-brood",
+      "initialRoomId": "L58",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "visible-hoard-armor",
+        "relic-projectiles",
+        "breakaway-loot-shell"
       ]
     }
   ],

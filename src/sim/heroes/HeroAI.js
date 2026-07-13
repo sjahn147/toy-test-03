@@ -183,6 +183,86 @@ export function decideHeroAction(agent, sim, skillSystem) {
     if (hostiles.length >= 1) return castAvailable(agent, definition, skillSystem, sim, 'arvek-banishment-sentence', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
   }
 
+
+  if (definition.id === 'hero.pev') {
+    if (healthRatio <= 0.52 && !agent.heroStatuses?.selectiveAssimilation) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'pev-selective-assimilation', { targetId: agent.id, targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    const ally = allies.sort((a, b) => ((b.armor ?? 0) + (b.attack ?? 0)) - ((a.armor ?? 0) + (a.attack ?? 0)))[0];
+    if (ally && !agent.heroStatuses?.borrowedShape) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'pev-borrowed-shape', { targetId: ally.id, targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length || (sim?.heroEnvironmentSystem?.fields ?? []).some(field => field.roomId === agent.roomId)) {
+      return castAvailable(agent, definition, skillSystem, sim, 'pev-purifying-bubble', { targetRoomId: agent.roomId });
+    }
+  }
+
+  if (definition.id === 'hero.eighth-cocoon') {
+    if (healthRatio <= 0.45 && !agent.heroStatuses?.feralShell) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'cocoon-cast-off-shell', { targetId: agent.id, targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length >= 2 && !(sim?.heroBroodSystem?.guards ?? []).some(item => item.ownerId === agent.id)) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'cocoon-thread-guard', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length) return castAvailable(agent, definition, skillSystem, sim, 'cocoon-silk-lance', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+  }
+
+  if (definition.id === 'hero.empty-queen-hand') {
+    const clutches = (sim?.heroBroodSystem?.clutches ?? []).filter(item => item.ownerId === agent.id);
+    if ((healthRatio <= 0.7 || hostiles.length >= 3) && !(sim?.heroBroodSystem?.domains ?? []).some(item => item.ownerId === agent.id)) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'queen-without-body', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (clutches.length < 2 && hostiles.length >= 1) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'queen-lay-royal-clutch', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    return castAvailable(agent, definition, skillSystem, sim, 'queen-reassign-brood', { targetRoomId: agent.roomId });
+  }
+
+  if (definition.id === 'hero.failed-successor') {
+    if (healthRatio <= 0.5 && !agent.heroStatuses?.shedPrince) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'successor-shed-the-prince', { targetId: agent.id, targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (!agent.heroStatuses?.falseInvestiture && (/^[EKL]/.test(agent.roomId ?? '') || (sim?.heroBarrierSystem?.barriers ?? []).some(item => item.roomId === agent.roomId))) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'successor-false-investiture', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length) return castAvailable(agent, definition, skillSystem, sim, 'successor-borrowed-gesture', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+  }
+
+  if (definition.id === 'hero.sleeping-gardener') {
+    const hostileFields = [...(sim?.heroEnvironmentSystem?.fields ?? []), ...(sim?.heroSkillSystem?.zones ?? [])].filter(item => item.roomId === agent.roomId && item.ownerId !== agent.id);
+    if (hostileFields.length) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'gardener-prune-the-blight', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length >= 2 && !agent.heroStatuses?.seasonalTurn) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'gardener-turn-of-seasons', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if ((hostiles.length || allies.some(item => item.hp < (item.maxHp ?? item.hp) * 0.8)) && !(sim?.heroGardenSystem?.patches ?? []).some(item => item.ownerId === agent.id)) {
+      return castAvailable(agent, definition, skillSystem, sim, 'gardener-rooted-orchard', { targetRoomId: agent.roomId });
+    }
+  }
+
+  if (definition.id === 'hero.goldcrown-back') {
+    if (healthRatio <= 0.48 && !agent.heroStatuses?.royalMolt) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'goldcrown-royal-molt', { targetId: agent.id, targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length >= 2 && (agent.hoardArmor ?? 0) > 0) {
+      const action = castAvailable(agent, definition, skillSystem, sim, 'goldcrown-trophy-volley', { targetRoomId: agent.roomId });
+      if (action) return action;
+    }
+    if (hostiles.length) return castAvailable(agent, definition, skillSystem, sim, 'goldcrown-bone-rake-charge', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+  }
+
   return null;
 }
 

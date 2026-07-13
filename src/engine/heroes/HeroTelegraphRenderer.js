@@ -21,6 +21,17 @@ const COLORS = {
   'royal-soul': 0xa9e3ff,
   'ghast-green': 0x9bcf83,
   'death-knight-blue': 0x6b98b8,
+  'slime-clear': 0xa8f4e5,
+  'slime-adaptive': 0x79d7c6,
+  'spider-silver': 0xc9c4d4,
+  'spider-red': 0xc86172,
+  'spider-rose': 0xe49bae,
+  'parasite-white': 0xe7e0f2,
+  'parasite-pale': 0xcab6da,
+  'garden-green': 0x8fbd72,
+  'garden-gold': 0xd8b765,
+  'garden-prismatic': 0xb8cf8a,
+  'carrion-gold': 0xd3aa52,
   hero: 0xf2d47c
 };
 
@@ -145,6 +156,24 @@ function buildShape(group, shape, radius, material, effect = {}) {
   if (shape === 'spectral-gate-wall') return buildSpectralGateWall(group, material, effect);
   if (shape === 'door-shield-charge') return buildDoorShieldCharge(group, material, effect.length ?? radius, effect.width ?? 1.6);
   if (shape === 'all-gates-closing') return buildAllGatesClosing(group, material, radius);
+  if (shape === 'purifying-bubble') return buildBubbleSigil(group, material, radius);
+  if (shape === 'borrowed-silhouette') return buildMirroredSilhouette(group, material, radius);
+  if (shape === 'fourfold-adaptation') return buildFourfoldAdaptation(group, material, radius);
+  if (shape === 'needle-line') return buildNeedleLine(group, material, effect.length ?? radius, effect.width ?? 0.7);
+  if (shape === 'silk-kite-shield') return buildSilkShield(group, material, radius);
+  if (shape === 'shattering-cuirass') return buildShatteringCuirass(group, material, radius);
+  if (shape === 'royal-egg-sigil') return buildRoyalEggSigil(group, material, radius);
+  if (shape === 'radiating-silk-orders') return buildRadiatingSilk(group, material, radius);
+  if (shape === 'fivefold-brood-crown') return buildFivefoldCrown(group, material, radius);
+  if (shape === 'mirrored-gesture') return buildMirroredGesture(group, material, radius);
+  if (shape === 'counterfeit-royal-seal') return buildCounterfeitSeal(group, material, radius);
+  if (shape === 'porcelain-mask-fracture') return buildMaskFracture(group, material, radius);
+  if (shape === 'rooted-orchard') return buildRootedOrchard(group, material, radius);
+  if (shape === 'crossing-pruning-arcs') return buildPruningArcs(group, material, radius);
+  if (shape === 'four-season-wheel') return buildSeasonWheel(group, material, radius);
+  if (shape === 'low-raking-charge') return buildLowRakingCharge(group, material, effect.length ?? radius, effect.width ?? 1.7);
+  if (shape === 'relic-shard-fan') return buildRelicFan(group, material, radius);
+  if (shape === 'splitting-reliquary-shell') return buildReliquaryShell(group, material, radius);
   return buildRing(group, material, radius);
 }
 
@@ -840,6 +869,36 @@ function buildPassive(group, material) {
   group.add(diamond);
 }
 
+
+function buildBubbleSigil(group, material, radius) {
+  buildRing(group, material, radius);
+  for (let i=0;i<9;i+=1) { const a=i/9*Math.PI*2; const bubble=namedMesh('purity-bubble',new THREE.SphereGeometry(0.1+(i%3)*0.035,8,6),material); bubble.position.set(Math.cos(a)*radius*0.62,0.08+(i%2)*0.12,Math.sin(a)*radius*0.62); bubble.userData.phase=i*0.48; group.add(bubble); }
+  const core=namedMesh('purity-core',new THREE.OctahedronGeometry(radius*0.14,0),material);core.position.y=0.16;group.add(core);
+}
+function buildMirroredSilhouette(group, material, radius) {
+  for (const side of [-1,1]) { const torso=namedMesh('mirror-figure',new THREE.CapsuleGeometry(radius*0.08,radius*0.28,4,8),material);torso.position.set(side*radius*0.28,0.34,0);torso.scale.x=side;torso.userData.phase=side;group.add(torso); }
+  const line=namedMesh('mirror-line',new THREE.BoxGeometry(0.04,0.04,radius*1.2),material);line.rotation.y=Math.PI/2;line.position.y=0.03;group.add(line);
+}
+function buildFourfoldAdaptation(group, material, radius) {
+  buildRing(group,material,radius);const shapes=[new THREE.BoxGeometry(.36,.08,.36),new THREE.ConeGeometry(.18,.55,7),new THREE.SphereGeometry(.2,9,7),new THREE.TorusGeometry(.2,.04,6,20)];
+  for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const node=namedMesh('adaptation-node',shapes[i],material);node.position.set(Math.cos(a)*radius*.62,.15,Math.sin(a)*radius*.62);node.userData.phase=i*Math.PI/2;group.add(node);}
+}
+function buildNeedleLine(group, material, length, width) { const line=namedMesh('needle-lane',new THREE.BoxGeometry(width,.04,length),material);line.position.set(0,.03,length*.5);group.add(line);for(let i=0;i<5;i++){const barb=namedMesh('needle-barb',new THREE.ConeGeometry(.09,.42,5),material);barb.rotation.x=Math.PI/2;barb.position.set((i%2?1:-1)*width*.55,.1,length*(.15+i*.18));barb.userData.phase=i*.4;group.add(barb);} }
+function buildSilkShield(group,material,radius){for(let i=0;i<6;i++){const a=-Math.PI*.55+i*Math.PI*.22;const thread=namedMesh('silk-shield-thread',new THREE.BoxGeometry(.035,.035,radius*1.15),material);thread.position.set(Math.sin(a)*radius*.38,.18,Math.cos(a)*radius*.38);thread.rotation.y=a;thread.userData.phase=i*.45;group.add(thread);}const rim=namedMesh('silk-shield-rim',new THREE.TorusGeometry(radius*.62,.05,7,30,Math.PI),material);rim.rotation.x=Math.PI/2;rim.rotation.z=Math.PI;rim.position.z=radius*.15;group.add(rim);}
+function buildShatteringCuirass(group,material,radius){const chest=namedMesh('cuirass-core',new THREE.BoxGeometry(radius*.5,.7,.18),material);chest.position.y=.4;group.add(chest);for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const shard=namedMesh('cuirass-shard',new THREE.ConeGeometry(.09,.5,4),material);shard.position.set(Math.cos(a)*radius*.48,.28+(i%3)*.14,Math.sin(a)*radius*.48);shard.rotation.z=a;shard.userData.phase=i*.38;group.add(shard);}}
+function buildRoyalEggSigil(group,material,radius){buildRing(group,material,radius);for(let i=0;i<3;i++){const a=-.8+i*.8;const egg=namedMesh('royal-egg',new THREE.SphereGeometry(radius*.16,10,8),material);egg.scale.y=1.35;egg.position.set(Math.sin(a)*radius*.42,.2,Math.cos(a)*radius*.28);egg.userData.phase=i*.8;group.add(egg);}}
+function buildRadiatingSilk(group,material,radius){for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const line=namedMesh('silk-order-line',new THREE.BoxGeometry(.035,.025,radius*.82),material);line.position.set(Math.sin(a)*radius*.41,.04,Math.cos(a)*radius*.41);line.rotation.y=a;line.userData.phase=i*.3;group.add(line);}buildRing(group,material,radius*.25);}
+function buildFivefoldCrown(group,material,radius){buildRing(group,material,radius);for(let i=0;i<5;i++){const a=i/5*Math.PI*2;const claw=namedMesh('brood-crown-claw',new THREE.ConeGeometry(.16,radius*.55,6),material);claw.position.set(Math.cos(a)*radius*.58,.22,Math.sin(a)*radius*.58);claw.rotation.z=Math.PI/2;claw.rotation.y=-a;claw.userData.phase=i*.65;group.add(claw);}}
+function buildMirroredGesture(group,material,radius){for(const side of [-1,1]){const arc=namedMesh('gesture-arc',new THREE.TorusGeometry(radius*.42,.055,7,30,Math.PI*1.2),material);arc.rotation.x=Math.PI/2;arc.rotation.z=side>0?.25:Math.PI+.25;arc.position.x=side*radius*.24;arc.userData.phase=side;group.add(arc);}const mask=namedMesh('gesture-mask',new THREE.BoxGeometry(.42,.56,.05),material);mask.position.y=.32;group.add(mask);}
+function buildCounterfeitSeal(group,material,radius){buildRoyalSigil(group,material,radius);const slash=namedMesh('counterfeit-slash',new THREE.BoxGeometry(radius*1.25,.08,.08),material);slash.position.y=.12;slash.rotation.y=.72;group.add(slash);}
+function buildMaskFracture(group,material,radius){const mask=namedMesh('fracture-mask',new THREE.BoxGeometry(radius*.42,.65,.08),material);mask.position.y=.4;group.add(mask);for(let i=0;i<7;i++){const crack=namedMesh('mask-crack-ray',new THREE.BoxGeometry(.025,.04,radius*.52),material);crack.position.y=.4;crack.rotation.y=i/7*Math.PI*2;crack.rotation.z=.2+(i%3)*.18;crack.userData.phase=i*.4;group.add(crack);}}
+function buildRootedOrchard(group,material,radius){buildRing(group,material,radius);for(let i=0;i<14;i++){const a=i/14*Math.PI*2;const root=namedMesh('orchard-root',new THREE.ConeGeometry(.07,radius*(.35+(i%3)*.09),6),material);root.rotation.z=Math.PI/2;root.rotation.y=-a;root.position.set(Math.cos(a)*radius*.38,.05,Math.sin(a)*radius*.38);root.userData.phase=i*.35;group.add(root);}for(let i=0;i<6;i++){const bloom=namedMesh('orchard-bloom',new THREE.SphereGeometry(.12,8,6),material);const a=i/6*Math.PI*2;bloom.position.set(Math.cos(a)*radius*.62,.18,Math.sin(a)*radius*.62);bloom.userData.phase=i*.65;group.add(bloom);}}
+function buildPruningArcs(group,material,radius){for(const z of [-.28,.28]){const arc=namedMesh('pruning-arc',new THREE.TorusGeometry(radius*.55,.07,8,34,Math.PI*1.35),material);arc.rotation.x=Math.PI/2;arc.rotation.z=z<0?.6:Math.PI+.6;arc.position.z=z*radius;group.add(arc);} }
+function buildSeasonWheel(group,material,radius){buildRing(group,material,radius);for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const petal=namedMesh('season-quarter',i===0?new THREE.SphereGeometry(.16,8,6):i===1?new THREE.ConeGeometry(.13,.48,7):i===2?new THREE.DodecahedronGeometry(.16,0):new THREE.OctahedronGeometry(.17,0),material);petal.position.set(Math.cos(a)*radius*.58,.15,Math.sin(a)*radius*.58);petal.userData.phase=i*Math.PI/2;group.add(petal);} }
+function buildLowRakingCharge(group,material,length,width){const lane=namedMesh('rake-lane',new THREE.BoxGeometry(width,.035,length),material);lane.position.set(0,.02,length*.5);group.add(lane);for(const side of [-1,1])for(let i=0;i<4;i++){const tine=namedMesh('rake-tine',new THREE.ConeGeometry(.07,.48,5),material);tine.rotation.x=Math.PI/2;tine.position.set(side*width*.42,.1,length*(.18+i*.19));tine.userData.phase=i*.4+side;group.add(tine);} }
+function buildRelicFan(group,material,radius){for(let i=0;i<9;i++){const a=-.9+i*.225;const shard=namedMesh('relic-fan-shard',i%2?new THREE.BoxGeometry(.12,.08,.5):new THREE.ConeGeometry(.08,.5,5),material);shard.position.set(Math.sin(a)*radius*.42,.18,Math.cos(a)*radius*.42);shard.rotation.y=a;shard.userData.phase=i*.34;group.add(shard);} }
+function buildReliquaryShell(group,material,radius){for(let i=0;i<10;i++){const a=i/10*Math.PI*2;const plate=namedMesh('reliquary-plate',new THREE.BoxGeometry(radius*.28,.42,.08),material);plate.position.set(Math.cos(a)*radius*.52,.28+(i%2)*.18,Math.sin(a)*radius*.52);plate.rotation.y=-a;plate.rotation.z=(i%3-1)*.18;plate.userData.phase=i*.37;group.add(plate);}const crown=namedMesh('reliquary-crown',new THREE.TorusGeometry(radius*.24,.06,8,24),material);crown.rotation.x=Math.PI/2;crown.position.y=.65;group.add(crown);}
+
 function animateShapeParts(root, shape, age, progress, telegraph) {
   root.traverse(node => {
     const phase = node.userData?.phase ?? 0;
@@ -899,7 +958,7 @@ function defaultShape(type, effect = {}) {
 }
 
 function rotatingShape(shape) {
-  return ['triangle', 'three-gear-circle', 'memory-flower', 'solitary-bloom', 'royal-sigil', 'digest-spiral', 'triune-court', 'ethereal-domain', 'three-grave-sigils', 'carrion-banquet-ring', 'all-gates-closing'].includes(shape);
+  return ['triangle', 'three-gear-circle', 'memory-flower', 'solitary-bloom', 'royal-sigil', 'digest-spiral', 'triune-court', 'ethereal-domain', 'three-grave-sigils', 'carrion-banquet-ring', 'all-gates-closing', 'fourfold-adaptation', 'royal-egg-sigil', 'radiating-silk-orders', 'fivefold-brood-crown', 'mirrored-gesture', 'counterfeit-royal-seal', 'rooted-orchard', 'four-season-wheel', 'splitting-reliquary-shell'].includes(shape);
 }
 
 function rotationSpeed(shape) {

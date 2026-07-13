@@ -163,6 +163,11 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const heroFormations = tableOf(raw.heroFormations?.formations, 'hero-formation');
   const heroSummons = tableOf(raw.heroNecromancy?.summons, 'hero-summon');
   const heroBarriers = tableOf(raw.heroBarriers?.barriers, 'hero-barrier');
+  const heroAdaptationFields = tableOf(raw.heroAdaptation?.bubbles, 'hero-adaptation');
+  const heroBroodActors = tableOf([...(raw.heroBrood?.guards ?? []), ...(raw.heroBrood?.clutches ?? []), ...(raw.heroBrood?.husks ?? []), ...(raw.heroBrood?.domains ?? [])], 'hero-brood');
+  const heroMimicActors = tableOf([...(raw.heroMimicry?.husks ?? []), ...(raw.heroMimicry?.echoes ?? [])], 'hero-mimic');
+  const heroGardenPatches = tableOf(raw.heroGarden?.patches, 'hero-garden');
+  const heroHoardActors = tableOf([...(raw.heroHoard?.shells ?? []), ...(raw.heroHoard?.projectiles ?? [])], 'hero-hoard');
   const factions = factionTable(agents, settlements);
 
   const visited = new Set(Array.isArray(raw.visited) ? raw.visited : []);
@@ -174,7 +179,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       turn: finiteNumber(turn ?? raw.turn),
       ended: raw.ended === true
     },
-    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, heroForms, heroDeployables, heroProjectiles, heroFields, heroFormations, heroSummons, heroBarriers, effects },
+    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, heroForms, heroDeployables, heroProjectiles, heroFields, heroFormations, heroSummons, heroBarriers, heroAdaptationFields, heroBroodActors, heroMimicActors, heroGardenPatches, heroHoardActors, effects },
     indexes: {
       agentsByRoom: groupIndex(agents, agent =>
         agent.alive !== false && agent.departed !== true ? agent.roomId : null
@@ -196,7 +201,12 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       heroFieldsByRoom: groupIndex(heroFields, item => item.roomId),
       heroFormationsByRoom: groupIndex(heroFormations, item => item.roomId),
       heroSummonsByRoom: groupIndex(heroSummons, item => item.roomId),
-      heroBarriersByRoom: groupIndex(heroBarriers, item => item.roomId)
+      heroBarriersByRoom: groupIndex(heroBarriers, item => item.roomId),
+      heroAdaptationFieldsByRoom: groupIndex(heroAdaptationFields, item => item.roomId),
+      heroBroodActorsByRoom: groupIndex(heroBroodActors, item => item.roomId),
+      heroMimicActorsByRoom: groupIndex(heroMimicActors, item => item.roomId),
+      heroGardenPatchesByRoom: groupIndex(heroGardenPatches, item => item.roomId),
+      heroHoardActorsByRoom: groupIndex(heroHoardActors, item => item.roomId)
     },
     events: Array.isArray(events)
       ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object')

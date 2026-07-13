@@ -26,6 +26,12 @@ export function animateHeroMiniature(mesh, agent, time = 0) {
   else if (definition.id === 'hero.aldren') animateAldrenLocomotion(joints, agent, time, moving);
   else if (definition.id === 'hero.malcor') animateMalcorLocomotion(joints, agent, time, moving);
   else if (definition.id === 'hero.arvek') animateArvekLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.pev') animatePevLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.eighth-cocoon') animateEighthCocoonLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.empty-queen-hand') animateEmptyQueenLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.failed-successor') animateSuccessorLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.sleeping-gardener') animateGardenerLocomotion(joints, agent, time, moving);
+  else if (definition.id === 'hero.goldcrown-back') animateGoldcrownLocomotion(joints, agent, time, moving);
 
   if (agent.heroCast) animateHeroCast(joints, definition, agent.heroCast);
   else if (agent.combat) animateCombat(joints, definition, agent.combat);
@@ -199,6 +205,84 @@ function animateIdle(joints, definition, time, agent) {
   if (secondary) sampleClip(secondary, (time * 0.73 + seed(agent.id) * 2) % secondary.duration / secondary.duration, joints, 0.75);
 }
 
+
+function animatePevLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 4.8 : 1.5) + seed(agent.id);
+  applyVolumePreservingSquash(joints.blobRoot, Math.sin(phase) * (moving ? 0.14 : 0.045), Math.sin(phase * 0.5) * 0.025);
+  if (joints.motionRoot) joints.motionRoot.position.y += Math.max(0, Math.sin(phase)) * (moving ? 0.08 : 0.018);
+  if (joints.artifactOrbit) joints.artifactOrbit.rotation.y += time * (moving ? 0.42 : 0.18);
+  rotate(joints.crest, 'z', Math.sin(phase * 0.72) * 0.08);
+}
+
+function animateEighthCocoonLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? (agent.heroStatuses?.feralShell ? 6.2 : 4.0) : 1.4) + seed(agent.id);
+  for (let i = 0; i < 8; i += 1) {
+    const local = phase + (i % 4) * 0.72 + (i >= 4 ? Math.PI : 0);
+    rotate(joints[`leg${i}a`], 'y', Math.sin(local) * (moving ? 0.26 : 0.025));
+    rotate(joints[`leg${i}b`], 'z', (i < 4 ? -1 : 1) * Math.cos(local) * (moving ? 0.33 : 0.035));
+    rotate(joints[`leg${i}c`], 'z', (i < 4 ? 1 : -1) * Math.max(0, Math.sin(local)) * (moving ? 0.22 : 0.02));
+  }
+  if (joints.thorax) joints.thorax.position.y += moving ? Math.abs(Math.sin(phase * 2)) * 0.025 : Math.sin(phase * 0.5) * 0.008;
+  if (joints.knightChest) joints.knightChest.rotation.z += Math.sin(phase * 0.45) * (moving ? 0.035 : 0.015);
+}
+
+function animateEmptyQueenLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 3.1 : 1.0) + seed(agent.id);
+  const carriers = Math.max(1, agent.carrierCount ?? 5);
+  for (let i = 0; i < 5; i += 1) {
+    const root = joints[`carrier${i}`];
+    if (!root) continue;
+    const active = i < carriers;
+    root.visible = active;
+    if (active) {
+      rotate(root, 'z', Math.sin(phase + i * 0.9) * (moving ? 0.09 : 0.025));
+      root.position.y += Math.max(0, Math.sin(phase * 2 + i * 0.8)) * (moving ? 0.06 : 0.01);
+    }
+  }
+  if (joints.sacRoot) {
+    joints.sacRoot.position.y += Math.sin(phase * 0.72) * 0.035;
+    joints.sacRoot.scale.y *= 1 + Math.sin(phase * 1.2) * 0.035;
+  }
+  rotate(joints.queenCrown, 'y', Math.sin(phase * 0.4) * 0.05);
+}
+
+function animateSuccessorLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 3.8 : 1.1) + seed(agent.id);
+  const gait = moving ? Math.sin(phase) : 0;
+  rotate(joints.legL, 'x', gait * 0.34);
+  rotate(joints.legR, 'x', -gait * 0.34);
+  rotate(joints.armL, 'x', -gait * 0.17);
+  rotate(joints.armR, 'x', gait * 0.17);
+  if (joints.pelvis) joints.pelvis.position.y += moving ? Math.abs(Math.sin(phase)) * 0.02 : Math.sin(phase * 0.5) * 0.005;
+  if (joints.shadow) {
+    joints.shadow.position.z -= moving ? 0.15 + Math.abs(gait) * 0.08 : 0.08;
+    joints.shadow.rotation.y += -gait * 0.08;
+  }
+  if (agent.heroStatuses?.shedPrince && joints.extraArms) joints.extraArms.rotation.y += Math.sin(phase * 2.2) * 0.12;
+}
+
+function animateGardenerLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? 1.9 : 0.55) + seed(agent.id);
+  for (let i = 0; i < 4; i += 1) {
+    const local = phase + i * Math.PI * 0.5;
+    rotate(joints[`rootLeg${i}`], 'x', Math.sin(local) * (moving ? 0.16 : 0.015));
+    rotate(joints[`rootFoot${i}`], 'z', Math.cos(local) * (moving ? 0.18 : 0.02));
+  }
+  if (joints.trunk) joints.trunk.position.y += moving ? Math.abs(Math.sin(phase * 2)) * 0.025 : Math.sin(phase) * 0.01;
+  rotate(joints.crown, 'z', Math.sin(phase * 0.42) * 0.025);
+  rotate(joints.gardenBed, 'x', Math.sin(phase * 0.55) * 0.02);
+}
+
+function animateGoldcrownLocomotion(joints, agent, time, moving) {
+  const phase = time * (moving ? (agent.heroStatuses?.royalMolt ? 4.7 : 3.0) : 0.9) + seed(agent.id);
+  for (let i = 0; i < 10; i += 1) rotate(joints[`leg${i}`], 'z', (i % 2 ? -1 : 1) * Math.sin(phase + i * 0.58) * (moving ? 0.22 : 0.018));
+  rotate(joints.body1, 'y', Math.sin(phase * 0.72) * (moving ? 0.08 : 0.025));
+  rotate(joints.body2, 'y', Math.sin(phase * 0.72 - 0.55) * (moving ? 0.1 : 0.03));
+  rotate(joints.body3, 'y', Math.sin(phase * 0.72 - 1.1) * (moving ? 0.12 : 0.035));
+  if (joints.motionRoot) joints.motionRoot.position.y += moving ? Math.abs(Math.sin(phase * 2)) * 0.018 : 0;
+  if (joints.crown) joints.crown.rotation.y += time * 0.08;
+}
+
 function animateHeroCast(joints, definition, cast) {
   const clip = getHeroAnimationClip(definition.visual.animationProfile, `skill:${cast.skillId}`);
   if (!clip) return;
@@ -247,6 +331,38 @@ function animateCombat(joints, definition, combat) {
     rotate(joints.shoulderR, 'x', combat.phase === 'impact' ? 0.75 : -progress * 0.72);
     rotate(joints.swordRoot, 'z', combat.phase === 'impact' ? 0.62 : -progress * 0.58);
     rotate(joints.shieldRoot, 'y', combat.phase === 'impact' ? 0.2 : -progress * 0.15);
+    return;
+  }
+  if (definition.id === 'hero.pev') {
+    applyVolumePreservingSquash(joints.blobRoot, combat.phase === 'impact' ? -0.2 : progress * 0.14, 0.04);
+    rotate(joints.artifactOrbit, 'y', combat.phase === 'impact' ? 0.6 : -progress * 0.35);
+    return;
+  }
+  if (definition.id === 'hero.eighth-cocoon') {
+    rotate(joints.lanceRoot, 'x', combat.phase === 'impact' ? 0.72 : -progress * 0.92);
+    rotate(joints.knightChest, 'y', combat.phase === 'impact' ? 0.24 : -progress * 0.16);
+    return;
+  }
+  if (definition.id === 'hero.empty-queen-hand') {
+    rotate(joints.queenCrown, 'x', combat.phase === 'impact' ? 0.34 : -progress * 0.24);
+    if (joints.sacRoot) joints.sacRoot.scale.y *= combat.phase === 'impact' ? 0.88 : 1 + progress * 0.08;
+    return;
+  }
+  if (definition.id === 'hero.failed-successor') {
+    rotate(joints.armR, 'x', combat.phase === 'impact' ? 0.72 : -progress * 0.68);
+    rotate(joints.chest, 'y', combat.phase === 'impact' ? 0.28 : -progress * 0.2);
+    return;
+  }
+  if (definition.id === 'hero.sleeping-gardener') {
+    rotate(joints.armL, 'z', combat.phase === 'impact' ? -0.8 : progress * 0.55);
+    rotate(joints.armR, 'z', combat.phase === 'impact' ? 0.8 : -progress * 0.55);
+    rotate(joints.trunk, 'y', combat.phase === 'impact' ? 0.24 : -progress * 0.14);
+    return;
+  }
+  if (definition.id === 'hero.goldcrown-back') {
+    rotate(joints.rakeL, 'x', combat.phase === 'impact' ? -0.7 : progress * 0.4);
+    rotate(joints.rakeR, 'x', combat.phase === 'impact' ? -0.7 : progress * 0.4);
+    rotate(joints.body0, 'x', combat.phase === 'impact' ? -0.16 : progress * 0.12);
     return;
   }
   if (definition.id === 'hero.karg') {
@@ -361,6 +477,52 @@ function animateSecondary(joints, definition, time, agent) {
       if (joints.crossbar) joints.crossbar.position.z -= 0.12;
     }
   }
+  if (definition.id === 'hero.pev') {
+    if (joints.artifactOrbit) joints.artifactOrbit.rotation.y += phase * 0.08;
+    const adaptation = agent.heroAdaptation ?? 'clear';
+    if (joints.metalPlateL) joints.metalPlateL.visible = adaptation === 'metal';
+    if (joints.metalPlateR) joints.metalPlateR.visible = adaptation === 'metal';
+    if (joints.fungalCap) joints.fungalCap.visible = adaptation === 'fungal';
+    if (joints.spectralTail) joints.spectralTail.visible = adaptation === 'spectral';
+    if (agent.heroStatuses?.borrowedShape) rotate(joints.crest, 'y', Math.sin(phase * 2.4) * 0.16);
+  }
+  if (definition.id === 'hero.eighth-cocoon') {
+    rotate(joints.silkRig, 'y', Math.sin(phase * 0.8) * 0.06);
+    if (agent.heroStatuses?.feralShell) {
+      if (joints.knightChest) joints.knightChest.visible = false;
+      rotate(joints.fangL, 'x', -0.24);
+      rotate(joints.fangR, 'x', -0.24);
+    }
+  }
+  if (definition.id === 'hero.empty-queen-hand') {
+    if (joints.egg0) joints.egg0.scale.setScalar(0.94 + Math.sin(phase * 2) * 0.06);
+    if (joints.egg1) joints.egg1.scale.setScalar(0.94 + Math.sin(phase * 2 + 0.9) * 0.06);
+    if (joints.egg2) joints.egg2.scale.setScalar(0.94 + Math.sin(phase * 2 + 1.8) * 0.06);
+    if (agent.heroStatuses?.queenDomain && joints.sacRoot) joints.sacRoot.scale.set(1.12, 1.18, 1.12);
+  }
+  if (definition.id === 'hero.failed-successor') {
+    rotate(joints.coatL, 'z', Math.sin(phase * 1.1) * 0.045);
+    rotate(joints.coatR, 'z', -Math.sin(phase * 1.05 + 0.4) * 0.045);
+    if (joints.shadow) joints.shadow.rotation.y += phase * 0.04;
+    if (agent.heroStatuses?.shedPrince) {
+      if (joints.mask) joints.mask.visible = false;
+      if (joints.parasiteFace) joints.parasiteFace.visible = true;
+      if (joints.extraArms) joints.extraArms.visible = true;
+    }
+  }
+  if (definition.id === 'hero.sleeping-gardener') {
+    const season = agent.heroSeason ?? 'spring';
+    if (joints.gardenBed) joints.gardenBed.rotation.y += phase * 0.018;
+    if (season === 'winter') rotate(joints.crown, 'x', 0.12);
+    if (season === 'summer') rotate(joints.armL, 'z', -0.08);
+    if (agent.gardenAwake && joints.motionRoot) joints.motionRoot.position.y += 0.05;
+  }
+  if (definition.id === 'hero.goldcrown-back') {
+    if (joints.trophies) joints.trophies.rotation.y += phase * 0.025;
+    if (joints.glow) joints.glow.scale.setScalar(0.9 + Math.sin(phase * 3.2) * 0.08);
+    if (agent.heroStatuses?.royalMolt && joints.carapace) joints.carapace.visible = false;
+  }
+
 }
 
 function applyGlopStance(joints, stance) {
@@ -397,6 +559,12 @@ function animateDynamicMaterials(mesh, agent, definition, time) {
     const damage = agent.heroDamageStage ?? 0;
     for (const material of materials) {
       if (material?.transparent) material.opacity = clamp(0.64 - damage * 0.08 + Math.sin(time * 1.7) * 0.025, 0.38, 0.72);
+    }
+  } else if (definition.id === 'hero.pev') {
+    const spectral = agent.heroAdaptation === 'spectral';
+    for (const material of materials) {
+      if (material?.transparent) material.opacity = clamp((spectral ? 0.46 : 0.68) + Math.sin(time * 2.2) * 0.04, 0.3, 0.78);
+      if ('emissiveIntensity' in material) material.emissiveIntensity = spectral ? 0.42 : 0.18;
     }
   }
 }
@@ -480,6 +648,33 @@ function animatePhysicalSecondary(mesh, joints, definition, time, agent) {
       rotate(joints.hookRoot, 'z', -0.45 + Math.sin(phase * 7) * 0.16);
     }
   }
+
+  if (definition.id === 'hero.pev') {
+    springRotation(mesh, joints.crest, 'pev:crest', 'z', Math.sin(phase * 1.8) * 0.08, { stiffness: 22, damping: 6 });
+    springRotation(mesh, joints.spectralTail, 'pev:tail', 'z', Math.sin(phase * 1.35) * 0.14, { stiffness: 17, damping: 5 });
+  }
+  if (definition.id === 'hero.eighth-cocoon') {
+    springRotation(mesh, joints.shieldRoot, 'cocoon:shield', 'z', Math.sin(phase * 1.2) * 0.045, { stiffness: 38, damping: 9 });
+    springRotation(mesh, joints.silkRig, 'cocoon:silk', 'y', Math.sin(phase * 1.5) * 0.08, { stiffness: 20, damping: 6 });
+  }
+  if (definition.id === 'hero.empty-queen-hand') {
+    springRotation(mesh, joints.sacRoot, 'queen:sac', 'z', Math.sin(phase * 0.8) * 0.04, { stiffness: 22, damping: 7 });
+    springRotation(mesh, joints.queenCrown, 'queen:crown', 'y', Math.sin(phase * 0.6) * 0.06, { stiffness: 30, damping: 9 });
+  }
+  if (definition.id === 'hero.failed-successor') {
+    springRotation(mesh, joints.coatL, 'successor:coatL', 'z', Math.sin(phase * 1.1) * 0.055, { stiffness: 22, damping: 7 });
+    springRotation(mesh, joints.coatR, 'successor:coatR', 'z', -Math.sin(phase * 1.05 + 0.4) * 0.055, { stiffness: 22, damping: 7 });
+    springPosition(mesh, joints.shadow, 'successor:shadow', 'z', moving ? -0.18 : -0.08, { stiffness: 18, damping: 6 });
+  }
+  if (definition.id === 'hero.sleeping-gardener') {
+    springRotation(mesh, joints.gardenBed, 'gardener:bed', 'z', Math.sin(phase * 0.72) * 0.025, { stiffness: 25, damping: 8 });
+    springRotation(mesh, joints.nest, 'gardener:nest', 'z', Math.sin(phase * 1.4) * 0.055, { stiffness: 20, damping: 6 });
+  }
+  if (definition.id === 'hero.goldcrown-back') {
+    springRotation(mesh, joints.trophies, 'goldcrown:trophies', 'z', Math.sin(phase * 1.15) * (moving ? 0.055 : 0.02), { stiffness: 32, damping: 10 });
+    springRotation(mesh, joints.crown, 'goldcrown:crown', 'z', Math.sin(phase * 1.45) * 0.035, { stiffness: 38, damping: 12 });
+  }
+
 }
 
 function configureSkillParts(mesh, definition, agent) {
@@ -493,6 +688,24 @@ function configureSkillParts(mesh, definition, agent) {
   if (definition.id === 'hero.murga' && parts.chainRoot) {
     parts.chainRoot.scale.y = agent.heroCast?.skillId === 'murga-butchers-hook' || agent.heroStatuses?.butchering ? 1.4 : 1;
   }
+  if (definition.id === 'hero.pev') {
+    if (parts.bubbleFilm) parts.bubbleFilm.visible = agent.heroCast?.skillId === 'pev-purifying-bubble';
+    const adaptation = agent.heroAdaptation ?? 'clear';
+    for (const name of ['metalPlateL','metalPlateR']) if (parts[name]) parts[name].visible = adaptation === 'metal';
+    if (parts.fungalCap) parts.fungalCap.visible = adaptation === 'fungal';
+    if (parts.spectralTail) parts.spectralTail.visible = adaptation === 'spectral';
+  }
+  if (definition.id === 'hero.eighth-cocoon') {
+    if (parts.knightChest) parts.knightChest.visible = !agent.heroStatuses?.feralShell;
+    if (parts.shieldRoot) parts.shieldRoot.visible = !agent.heroStatuses?.feralShell;
+  }
+  if (definition.id === 'hero.failed-successor') {
+    const shed = Boolean(agent.heroStatuses?.shedPrince);
+    if (parts.mask) parts.mask.visible = !shed;
+    if (parts.parasiteFace) parts.parasiteFace.visible = shed;
+    if (parts.extraArms) parts.extraArms.visible = shed;
+  }
+  if (definition.id === 'hero.goldcrown-back' && parts.carapace) parts.carapace.visible = !agent.heroStatuses?.royalMolt;
 }
 
 function applyDamageStage(mesh, stage, variant) {

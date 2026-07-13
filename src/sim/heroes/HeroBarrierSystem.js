@@ -66,6 +66,7 @@ export class HeroBarrierSystem {
   isRouteBlocked(fromRoomId, toRoomId, agent) {
     const barrier = this.barriers.find(item => item.hp > 0 && pairMatches(item, fromRoomId, toRoomId));
     if (!barrier) return false;
+    if (agent?.heroRoyalAccess || barrier.suppressedBy === agent?.id) return false;
     if (agent?.incorporeal && factionOf(agent) === barrier.allowFaction) return false;
     return factionOf(agent) !== barrier.allowFaction;
   }

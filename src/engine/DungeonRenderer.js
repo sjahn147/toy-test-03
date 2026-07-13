@@ -148,12 +148,12 @@ export class DungeonRenderer {
     this.renderProps(snapshot.props, snapshot.rooms);
     this.renderAgents(snapshot.agents, snapshot.rooms, snapshot.time);
     this.heroWorldActorRenderer.render({
-      deployables: snapshot.heroDeployables?.deployables ?? [],
-      projectiles: snapshot.heroDeployables?.projectiles ?? [],
-      fields: snapshot.heroEnvironment?.fields ?? [],
+      deployables: [...(snapshot.heroDeployables?.deployables ?? []), ...(snapshot.heroBrood?.clutches ?? []), ...(snapshot.heroBrood?.husks ?? []), ...(snapshot.heroMimicry?.husks ?? []), ...(snapshot.heroHoard?.shells ?? [])],
+      projectiles: [...(snapshot.heroDeployables?.projectiles ?? []), ...(snapshot.heroHoard?.projectiles ?? [])],
+      fields: [...(snapshot.heroEnvironment?.fields ?? []), ...(snapshot.heroAdaptation?.bubbles ?? []), ...(snapshot.heroBrood?.domains ?? []), ...(snapshot.heroGarden?.patches ?? [])],
       tethers: snapshot.heroPhysics?.tethers ?? [],
       formations: snapshot.heroFormations?.formations ?? [],
-      barriers: snapshot.heroBarriers?.barriers ?? []
+      barriers: [...(snapshot.heroBarriers?.barriers ?? []), ...(snapshot.heroBrood?.guards ?? [])]
     }, snapshot.rooms, snapshot.time);
     this.renderEffects(snapshot.effects ?? [], snapshot.rooms, snapshot.time);
   }
