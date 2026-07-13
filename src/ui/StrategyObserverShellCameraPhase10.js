@@ -18,6 +18,7 @@ export class StrategyObserverShellCameraPhase10 extends StrategyObserverShellWP6
     this.viewport.querySelector('[data-wp6-gesture-hint]')?.remove();
     this.viewport.insertAdjacentHTML('beforeend', `
       <div class="strategy-camera-controls strategy-camera-controls-v10" aria-label="Strategy camera controls">
+        <button data-shell-camera-toggle aria-label="Hide camera controls" aria-pressed="false" title="Hide/show camera controls">▾</button>
         <button data-shell-camera="free" class="is-active" aria-pressed="true" title="Free camera (F)">Free</button>
         <button data-shell-camera="focus" aria-pressed="false" title="Focus selected unit or object (F)">Focus</button>
         <span class="strategy-camera-divider"></span>
@@ -46,6 +47,7 @@ export class StrategyObserverShellCameraPhase10 extends StrategyObserverShellWP6
 
   bindEvents() {
     super.bindEvents();
+    this.viewport.querySelector('[data-shell-camera-toggle]')?.addEventListener('click', () => this.toggleCameraControls());
     const navigator = this.screenEl.querySelector('[data-shell-nav-list]');
     navigator?.addEventListener('dblclick', event => {
       const row = event.target.closest('[data-entity-id]');
@@ -63,6 +65,16 @@ export class StrategyObserverShellCameraPhase10 extends StrategyObserverShellWP6
       input.addEventListener('input', () => this.emitCameraSettings());
       input.addEventListener('change', () => this.emitCameraSettings());
     });
+  }
+
+  toggleCameraControls() {
+    const bar = this.viewport?.querySelector('.strategy-camera-controls-v10');
+    const toggle = bar?.querySelector('[data-shell-camera-toggle]');
+    if (!bar || !toggle) return;
+    const collapsed = bar.classList.toggle('is-collapsed');
+    toggle.textContent = collapsed ? '▸' : '▾';
+    toggle.setAttribute('aria-pressed', String(collapsed));
+    toggle.setAttribute('aria-label', collapsed ? 'Show camera controls' : 'Hide camera controls');
   }
 
   emitCameraSettings() {

@@ -25,7 +25,8 @@ export class HeroGardenSystem {
   }
   pruneBlight(owner,effect,sim){
     let removed=0;
-    for(const collection of [sim?.heroEnvironmentSystem?.fields,sim?.heroSkillSystem?.zones,this.patches]){
+    for(const source of [sim?.heroEnvironmentSystem?.fields,sim?.heroSkillSystem?.zones,this.patches]){
+      const collection = source instanceof Map ? [...source.values()] : source;
       if(!Array.isArray(collection))continue;
       for(const item of collection){if(item.roomId!==owner.roomId||item.ownerId===owner.id)continue;if(/blight|poison|death|corrosion|hostile|web/.test(String(item.kind??item.type??''))){item.remaining=0;removed+=1;if(removed>= (effect.removeFields??2))break;}}
     }
