@@ -6,8 +6,10 @@ import { applyPhase7Territories } from '../data/applyPhase7Territories.js';
 import { applyPhase8SpatialScale } from '../data/applyPhase8SpatialScale.js';
 import { applyPhase8PropLayout } from '../data/applyPhase8PropLayout.js';
 import { createLegacyGameRuntime } from '../application/GameRuntimeFactory.js';
-import { StrategyObserverShell } from '../ui/StrategyObserverShell.js';
+import { StrategyObserverShellWP6 } from '../ui/StrategyObserverShellWP6.js';
 import { renderStrategyInspector } from '../ui/renderStrategyInspector.js';
+import { CameraDirector } from '../engine/CameraDirector.js';
+import { OVERLAY_MODES, normalizeOverlayMode, cycleOverlayMode } from '../engine/StrategicOverlayModel.js';
 import { WorldInteractionPicker } from '../engine/WorldInteractionPicker.js';
 import { WorldInteractionTooltip } from '../ui/WorldInteractionTooltip.js';
 
@@ -26,6 +28,9 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.viewModel = null;
     this.viewModelClock = 0;
     this.onKeyDown = event => this.handleShortcut(event);
+    this.overlayMode = 'world';
+    this.overlaySummarySignature = '';
+    this.cameraDirector = null;
     this.worldPicker = null;
     this.worldTooltip = null;
     this.worldPointerDown = null;
@@ -51,19 +56,23 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.runtime = createLegacyGameRuntime({ sim: this.sim });
     this.runtimeUnsubscribe = this.runtime.subscribe(() => { this.viewModelClock = 0; });
 
-    this.shell = new StrategyObserverShell({
+    this.shell = new StrategyObserverShellWP6({
       onPauseToggle: paused => this.runtime.dispatch({ type: paused ? 'clock.pause' : 'clock.resume' }),
       onSpeedChange: speed => this.runtime.dispatch({ type: 'clock.set-speed', speed }),
       onBack: this.onBack,
       onSelect: payload => this.selectEntity(payload),
       onCameraMode: mode => this.setCameraMode(mode),
       onCameraAction: action => this.handleCameraAction(action),
+      onOverlayMode: mode => this.setOverlayMode(mode),
       onTimelineFilter: filter => { this.timelineFilter = filter; this.refreshViewModel(true); },
       onTimelineEvent: event => this.focusTimelineEvent(event),
       onTogglePin: eventId => this.togglePinnedEvent(eventId),
       onAlertOpen: () => this.shell?.announce('Showing major, critical and historic events.')
     });
     this.shell.mount({ screenEl: this.el, viewport: this.viewport, inspectEl: this.inspectEl });
+    this.cameraDirector?.destroy();
+    this.cameraDirector = new CameraDirector(this.three, { element: this.three.renderer?.domElement });
+    this.setOverlayMode(this.overlayMode);
     this.installWorldInteraction();
     window.addEventListener('keydown', this.onKeyDown);
     this.refreshViewModel(true);
@@ -305,6 +314,44 @@ export class ObserveScreen extends Phase6ObserveScreen {
     if (action === 'next') this.cycleFollowTarget(1);
     if (action === 'focus') this.focusSelection(true);
     if (action === 'reset') this.resetCamera(true);
+    if (action === 'rotate-left') this.cameraDirector?.rotate(-1);
+    if (action === 'rotate-right') this.cameraDirector?.rotate(1);
+    if (action === 'tilt-up') this.cameraDirector?.tilt(1);
+    if (action === 'tilt-down') this.cameraDirector?.tilt(-1);
+    if (action === 'zoom-in') this.cameraDirector?.zoom(1);
+    if (action === 'zoom-out') this.cameraDirector?.zoom(-1);
+  }
+
+  setOverlayMode(mode) {
+    this.overlayMode = normalizeOverlayMode(mode);
+    this.renderer?.setOverlayMode?.(this.overlayMode);
+    this.shell?.setOverlayMode?.(this.overlayMode);
+    this.overlaySummarySignature = '';
+    return this.overlayMode;
+  }
+
+  cycleOverlay(direction = 1) {
+    return this.setOverlayMode(cycleOverlayMode(this.overlayMode, direction));
+  }
+
+  selectOverlayByIndex(index) {
+    const mode = OVERLAY_MODES[index];
+    if (mode) this.setOverlayMode(mode);
+  }
+
+  syncOverlayPresentation() {
+    this.renderer?.setOverlayMode?.(this.overlayMode);
+    this.renderer?.setOverlayContext?.({
+      selection: this.selection,
+      followAgentId: this.followAgentId ?? this.selectedAgentId ?? null,
+      observerFactionId: this.observerFactionId
+    });
+    const summary = this.renderer?.getOverlaySummary?.();
+    if (!summary) return;
+    const signature = JSON.stringify(summary);
+    if (signature === this.overlaySummarySignature) return;
+    this.overlaySummarySignature = signature;
+    this.shell?.setOverlaySummary?.(summary);
   }
 
   ensureFollowTarget() {
@@ -405,7 +452,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
       this.runtime.dispatch({ type: paused ? 'clock.pause' : 'clock.resume' });
       const button = this.el?.querySelector('[data-shell-action="pause"]');
       if (button) { button.textContent = paused ? '▶' : 'Ⅱ'; button.setAttribute('aria-pressed', String(paused)); }
-    } else if (['Digit1', 'Digit2', 'Digit4'].includes(event.code)) {
+    } else if (!event.shiftKey && ['Digit1', 'Digit2', 'Digit4'].includes(event.code)) {
       const speed = Number(event.code.replace('Digit', ''));
       this.runtime.dispatch({ type: 'clock.set-speed', speed });
       this.el?.querySelectorAll('[data-shell-speed]').forEach(button => {
@@ -413,10 +460,22 @@ export class ObserveScreen extends Phase6ObserveScreen {
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', String(active));
       });
+    } else if (event.shiftKey && /^Digit[1-9]$/.test(event.code)) {
+      event.preventDefault();
+      this.selectOverlayByIndex(Number(event.code.slice(-1)) - 1);
     } else if (event.key === '/') {
       event.preventDefault();
       this.shell?.focusNavigatorSearch();
-    } else if (event.key.toLowerCase() === 'f') this.setCameraMode('follow');
+    } else if (event.key.toLowerCase() === 'v') { event.preventDefault(); this.cycleOverlay(event.shiftKey ? -1 : 1); }
+    else if (event.shiftKey && (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w')) { event.preventDefault(); this.cameraDirector?.tilt(-1); }
+    else if (event.shiftKey && (event.key === 'ArrowDown' || event.key.toLowerCase() === 's')) { event.preventDefault(); this.cameraDirector?.tilt(1); }
+    else if (event.key.toLowerCase() === 'q') { event.preventDefault(); this.cameraDirector?.rotate(-1); }
+    else if (event.key.toLowerCase() === 'e') { event.preventDefault(); this.cameraDirector?.rotate(1); }
+    else if (event.key.toLowerCase() === 'z') { event.preventDefault(); this.cameraDirector?.tilt(-1); }
+    else if (event.key.toLowerCase() === 'x') { event.preventDefault(); this.cameraDirector?.tilt(1); }
+    else if (event.key === '-' || event.key === '_') { event.preventDefault(); this.cameraDirector?.zoom(-1); }
+    else if (event.key === '=' || event.key === '+') { event.preventDefault(); this.cameraDirector?.zoom(1); }
+    else if (event.key.toLowerCase() === 'f') this.setCameraMode('follow');
     else if (event.key.toLowerCase() === 'r') this.resetCamera(true);
     else if (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w') { event.preventDefault(); this.panCamera(0, -3.4, true); }
     else if (event.key === 'ArrowDown' || event.key.toLowerCase() === 's') { event.preventDefault(); this.panCamera(0, 3.4, true); }
@@ -445,17 +504,23 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const dt = Math.min(this.three.clock.getDelta(), 0.045);
     this.viewModelClock -= dt;
     this.runtime?.update(dt * 0.62);
+    this.renderer.setOverlayMode?.(this.overlayMode);
+    this.renderer.setOverlayContext?.({ selection: this.selection, followAgentId: this.followAgentId ?? this.selectedAgentId ?? null, observerFactionId: this.observerFactionId });
     this.renderer.renderState(this.sim.snapshot());
+    this.syncOverlayPresentation();
     this.worldPicker?.refreshHighlights();
     this.refreshViewModel(false);
     if (this.cameraMode === 'follow') this.pushCameraToFollowTarget(false);
     if (this.cameraMode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, null, false);
-    this.three.updateCamera();
+    this.three.setAutoOrbitEnabled?.(this.cameraMode === 'follow');
+    this.three.updateCamera(dt);
     this.three.render();
     this.raf = requestAnimationFrame(() => this.loop());
   }
 
   destroy() {
+    this.cameraDirector?.destroy();
+    this.cameraDirector = null;
     this.uninstallWorldInteraction();
     window.removeEventListener('keydown', this.onKeyDown);
     this.shell?.destroy();

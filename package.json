@@ -45,12 +45,13 @@
     "test:campaign-map": "node tests/campaign-map-integration-audit.mjs",
     "test:asset-integration": "node tests/phase8-asset-resolver-smoke.mjs",
     "test:assets": "npm run test:miniatures && npm run test:fungal && npm run test:spider && npm run test:waystation && npm run test:residential && npm run test:flooded && npm run test:laboratory && npm run test:royal && npm run test:old-lantern && npm run test:central-market && npm run test:orc-barracks && npm run test:industrial && npm run test:ossuary && npm run test:campaign-completion && npm run test:campaign-placement && npm run test:campaign-map && npm run test:world-interaction && npm run test:asset-integration",
-    "test:production": "npm run validate:production-content && npm run test:content && npm run test:facade && npm run test:presentation && npm run test:assets && npm run test:campaign-layout && npm run test:environment-tasks && npm run test:settlement-operations && npm run test:zone-interactions",
+    "test:production": "npm run validate:production-content && npm run test:content && npm run test:facade && npm run test:presentation && npm run test:assets && npm run test:campaign-layout && npm run test:environment-tasks && npm run test:settlement-operations && npm run test:zone-interactions && npm run test:observer-controls",
     "test:world-interaction": "node tests/world-interaction-wp1-smoke.mjs && node tests/world-interaction-picker-runtime-smoke.mjs",
     "test:campaign-layout": "node tests/campaign-authored-layout-smoke.mjs && node tests/campaign-route-state-smoke.mjs",
     "test:environment-tasks": "node tests/wp3-environment-task-system-smoke.mjs && node tests/wp3-world-actions-smoke.mjs",
     "test:settlement-operations": "node tests/wp4-settlement-operations-smoke.mjs && node tests/wp4-settlement-actions-smoke.mjs",
-    "test:zone-interactions": "node tests/wp5-zone-interaction-system-smoke.mjs && node tests/wp5-zone-interaction-actions-smoke.mjs"
+    "test:zone-interactions": "node tests/wp5-zone-interaction-system-smoke.mjs && node tests/wp5-zone-interaction-actions-smoke.mjs",
+    "test:observer-controls": "node tests/wp6-overlay-model-smoke.mjs && node tests/wp6-camera-director-smoke.mjs && node tests/wp6-source-integration-smoke.mjs"
   },
   "keywords": [
     "threejs",
