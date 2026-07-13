@@ -8,6 +8,8 @@ import { applyPhase8PropLayout } from '../data/applyPhase8PropLayout.js';
 import { createLegacyGameRuntime } from '../application/GameRuntimeFactory.js';
 import { StrategyObserverShell } from '../ui/StrategyObserverShell.js';
 import { renderStrategyInspector } from '../ui/renderStrategyInspector.js';
+import { WorldInteractionPicker } from '../engine/WorldInteractionPicker.js';
+import { WorldInteractionTooltip } from '../ui/WorldInteractionTooltip.js';
 
 export class ObserveScreen extends Phase6ObserveScreen {
   constructor(options) {
@@ -24,6 +26,16 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.viewModel = null;
     this.viewModelClock = 0;
     this.onKeyDown = event => this.handleShortcut(event);
+    this.worldPicker = null;
+    this.worldTooltip = null;
+    this.worldPointerDown = null;
+    this.worldHoverFrame = null;
+    this.pendingWorldHover = null;
+    this.onWorldPointerDown = event => this.handleWorldPointerDown(event);
+    this.onWorldPointerMove = event => this.handleWorldPointerMove(event);
+    this.onWorldPointerUp = event => this.handleWorldPointerUp(event);
+    this.onWorldPointerLeave = () => this.handleWorldPointerLeave();
+    this.onWorldDoubleClick = event => this.handleWorldDoubleClick(event);
   }
 
   mount(root) {
@@ -52,11 +64,13 @@ export class ObserveScreen extends Phase6ObserveScreen {
       onAlertOpen: () => this.shell?.announce('Showing major, critical and historic events.')
     });
     this.shell.mount({ screenEl: this.el, viewport: this.viewport, inspectEl: this.inspectEl });
+    this.installWorldInteraction();
     window.addEventListener('keydown', this.onKeyDown);
     this.refreshViewModel(true);
   }
 
   selectEntity({ type, id, roomId = null }) {
+    this.worldPicker?.setSelected(null);
     this.selection = { type, id };
     this.selectedAgentId = type === 'agent' ? id : null;
     if (type === 'agent') this.followAgentId = id;
@@ -76,8 +90,113 @@ export class ObserveScreen extends Phase6ObserveScreen {
       roomId: type === 'room' ? id : null,
       settlementId: type === 'settlement' ? id : null,
       partyId: type === 'party' ? id : null,
-      factionId: type === 'faction' ? id : null
+      factionId: type === 'faction' ? id : null,
+      worldTarget: this.selection.worldTarget ?? null
     };
+  }
+
+  installWorldInteraction() {
+    this.uninstallWorldInteraction();
+    this.worldPicker = new WorldInteractionPicker({ renderer: this.renderer, three: this.three });
+    this.worldTooltip = new WorldInteractionTooltip(this.viewport);
+    this.viewport.addEventListener('pointerdown', this.onWorldPointerDown, true);
+    this.viewport.addEventListener('pointermove', this.onWorldPointerMove);
+    this.viewport.addEventListener('pointerup', this.onWorldPointerUp, true);
+    this.viewport.addEventListener('pointerleave', this.onWorldPointerLeave);
+    this.viewport.addEventListener('dblclick', this.onWorldDoubleClick, true);
+  }
+
+  uninstallWorldInteraction() {
+    if (this.viewport) {
+      this.viewport.removeEventListener('pointerdown', this.onWorldPointerDown, true);
+      this.viewport.removeEventListener('pointermove', this.onWorldPointerMove);
+      this.viewport.removeEventListener('pointerup', this.onWorldPointerUp, true);
+      this.viewport.removeEventListener('pointerleave', this.onWorldPointerLeave);
+      this.viewport.removeEventListener('dblclick', this.onWorldDoubleClick, true);
+    }
+    if (this.worldHoverFrame !== null) cancelAnimationFrame(this.worldHoverFrame);
+    this.worldHoverFrame = null;
+    this.pendingWorldHover = null;
+    this.worldPointerDown = null;
+    this.worldTooltip?.destroy();
+    this.worldPicker?.dispose();
+    this.worldTooltip = null;
+    this.worldPicker = null;
+  }
+
+  handleWorldPointerDown(event) {
+    if (event.button !== 0) return;
+    this.worldPointerDown = { x: event.clientX, y: event.clientY, time: performance.now() };
+  }
+
+  handleWorldPointerMove(event) {
+    if (this.worldPointerDown && Math.hypot(event.clientX - this.worldPointerDown.x, event.clientY - this.worldPointerDown.y) > 7) {
+      this.worldTooltip?.hide();
+      this.worldPicker?.setHovered(null);
+      return;
+    }
+    this.pendingWorldHover = { x: event.clientX, y: event.clientY };
+    if (this.worldHoverFrame !== null) return;
+    this.worldHoverFrame = requestAnimationFrame(() => {
+      this.worldHoverFrame = null;
+      const point = this.pendingWorldHover;
+      this.pendingWorldHover = null;
+      if (!point || !this.worldPicker) return;
+      const target = this.worldPicker.pick(point.x, point.y);
+      this.worldPicker.setHovered(target);
+      if (target) this.worldTooltip?.show(target, point.x, point.y);
+      else this.worldTooltip?.hide();
+    });
+  }
+
+  handleWorldPointerUp(event) {
+    const start = this.worldPointerDown;
+    this.worldPointerDown = null;
+    if (!start || event.button !== 0) return;
+    const moved = Math.hypot(event.clientX - start.x, event.clientY - start.y);
+    const elapsed = performance.now() - start.time;
+    if (moved > 10 || elapsed > 450) return;
+    const target = this.worldPicker?.pick(event.clientX, event.clientY) ?? null;
+    if (!target) return;
+    queueMicrotask(() => this.selectWorldTarget(target));
+  }
+
+  handleWorldPointerLeave() {
+    this.worldTooltip?.hide();
+    this.worldPicker?.setHovered(null);
+  }
+
+  handleWorldDoubleClick(event) {
+    const target = this.worldPicker?.pick(event.clientX, event.clientY) ?? null;
+    const point = this.worldPicker?.focusPoint(target);
+    if (!target || !point) return;
+    event.preventDefault();
+    this.selectWorldTarget(target);
+    this.cameraMode = 'free';
+    this.shell?.setCameraMode('free');
+    this.three.setCameraTarget(point.x, point.y + 1.5, point.z, 24, true);
+  }
+
+  selectWorldTarget(target) {
+    if (!target) return;
+    if (target.type === 'agent') {
+      this.selectEntity({ type: 'agent', id: target.id, roomId: target.roomId });
+      this.worldPicker?.setSelected(target);
+      return;
+    }
+    if (target.type === 'room' || target.type === 'settlement') {
+      this.selectEntity({ type: target.type, id: target.id, roomId: null });
+      this.worldPicker?.setSelected(target);
+      return;
+    }
+    this.selection = {
+      type: target.type,
+      id: target.id,
+      worldTarget: this.worldPicker?.publicTarget(target) ?? target
+    };
+    this.selectedAgentId = null;
+    this.worldPicker?.setSelected(target);
+    this.refreshViewModel(true);
   }
 
   refreshViewModel(force = false) {
@@ -138,6 +257,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
   clearSelection() {
     this.selection = null;
     this.selectedAgentId = null;
+    this.worldPicker?.setSelected(null);
     this.refreshViewModel(true);
   }
 
@@ -202,6 +322,13 @@ export class ObserveScreen extends Phase6ObserveScreen {
   focusSelection(immediate = false) {
     const selection = this.viewModel?.selection;
     if (!selection?.inspector) return;
+    const worldPoint = this.selection?.worldTarget ? this.worldPicker?.focusPoint() : null;
+    if (worldPoint) {
+      this.cameraMode = 'free';
+      this.shell?.setCameraMode('free');
+      this.three.setCameraTarget(worldPoint.x, worldPoint.y + 1.5, worldPoint.z, 24, immediate);
+      return;
+    }
     if (selection.type === 'agent') {
       this.selectedAgentId = selection.id;
       this.followAgentId = selection.id;
@@ -214,7 +341,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     const roomId = selection.type === 'room' ? selection.id
       : selection.type === 'settlement' ? inspector.roomId
         : selection.type === 'party' ? inspector.target?.roomId ?? inspector.base?.roomId
-          : null;
+          : inspector.roomId ?? inspector.location?.roomId ?? null;
     if (roomId) {
       this.cameraMode = 'free';
       this.shell?.setCameraMode('free');
@@ -291,6 +418,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.viewModelClock -= dt;
     this.runtime?.update(dt * 0.62);
     this.renderer.renderState(this.sim.snapshot());
+    this.worldPicker?.refreshHighlights();
     this.refreshViewModel(false);
     if (this.cameraMode === 'follow') this.pushCameraToFollowTarget(false);
     if (this.cameraMode === 'fixed') this.three.setCameraTarget(this.mapCamera.x, this.mapCamera.y, this.mapCamera.z, null, false);
@@ -300,6 +428,7 @@ export class ObserveScreen extends Phase6ObserveScreen {
   }
 
   destroy() {
+    this.uninstallWorldInteraction();
     window.removeEventListener('keydown', this.onKeyDown);
     this.shell?.destroy();
     this.shell = null;

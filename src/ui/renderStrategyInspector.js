@@ -1,14 +1,10 @@
 // Production strategy observer — context inspector renderer.
-// Route A handoff (stage 2): adds "layered depth" — the agent dossier now leads
-// with essentials (vitals, thought, location) and folds the deep sections
-// (home/logistics, personality, expedition, loadout, memories) into a native
-// <details> so the first read stays calm and density is available on demand.
 
 export function renderStrategyInspector(host, selection, { onClear = () => {}, onSelectAgent = () => {} } = {}) {
   if (!host) return;
   const dossierOpen = host.querySelector('.inspect-dossier')?.open ?? false;
   if (!selection?.inspector) {
-    host.innerHTML = '<div class="strategy-empty inspector-empty">Select an agent, party, settlement or room from the world.</div>';
+    host.innerHTML = '<div class="strategy-empty inspector-empty">Select an agent, party, settlement, room or world object.</div>';
     return;
   }
   const { type, inspector } = selection;
@@ -17,6 +13,7 @@ export function renderStrategyInspector(host, selection, { onClear = () => {}, o
   else if (type === 'settlement') host.innerHTML = renderSettlement(inspector);
   else if (type === 'room') host.innerHTML = renderRoom(inspector);
   else if (type === 'faction') host.innerHTML = renderFaction(inspector);
+  else if (['cargo', 'structure', 'prop', 'landmark', 'story-prop', 'interaction-socket', 'route'].includes(type)) host.innerHTML = renderWorldTarget(inspector);
   else host.innerHTML = '<div class="strategy-empty">No inspector surface for this selection.</div>';
 
   const dossier = host.querySelector('.inspect-dossier');
@@ -77,10 +74,33 @@ function renderSettlement(value) {
 }
 
 function renderRoom(value) {
+  const status = value.status ?? {};
+  const resourceRows = Object.entries(value.resources ?? {}).map(([key, amount]) => row(key, amount));
+  const routeRows = (value.routes ?? []).map(route => row(route.otherRoomId, route.state, `${route.kind}${route.hidden ? ' · hidden' : ''}${route.locked ? ' · locked' : ''}`));
+  const propRows = (value.props ?? []).slice(0, 10).map(prop => row(prop.label, prop.state ?? prop.type ?? 'present', prop.type ?? ''));
   return `${header(value.identity.name, `${value.identity.kind ?? 'room'}${value.identity.zoneCode ? ` · ${value.identity.zoneCode}` : ''}`)}
-    <div class="inspect-grid">${stat(`${value.size.w}×${value.size.d}`, 'size')}${stat(value.occupants.length, 'occupants')}${stat(value.props.length, 'props')}${stat(value.connections.length, 'connections')}</div>
-    ${value.ownership ? section('Ownership', [row('faction', value.ownership.factionId ?? 'none', value.ownership.control == null ? '' : `${Math.round(value.ownership.control)} control`)]) : ''}
-    ${section(`Occupants · ${value.occupants.length}`, value.occupants.length ? value.occupants.map(agent => `<button class="strategy-related-row" data-inspect-agent="${esc(agent.id)}"><span>${esc(agent.name)}</span><b>${esc(agent.role ?? '')}</b></button>`) : ['<div class="strategy-empty">No occupants</div>'])}`;
+    <div class="inspect-grid">${stat(`${value.size.w}×${value.size.d}`, 'size')}${stat(value.occupants.length, 'occupants')}${stat(value.props.length, 'props')}${stat(value.routes?.length ?? value.connections.length, 'routes')}</div>
+    ${section('State', [
+      row('visual', status.visualState ?? 'default', status.settlementState ?? ''),
+      row('visited', value.visited ? 'yes' : 'no', value.secret ? 'secret-linked' : ''),
+      row('danger', status.danger == null ? '—' : Math.round(status.danger), `${status.hostileOccupants ?? 0} hostile occupants`),
+      row('tier', status.tier ?? '—', status.contested ? 'contested' : '')
+    ])}
+    ${value.ownership ? section('Ownership', [row('faction', value.ownership.factionId ?? 'none', value.ownership.control == null ? '' : `${Math.round(value.ownership.control)} control`), row('contest', value.ownership.contested ? 'active' : 'clear')]) : ''}
+    ${resourceRows.length ? section('Resources', resourceRows) : ''}
+    ${routeRows.length ? section(`Routes · ${routeRows.length}`, routeRows) : ''}
+    ${propRows.length ? dossier(`Props · ${value.props.length}`, section('Room props', propRows)) : ''}
+    ${section(`Occupants · ${value.occupants.length}`, value.occupants.length ? value.occupants.map(agent => `<button class="strategy-related-row" data-inspect-agent="${esc(agent.id)}"><span>${esc(agent.name)}</span><b>${esc(agent.role ?? '')}</b><em>${esc(agent.factionId ?? '')}</em></button>`) : ['<div class="strategy-empty">No occupants</div>'])}`;
+}
+
+function renderWorldTarget(value) {
+  if (!value) return '<div class="strategy-empty">No data for this world object.</div>';
+  const details = (value.details ?? []).map(item => row(item.label, item.value));
+  const affordances = (value.affordances ?? []).map(item => `<span class="inventory-chip">${esc(String(item).replaceAll('-', ' '))}</span>`).join('');
+  return `${header(value.identity?.name ?? value.identity?.id ?? 'World object', `${value.kind ?? 'target'} · ${value.state ?? 'present'}`)}
+    <div class="inspect-room">${value.roomId ? `Room ${esc(value.roomId)}` : 'World-space object'}</div>
+    ${details.length ? section('Details', details) : ''}
+    ${affordances ? `<section class="equipment-panel"><strong>Interaction surface</strong><div class="inventory-line">${affordances}</div><small>WP1 exposes selection and inspection. Task commands are intentionally deferred to WP3.</small></section>` : ''}`;
 }
 
 function renderEquipment(value) {
