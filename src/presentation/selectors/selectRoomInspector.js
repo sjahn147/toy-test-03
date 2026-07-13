@@ -1,3 +1,5 @@
+import { selectWorldTaskActions } from './selectWorldTaskActions.js';
+
 // room inspector selector (surface.inspector.room).
 
 const SECRET_TAGS = new Set(['secret-route', 'secret_route']);
@@ -139,6 +141,9 @@ export function selectRoomInspector(state, roomId) {
     };
   }
 
+  const taskSurface = selectWorldTaskActions(state, { type: 'room', id: roomId, roomId, label: identity.name });
+  result.actions = taskSurface.actions;
+  result.tasks = taskSurface.tasks;
   return result;
 }
 

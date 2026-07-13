@@ -118,14 +118,17 @@ export class WorldInteractionPicker {
         if (!node?.name) return;
         const semanticType = semanticTypeFor(node.name, storyNode, sockets);
         if (!semanticType) return;
+        const semanticRoute = semanticType === 'route'
+          ? resolveSemanticRoute(this.renderer.scenario?.routes ?? [], roomId, node.name)
+          : null;
         const target = makeTarget({
           type: semanticType,
-          id: `${roomId ?? 'room'}:${node.name}`,
-          roomId,
+          id: semanticRoute?.id ?? `${roomId ?? 'room'}:${node.name}`,
+          roomId: semanticRoute ? roomId : roomId,
           assetId,
           semanticName: node.name,
           object: node,
-          label: readable(node.name)
+          label: semanticRoute ? routeLabel(semanticRoute) : readable(node.name)
         });
         this.targetByObject.set(node, target);
         this.targetByKey.set(targetKey(target), target);
@@ -147,14 +150,18 @@ export class WorldInteractionPicker {
 
   registerRoutes() {
     const directChildren = this.renderer.group?.children ?? [];
-    const seen = new Set();
+    const seenIds = new Set();
     for (const object of directChildren) {
-      const connectionId = object?.userData?.connectionId;
-      if (!connectionId || seen.has(object)) continue;
-      seen.add(object);
+      const routeId = object?.userData?.routeId ?? object?.userData?.connectionId;
+      if (!routeId || seenIds.has(routeId)) continue;
+      seenIds.add(routeId);
+      const route = this.renderer.scenario?.routes?.find(candidate => candidate.id === routeId) ?? null;
       this.register(object, makeTarget({
-        type: 'route', id: connectionId, object,
-        label: `Route ${readable(connectionId)}`
+        type: 'route',
+        id: routeId,
+        roomId: object.userData?.roomId ?? object.userData?.fromRoomId ?? route?.from ?? null,
+        object,
+        label: route ? routeLabel(route) : `Route ${readable(routeId)}`
       }));
     }
   }
@@ -261,6 +268,21 @@ function makeTarget({ type, id, roomId = null, label = null, semanticName = null
     assetId,
     object
   };
+}
+
+function resolveSemanticRoute(routes, roomId, semanticName) {
+  if (!roomId || !semanticName) return null;
+  const tokens = String(semanticName).split(/[._:-]+/).filter(Boolean);
+  const candidateRoomId = tokens.find(token => /^[A-M]\d{2}$/i.test(token))?.toUpperCase() ?? null;
+  if (!candidateRoomId) return null;
+  return routes.find(route =>
+    (route.from === roomId && route.to === candidateRoomId) ||
+    (route.to === roomId && route.from === candidateRoomId)
+  ) ?? null;
+}
+
+function routeLabel(route) {
+  return `${route.from ?? '?'} → ${route.to ?? '?'} · ${readable(route.kind ?? 'route')}`;
 }
 
 function readable(value) {

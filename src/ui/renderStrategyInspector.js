@@ -1,6 +1,11 @@
 // Production strategy observer — context inspector renderer.
 
-export function renderStrategyInspector(host, selection, { onClear = () => {}, onSelectAgent = () => {} } = {}) {
+export function renderStrategyInspector(host, selection, {
+  onClear = () => {},
+  onSelectAgent = () => {},
+  onWorldAction = () => {},
+  onCancelTask = () => {}
+} = {}) {
   if (!host) return;
   const dossierOpen = host.querySelector('.inspect-dossier')?.open ?? false;
   if (!selection?.inspector) {
@@ -20,6 +25,10 @@ export function renderStrategyInspector(host, selection, { onClear = () => {}, o
   if (dossier) dossier.open = dossierOpen;
   host.querySelector('[data-clear-inspect]')?.addEventListener('click', onClear);
   host.querySelectorAll('[data-inspect-agent]').forEach(button => button.addEventListener('click', () => onSelectAgent(button.dataset.inspectAgent)));
+  host.querySelectorAll('[data-world-action]').forEach(button => button.addEventListener('click', () => {
+    if (!button.disabled) onWorldAction(button.dataset.worldAction);
+  }));
+  host.querySelectorAll('[data-cancel-environment-task]').forEach(button => button.addEventListener('click', () => onCancelTask(button.dataset.cancelEnvironmentTask)));
 }
 
 function renderFaction(value) {
@@ -90,6 +99,7 @@ function renderRoom(value) {
     ${resourceRows.length ? section('Resources', resourceRows) : ''}
     ${routeRows.length ? section(`Routes · ${routeRows.length}`, routeRows) : ''}
     ${propRows.length ? dossier(`Props · ${value.props.length}`, section('Room props', propRows)) : ''}
+    ${renderTaskSurface(value)}
     ${section(`Occupants · ${value.occupants.length}`, value.occupants.length ? value.occupants.map(agent => `<button class="strategy-related-row" data-inspect-agent="${esc(agent.id)}"><span>${esc(agent.name)}</span><b>${esc(agent.role ?? '')}</b><em>${esc(agent.factionId ?? '')}</em></button>`) : ['<div class="strategy-empty">No occupants</div>'])}`;
 }
 
@@ -100,7 +110,17 @@ function renderWorldTarget(value) {
   return `${header(value.identity?.name ?? value.identity?.id ?? 'World object', `${value.kind ?? 'target'} · ${value.state ?? 'present'}`)}
     <div class="inspect-room">${value.roomId ? `Room ${esc(value.roomId)}` : 'World-space object'}</div>
     ${details.length ? section('Details', details) : ''}
-    ${affordances ? `<section class="equipment-panel"><strong>Interaction surface</strong><div class="inventory-line">${affordances}</div><small>WP1 exposes selection and inspection. Task commands are intentionally deferred to WP3.</small></section>` : ''}`;
+    ${affordances ? `<section class="equipment-panel"><strong>Interaction surface</strong><div class="inventory-line">${affordances}</div></section>` : ''}
+    ${renderTaskSurface(value)}`;
+}
+
+function renderTaskSurface(value) {
+  const actions = value.actions ?? [];
+  const tasks = value.tasks ?? [];
+  if (!actions.length && !tasks.length) return '';
+  const taskRows = tasks.map(task => `<div class="environment-task-row"><b>${esc(task.label)}</b><button class="environment-task-cancel" data-cancel-environment-task="${esc(task.id)}">cancel</button><span>${esc(task.status)}${task.assignedAgentId ? ` · ${esc(task.assignedAgentId)}` : ''}</span><small>${Math.round((task.progress ?? 0) * 100)}%</small><progress max="1" value="${Math.max(0, Math.min(1, task.progress ?? 0))}"></progress></div>`).join('');
+  const actionRows = actions.map(action => `<button class="environment-action-button" data-world-action="${esc(action.id)}" ${action.enabled ? '' : 'disabled'}><b>${esc(action.label)}</b><span>${esc(action.enabled ? action.description : action.reason ?? action.description)}</span><em>${action.enabled ? 'assign' : 'blocked'}</em></button>`).join('');
+  return `<section class="equipment-panel environment-action-panel"><strong>Field orders</strong>${taskRows ? `<div class="environment-action-list">${taskRows}</div>` : ''}${actionRows ? `<div class="environment-action-list">${actionRows}</div>` : ''}</section>`;
 }
 
 function renderEquipment(value) {

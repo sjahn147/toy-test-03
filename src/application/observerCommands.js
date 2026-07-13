@@ -32,6 +32,20 @@ export const OBSERVER_COMMANDS = {
     requireSim(context).dropCoin(command?.roomId);
     return { roomId: command?.roomId ?? null };
   },
+  'world.perform-action': (context, command) => {
+    const sim = requireSim(context);
+    if (!sim.environmentTaskSystem) throw new Error('environment task system is unavailable');
+    const response = sim.environmentTaskSystem.enqueue(command, sim);
+    if (!response.ok) throw new Error(response.error);
+    return response.result;
+  },
+  'world.cancel-task': (context, command) => {
+    const sim = requireSim(context);
+    if (!sim.environmentTaskSystem) throw new Error('environment task system is unavailable');
+    const response = sim.environmentTaskSystem.cancel(command?.taskId, sim);
+    if (!response.ok) throw new Error(response.error);
+    return response.result;
+  },
   'clock.pause': context => {
     requireAdapter(context).paused = true;
     return { paused: true };
