@@ -194,7 +194,7 @@ export function decideHeroAction(agent, sim, skillSystem) {
       const action = castAvailable(agent, definition, skillSystem, sim, 'pev-borrowed-shape', { targetId: ally.id, targetRoomId: agent.roomId });
       if (action) return action;
     }
-    if (hostiles.length || (sim?.heroEnvironmentSystem?.fields ?? []).some(field => field.roomId === agent.roomId)) {
+    if (hostiles.length || [...(sim?.heroEnvironmentSystem?.fields?.values?.() ?? [])].some(field => field.roomId === agent.roomId)) {
       return castAvailable(agent, definition, skillSystem, sim, 'pev-purifying-bubble', { targetRoomId: agent.roomId });
     }
   }
@@ -237,7 +237,7 @@ export function decideHeroAction(agent, sim, skillSystem) {
   }
 
   if (definition.id === 'hero.sleeping-gardener') {
-    const hostileFields = [...(sim?.heroEnvironmentSystem?.fields ?? []), ...(sim?.heroSkillSystem?.zones ?? [])].filter(item => item.roomId === agent.roomId && item.ownerId !== agent.id);
+    const hostileFields = [...(sim?.heroEnvironmentSystem?.fields?.values?.() ?? []), ...(sim?.heroSkillSystem?.zones ?? [])].filter(item => item.roomId === agent.roomId && item.ownerId !== agent.id);
     if (hostileFields.length) {
       const action = castAvailable(agent, definition, skillSystem, sim, 'gardener-prune-the-blight', { targetRoomId: agent.roomId });
       if (action) return action;
