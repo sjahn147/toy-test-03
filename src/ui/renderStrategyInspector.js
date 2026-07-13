@@ -77,9 +77,20 @@ function renderParty(value) {
 
 function renderSettlement(value) {
   const resources = value.resources ? Object.entries(value.resources).map(([key, amount]) => row(key, amount, '')).join('') : '';
+  const management = value.management ?? {};
+  const services = Object.entries(value.services ?? {}).map(([key, active]) => row(key, active ? 'open' : 'closed', active ? 'available' : 'unavailable'));
+  const nextUpgrade = value.nextUpgrade ? section('Next restoration tier', [
+    row('materials', value.nextUpgrade.materials ?? 0, `stored ${value.resources?.materials ?? 0}`),
+    row('supply', value.nextUpgrade.supply ?? 0, `reserved ${management.supplyReserve ?? 0}`),
+    row('labor', value.nextUpgrade.labor ?? 0, value.upgradeProgress == null ? '' : `${Math.round(value.upgradeProgress)} progress`)
+  ]) : '';
   return `${header(value.identity.name ?? value.identity.id, `${value.identity.state} · ${value.factionId ?? 'unaffiliated'}`)}
-    <div class="inspect-grid">${stat(`${value.population.current}/${value.population.capacity}`, 'population')}${stat(value.integrity == null ? '—' : Math.round(value.integrity), 'integrity')}${stat(value.control == null ? '—' : Math.round(value.control), 'control')}${stat(value.buildings?.length ?? 0, 'buildings')}</div>
-    ${resources ? `<section class="equipment-panel"><strong>Stocks</strong>${resources}</section>` : ''}`;
+    <div class="inspect-grid">${stat(`${value.population.current}/${value.population.capacity}`, 'population')}${stat(value.integrity == null ? '—' : Math.round(value.integrity), 'integrity')}${stat(value.control == null ? '—' : Math.round(value.control), 'control')}${stat(value.identity.tier ?? 0, 'tier')}</div>
+    ${section('Management', [row('workers', management.workers ?? 0, `target ${management.workerTarget ?? 0}`), row('garrison', management.garrison ?? 0, `target ${management.garrisonTarget ?? 0}`), row('defense', management.defenseMode ?? 'normal', `supply reserve ${management.supplyReserve ?? 0}`)])}
+    ${nextUpgrade}
+    ${services.length ? section('Inn services', services) : ''}
+    ${resources ? `<section class="equipment-panel"><strong>Stocks</strong>${resources}</section>` : ''}
+    ${renderTaskSurface(value)}`;
 }
 
 function renderRoom(value) {

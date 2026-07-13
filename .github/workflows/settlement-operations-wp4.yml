@@ -1,0 +1,13 @@
+name: Settlement operations WP4
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  settlement-operations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm run test:settlement-operations

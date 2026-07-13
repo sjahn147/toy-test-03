@@ -49,6 +49,7 @@ export const ENTITY_TABLES = [
   'cargo',
   'structures',
   'environmentTasks',
+  'settlementOrders',
   'effects'
 ];
 
@@ -57,7 +58,9 @@ export const INDEX_NAMES = [
   'propsByRoom',
   'settlementsByFaction',
   'environmentTasksByRoom',
-  'environmentTasksByTarget'
+  'environmentTasksByTarget',
+  'settlementOrdersByRoom',
+  'settlementOrdersBySettlement'
 ];
 
 const CLOCK_KEYS = ['time', 'turn', 'ended'];
