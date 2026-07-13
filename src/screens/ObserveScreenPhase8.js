@@ -192,7 +192,13 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.selection = {
       type: target.type,
       id: target.id,
-      worldTarget: this.worldPicker?.publicTarget(target) ?? target
+      worldTarget: {
+        ...(this.worldPicker?.publicTarget(target) ?? target),
+        worldPoint: (() => {
+          const point = this.worldPicker?.focusPoint(target);
+          return point ? { x: point.x, y: point.y, z: point.z } : null;
+        })()
+      }
     };
     this.selectedAgentId = null;
     this.worldPicker?.setSelected(target);
@@ -217,8 +223,30 @@ export class ObserveScreen extends Phase6ObserveScreen {
     });
     renderStrategyInspector(this.inspectEl, this.viewModel.selection, {
       onClear: () => this.clearSelection(),
-      onSelectAgent: id => this.selectEntity({ type: 'agent', id })
+      onSelectAgent: id => this.selectEntity({ type: 'agent', id }),
+      onWorldAction: actionId => this.performWorldAction(actionId),
+      onCancelTask: taskId => this.cancelWorldTask(taskId)
     });
+  }
+
+  performWorldAction(actionId) {
+    if (!this.selection || !actionId) return;
+    const type = this.selection.type;
+    const id = this.selection.id;
+    const target = this.selection.worldTarget ?? {
+      type, id,
+      roomId: type === 'room' ? id : null,
+      label: this.viewModel?.selection?.inspector?.identity?.name ?? id
+    };
+    const result = this.runtime.dispatch({ type: 'world.perform-action', actionId, target });
+    this.shell?.announce(result.ok ? `${result.result?.label ?? actionId} assigned.` : `Order failed: ${result.error}`);
+    this.refreshViewModel(true);
+  }
+
+  cancelWorldTask(taskId) {
+    const result = this.runtime.dispatch({ type: 'world.cancel-task', taskId });
+    this.shell?.announce(result.ok ? 'Task cancelled.' : `Cancel failed: ${result.error}`);
+    this.refreshViewModel(true);
   }
 
   togglePinnedEvent(eventId) {

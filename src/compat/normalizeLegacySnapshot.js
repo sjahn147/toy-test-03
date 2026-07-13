@@ -152,6 +152,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const parties = enrichLegacyParties(tableOf(raw.expedition?.parties, 'party'), agents);
   const cargo = tableOf(raw.logistics?.cargo, 'cargo');
   const structures = tableOf(raw.construction?.structures, 'structure');
+  const environmentTasks = tableOf(raw.environmentTasks?.tasks, 'environment-task');
   const factions = factionTable(agents, settlements);
 
   const visited = new Set(Array.isArray(raw.visited) ? raw.visited : []);
@@ -163,13 +164,15 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       turn: finiteNumber(turn ?? raw.turn),
       ended: raw.ended === true
     },
-    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, effects },
+    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, effects },
     indexes: {
       agentsByRoom: groupIndex(agents, agent =>
         agent.alive !== false && agent.departed !== true ? agent.roomId : null
       ),
       propsByRoom: groupIndex(props, prop => prop.roomId),
-      settlementsByFaction: groupIndex(settlements, settlement => settlement.factionId)
+      settlementsByFaction: groupIndex(settlements, settlement => settlement.factionId),
+      environmentTasksByRoom: groupIndex(environmentTasks, task => task.targetRoomId),
+      environmentTasksByTarget: groupIndex(environmentTasks, task => task.targetId)
     },
     events: Array.isArray(events)
       ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object')

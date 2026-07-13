@@ -1,3 +1,5 @@
+import { selectWorldTaskActions } from './selectWorldTaskActions.js';
+
 const SECRET_TAGS = new Set(['secret-route', 'secret_route']);
 
 function table(state, name) {
@@ -7,11 +9,15 @@ function table(state, name) {
 
 export function selectWorldInteractionInspector(state, target) {
   if (!target || typeof target !== 'object' || !target.type || !target.id) return null;
-  if (target.type === 'cargo') return selectCargo(state, target);
-  if (target.type === 'structure') return selectStructure(state, target);
-  if (target.type === 'prop') return selectProp(state, target);
-  if (target.type === 'route') return selectRoute(state, target);
-  return selectSemantic(state, target);
+  let inspector;
+  if (target.type === 'cargo') inspector = selectCargo(state, target);
+  else if (target.type === 'structure') inspector = selectStructure(state, target);
+  else if (target.type === 'prop') inspector = selectProp(state, target);
+  else if (target.type === 'route') inspector = selectRoute(state, target);
+  else inspector = selectSemantic(state, target);
+  if (!inspector) return null;
+  const taskSurface = selectWorldTaskActions(state, target);
+  return { ...inspector, actions: taskSurface.actions, tasks: taskSurface.tasks };
 }
 
 function selectCargo(state, target) {
