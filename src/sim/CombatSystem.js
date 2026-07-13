@@ -69,7 +69,8 @@ export class CombatSystem {
     this.initializeAgent(target);
     if (agent.combat || agent.downed || target.downed || !agent.alive || !target.alive) return false;
 
-    const amount = rollDamage(agent);
+    const rolledAmount = rollDamage(agent);
+    const amount = sim.heroSkillSystem?.modifyOutgoingDamage?.(agent, target, rolledAmount) ?? rolledAmount;
     if (RANGED_ROLES.has(agent.role)) {
       const projectileType = rangedType(agent.role);
       sim.projectileSystem.spawn({

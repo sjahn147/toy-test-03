@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "campaignId": "sleeping-citadel",
+  "scope": "WP8-1 foundation + WP8-2A frontline trio",
+  "heroes": [
+    {
+      "id": "hero.nibble",
+      "role": "hero-nibble",
+      "name": "Nibble Hundred-Button",
+      "factionId": "goblin-clan",
+      "initialRoomId": "D19"
+    },
+    {
+      "id": "hero.kirik",
+      "role": "hero-kirik",
+      "name": "Kirik, Third Gear",
+      "factionId": "copper-tail-clutch",
+      "initialRoomId": "D18"
+    },
+    {
+      "id": "hero.karg",
+      "role": "hero-karg",
+      "name": "Karg Twice-Defeated",
+      "factionId": "red-tusk-tribe",
+      "initialRoomId": "J49"
+    }
+  ]
+}

@@ -7,6 +7,9 @@ import { SpawnNetworkSystem } from './SpawnNetworkSystem.js';
 import { EliteEcologySystem } from './EliteEcologySystem.js';
 import { EliteAbilitySystem } from './EliteAbilitySystem.js';
 import { EliteBehaviorSystem } from './EliteBehaviorSystem.js';
+import { HeroSystem } from './heroes/HeroSystem.js';
+import { HeroSkillSystem } from './heroes/HeroSkillSystem.js';
+import { HeroLeadershipSystem } from './heroes/HeroLeadershipSystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -44,9 +47,17 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.spawnNetworkSystem.initialize(this);
     this.eliteEcologySystem.initialize(this);
     this.eliteAbilitySystem.initialize(this);
+    this.heroSystem = new HeroSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroSkillSystem = new HeroSkillSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroLeadershipSystem = new HeroLeadershipSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroSystem.initialize(this);
+    this.heroSkillSystem.initialize(this);
   }
 
   update(dt) {
+    this.heroSystem.update(dt, this);
+    this.heroSkillSystem.update(dt, this);
+    this.heroLeadershipSystem.update(dt, this);
     this.eliteEcologySystem.update(dt, this);
     this.eliteAbilitySystem.update(dt, this);
     this.eliteBehaviorSystem.update(dt, this);
@@ -60,6 +71,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
 
   resolve(agent, action) {
     if (this.isActive(agent) && !agent.travel && !agent.combat) {
+      const heroAction = this.heroSkillSystem.decide(agent, this);
+      if (heroAction && this.heroSkillSystem.resolve(agent, heroAction, this)) return;
       const eliteAbility = this.eliteAbilitySystem.decide(agent, this);
       if (eliteAbility && this.eliteAbilitySystem.resolve(agent, eliteAbility, this)) return;
       const eliteBehavior = this.eliteBehaviorSystem.decide(agent, this);
@@ -93,6 +106,18 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     super.resolve(agent, action);
   }
 
+  beginTravel(agent, toRoomId) {
+    if (this.heroSkillSystem?.isMovementBlocked(agent)) {
+      this.event(`${agent.name} cannot move while deployed as a hero bastion.`, { type: 'hero-movement-blocked', agentId: agent.id, roomId: agent.roomId });
+      return false;
+    }
+    if (this.heroSkillSystem?.isRouteBlocked(agent.roomId, toRoomId, agent)) {
+      this.event(`${agent.name} was stopped by a hero-controlled route.`, { type: 'hero-route-blocked', agentId: agent.id, fromRoomId: agent.roomId, toRoomId });
+      return false;
+    }
+    return super.beginTravel(agent, toRoomId);
+  }
+
   finalizeDeath(source, target) {
     if (target?.eliteStatuses?.deathless?.remaining > 0) {
       target.hp = 1;
@@ -102,6 +127,7 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       this.event(`${target.name} remains standing under a deathless ward.`, { type: 'elite-death-prevented', agentId: target.id });
       return;
     }
+    this.heroSystem.onAgentDeath(target, this);
     this.eliteEcologySystem.onAgentDeath(target, this);
     this.zoneInteractionSystem.clearAgent(target, 'agent-lost');
     this.settlementOperationsSystem.clearAgent(target, 'agent-lost');
@@ -146,7 +172,10 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       spawnNetwork: this.spawnNetworkSystem.snapshot(),
       eliteEcology: this.eliteEcologySystem.snapshot(),
       eliteAbilities: this.eliteAbilitySystem.snapshot(),
-      eliteBehavior: this.eliteBehaviorSystem.snapshot()
+      eliteBehavior: this.eliteBehaviorSystem.snapshot(),
+      heroes: this.heroSystem.snapshot(),
+      heroSkills: this.heroSkillSystem.snapshot(),
+      heroLeadership: this.heroLeadershipSystem.snapshot()
     };
   }
 
@@ -160,7 +189,10 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...this.spawnNetworkSystem.metrics(),
       ...this.eliteEcologySystem.metrics(),
       ...this.eliteAbilitySystem.metrics(),
-      ...this.eliteBehaviorSystem.metrics()
+      ...this.eliteBehaviorSystem.metrics(),
+      ...this.heroSystem.metrics(),
+      ...this.heroSkillSystem.metrics(),
+      ...this.heroLeadershipSystem.metrics()
     };
   }
 }

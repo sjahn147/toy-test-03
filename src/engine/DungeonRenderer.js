@@ -1,6 +1,8 @@
 import { THREE } from './ThreeScene.js';
 import { AssetRegistry } from './AssetRegistry.js';
 import { animateEliteMiniature } from '../miniatures/MiniatureAnimator.js';
+import { animateHeroMiniature } from './heroes/HeroAnimator.js';
+import { animateHeroEffect } from './heroes/HeroTelegraphRenderer.js';
 import { buildDungeonTopology, sampleConnection, roomSurfaceY } from './DungeonTopology.js';
 import { AuthoredRouteRenderer } from './AuthoredRouteRenderer.js';
 
@@ -214,7 +216,7 @@ export class DungeonRenderer {
         mesh.position.lerp(targetPosition, interpolation);
       }
       if (target.rotation !== undefined) mesh.rotation.y = target.rotation;
-      animateEliteMiniature(mesh, agent, time);
+      if (!animateHeroMiniature(mesh, agent, time)) animateEliteMiniature(mesh, agent, time);
       mesh.visible = true;
 
       const hp = mesh.getObjectByName('hp');
@@ -318,6 +320,7 @@ export class DungeonRenderer {
 
       const age = Math.max(0, time - effect.createdAt);
       const progress = Math.min(1, age / effect.duration);
+      if (animateHeroEffect(mesh, effect, age, progress)) continue;
       const rise = effect.type === 'gold' ? progress * 1.1 : progress * 0.35;
       mesh.position.y += rise;
       mesh.rotation.y += effect.type === 'gold' ? 0.18 : 0.08;
