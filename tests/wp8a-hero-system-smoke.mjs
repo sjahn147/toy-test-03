@@ -13,15 +13,21 @@ const sim = {
   emitEffect(type, payload) { events.push({ type, ...payload }); }
 };
 
+// HeroSystem spawns one agent per definition in the shared HeroDefinitions
+// registry, which later work packages (WP8b onward) append more heroes to -
+// so these checks confirm WP8a's trio is present and every spawned agent is
+// unique/placed, rather than that the registry is frozen at exactly 3.
 const system = new HeroSystem({ onEvent: (text, meta) => events.push({ text, ...meta }) });
 system.initialize(sim);
-assert.equal(sim.agents.length, 3);
-assert.deepEqual(sim.agents.map(agent => agent.heroId).sort(), ['hero.karg', 'hero.kirik', 'hero.nibble']);
-assert.equal(new Set(sim.agents.map(agent => agent.id)).size, 3);
-assert.equal(placements.length, 3);
+assert.ok(sim.agents.length >= 3);
+const heroIds = sim.agents.map(agent => agent.heroId);
+for (const id of ['hero.karg', 'hero.kirik', 'hero.nibble']) assert.ok(heroIds.includes(id), `missing ${id}`);
+assert.equal(new Set(sim.agents.map(agent => agent.id)).size, sim.agents.length, 'every spawned hero agent must have a unique id');
+assert.equal(placements.length, sim.agents.length);
 
+const totalAfterFirstInit = sim.agents.length;
 system.initialize(sim);
-assert.equal(sim.agents.length, 3, 'heroes must not duplicate on repeated initialization');
+assert.equal(sim.agents.length, totalAfterFirstInit, 'heroes must not duplicate on repeated initialization');
 
 const nibble = sim.agents.find(agent => agent.heroId === 'hero.nibble');
 nibble.hp = Math.floor(nibble.maxHp * 0.55);
@@ -47,7 +53,7 @@ system.initialize(sim);
 assert.equal(sim.agents.length, count, 'dead unique hero must not respawn');
 
 const snapshot = system.snapshot();
-assert.equal(snapshot.heroes.length, 3);
+assert.ok(snapshot.heroes.length >= 3);
 assert.doesNotThrow(() => JSON.stringify(snapshot));
-assert.equal(system.metrics().heroDefinitions, 3);
+assert.ok(system.metrics().heroDefinitions >= 3);
 console.log('WP8-A hero system smoke passed');

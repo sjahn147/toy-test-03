@@ -36,6 +36,7 @@ const hero = source => Object.freeze({
   }),
   passive: Object.freeze({ ...source.passive }),
   leadership: Object.freeze({ ...source.leadership }),
+  runtimeDefaults: Object.freeze({ ...(source.runtimeDefaults ?? {}) }),
   skills: Object.freeze(source.skills)
 });
 
@@ -283,7 +284,258 @@ export const HERO_DEFINITIONS = Object.freeze({
         ai: { priority: 10, healthBelow: 0.36 }
       })
     ]
+  }),
+
+  'hero.isara': hero({
+    id: 'hero.isara',
+    role: 'hero-isara',
+    displayName: 'Isara of the Black Veil',
+    localizedName: '검은 베일의 이사라',
+    factionId: 'undead-host',
+    species: 'wraith',
+    size: 'medium',
+    initialRoomId: 'E25',
+    encounterRoomId: 'E25',
+    baseStats: { hp: 96, attack: 11, courage: 25, armor: 1, speed: 1.08 },
+    relationship: { initial: -35 },
+    runtimeDefaults: { heroStance: 'veiled', spectral: true },
+    visual: {
+      bodyPlan: 'hero-spectral-veil',
+      animationProfile: 'isara-spectral',
+      scale: 1.08,
+      indicatorRadius: 0.67,
+      markerHeight: 2.75,
+      palette: {
+        skin: 0xa9dbea,
+        cloth: 0x131827,
+        clothInner: 0x243a57,
+        leather: 0x26303c,
+        metal: 0x647b86,
+        brass: 0x8ca5aa,
+        accent: 0xc8f3ff,
+        dark: 0x080c14
+      },
+      silhouette: ['floating-crown', 'empty-inverted-veil', 'detached-hands'],
+      dedicatedParts: ['six-segment-funeral-veil', 'verdigris-crown', 'detached-spectral-hands', 'vertical-face-void', 'shadow-tail-chain', 'inner-memory-faces', 'torn-veil-stage', 'crown-fracture-stage']
+    },
+    passive: {
+      id: 'isara-incorporeal',
+      name: 'Incorporeal Sovereign',
+      description: 'Isara ignores traps and temporary barricades, resists ordinary physical attacks, and is vulnerable to holy damage.'
+    },
+    leadership: {
+      radius: 'same-room-and-adjacent',
+      wraithSpeedMultiplier: 1.16,
+      wraithCourageBonus: 3,
+      veilDamageMultiplier: 0.82
+    },
+    skills: [
+      skill('isara-mourning-veil', 'Mourning Veil', {
+        cooldown: 14,
+        windup: 1.75,
+        recovery: 0.8,
+        targetPolicy: 'room-center',
+        telegraph: { shape: 'mourning-veil', radius: 4.6, colorRole: 'undead-veil', cue: 'veil-unfurls' },
+        effects: [
+          { type: 'deploy-mourning-veil', duration: 10, radius: 4.6, slowMultiplier: 0.78, attackPenalty: 2 },
+          { type: 'grant-veil-concealment', duration: 10 }
+        ],
+        ai: { priority: 6, minimumHostiles: 2 }
+      }),
+      skill('isara-soul-procession', 'Procession of Souls', {
+        cooldown: 18,
+        windup: 2.0,
+        recovery: 1.0,
+        targetPolicy: 'adjacent-wraiths',
+        telegraph: { shape: 'soul-procession', radius: 4.2, colorRole: 'undead-crown', cue: 'distant-funeral-steps' },
+        effects: [
+          { type: 'call-adjacent-wraiths', maximum: 3 },
+          { type: 'raise-temporary-shades', maximum: 2, duration: 9 }
+        ],
+        ai: { priority: 7, minimumHostiles: 1 }
+      }),
+      skill('isara-unburied-queen', 'Queen of the Unburied', {
+        cooldown: 34,
+        windup: 2.35,
+        recovery: 1.1,
+        interruptDamageRatio: 0.26,
+        targetPolicy: 'room-center',
+        telegraph: { shape: 'ethereal-domain', radius: 6, colorRole: 'undead-crown', cue: 'crown-rises' },
+        effects: [
+          { type: 'deploy-ethereal-domain', duration: 12, radius: 6, projectileSlow: 0.62 },
+          { type: 'raise-temporary-shades', maximum: 3, duration: 12 }
+        ],
+        ai: { priority: 10, healthBelow: 0.55, minimumHostiles: 3 }
+      })
+    ]
+  }),
+
+  'hero.orum-bell': hero({
+    id: 'hero.orum-bell',
+    role: 'hero-orum-bell',
+    displayName: 'Orum-Bell, Bluecap Knight',
+    localizedName: '푸른갓 기사 오룸-벨',
+    factionId: 'bluecap-colony',
+    species: 'myconid',
+    size: 'medium',
+    initialRoomId: 'F28',
+    encounterRoomId: 'F28',
+    baseStats: { hp: 94, attack: 10, courage: 20, armor: 3, speed: 0.96 },
+    relationship: { initial: 5 },
+    runtimeDefaults: { heroStance: 'communion', communionEnabled: true },
+    visual: {
+      bodyPlan: 'hero-fungal-knight',
+      animationProfile: 'orum-fungal',
+      scale: 1.06,
+      indicatorRadius: 0.66,
+      markerHeight: 2.8,
+      palette: {
+        skin: 0x9c8d6c,
+        cloth: 0x263f52,
+        clothInner: 0xc79f63,
+        leather: 0x5c4832,
+        metal: 0x6e817b,
+        brass: 0xc7a35d,
+        accent: 0xe5c884,
+        dark: 0x24302d
+      },
+      silhouette: ['wide-blue-bell-cap', 'long-root-legs', 'living-mycelial-lance'],
+      dedicatedParts: ['gilled-bell-cap', 'three-root-feet', 'growing-lance-arm', 'branch-hand', 'four-strand-mycelial-mantle', 'spore-sac-collar', 'under-cap-memory-lights', 'cap-crack-stage']
+    },
+    passive: {
+      id: 'orum-spore-communion',
+      name: 'Spore Communion',
+      description: 'Nearby myconids share courage, minor regeneration, and shortened fear effects while Orum-Bell remains linked to the colony.'
+    },
+    leadership: {
+      radius: 'same-room',
+      myconidCourageBonus: 2,
+      regenerationPerSecond: 0.22,
+      statusDurationMultiplier: 0.68
+    },
+    skills: [
+      skill('orum-mycelial-lance', 'Mycelial Lance', {
+        cooldown: 9,
+        windup: 1.25,
+        recovery: 0.72,
+        targetPolicy: 'strongest-hostile',
+        telegraph: { shape: 'fungal-lance', radius: 1.2, length: 5.2, width: 0.8, colorRole: 'fungal-gold', cue: 'lance-grows' },
+        effects: [
+          { type: 'line-damage-root', amount: 14, maximum: 3, rootDuration: 3.2 },
+          { type: 'grow-lance-variant', duration: 1.6 }
+        ],
+        ai: { priority: 6 }
+      }),
+      skill('orum-memory-bloom', 'Memory Bloom', {
+        cooldown: 15,
+        windup: 1.8,
+        recovery: 0.9,
+        targetPolicy: 'room-center',
+        telegraph: { shape: 'memory-flower', radius: 4.4, colorRole: 'fungal-blue', cue: 'spore-chime' },
+        effects: [
+          { type: 'deploy-memory-bloom', duration: 9, radius: 4.4, attackPenalty: 2 },
+          { type: 'cleanse-fungal-allies' }
+        ],
+        ai: { priority: 7, minimumHostiles: 2 }
+      }),
+      skill('orum-solitary-bloom', 'Solitary Bloom', {
+        cooldown: 36,
+        windup: 2.2,
+        recovery: 0.9,
+        interruptDamageRatio: 0.27,
+        targetPolicy: 'self',
+        telegraph: { shape: 'solitary-bloom', radius: 3.2, colorRole: 'fungal-gold', cue: 'mycelium-snaps' },
+        effects: [
+          { type: 'enter-solitary-bloom', duration: 14, attackBonus: 4, speedMultiplier: 1.22, interruptResistance: 0.35, endingHealthCostRatio: 0.12 }
+        ],
+        ai: { priority: 10, healthBelow: 0.46 }
+      })
+    ]
+  }),
+
+  'hero.glop': hero({
+    id: 'hero.glop',
+    role: 'hero-glop',
+    displayName: 'Glop XVII, the Crown-Swallowed',
+    localizedName: '왕관을 삼킨 글롭 17세',
+    factionId: 'slime-bloom',
+    species: 'slime',
+    size: 'large',
+    initialRoomId: 'L57',
+    encounterRoomId: 'L57',
+    baseStats: { hp: 146, attack: 11, courage: 22, armor: 3, speed: 0.84 },
+    relationship: { initial: -10 },
+    runtimeDefaults: { heroStance: 'crown', regaliaStances: ['crown', 'key', 'chalice', 'throne'] },
+    visual: {
+      bodyPlan: 'hero-regal-slime',
+      animationProfile: 'glop-regal',
+      scale: 1.12,
+      indicatorRadius: 0.82,
+      markerHeight: 2.55,
+      damageThresholds: [0.7, 0.32],
+      palette: {
+        skin: 0x4f9f99,
+        cloth: 0x6ab9ad,
+        clothInner: 0xd4c36e,
+        leather: 0x655037,
+        metal: 0xa6a9a0,
+        brass: 0xe0bd55,
+        accent: 0xffe59a,
+        dark: 0x183c3b
+      },
+      silhouette: ['large-transparent-regal-blob', 'level-floating-crown', 'internal-artifact-court'],
+      dedicatedParts: ['volume-preserving-slime-shell', 'floating-crown', 'royal-seal', 'key-ring-artifact', 'golden-chalice', 'throne-fragment', 'bone-hand-scepter', 'scribe-pen', 'inner-gold-core', 'damage-clouding-stage']
+    },
+    passive: {
+      id: 'glop-royal-regalia',
+      name: 'Royal Regalia',
+      description: 'The foremost artifact inside Glop determines his stance and the bonuses granted to nearby slimes.'
+    },
+    leadership: {
+      radius: 'same-room',
+      crownAttackBonus: 2,
+      keySpeedMultiplier: 1.16,
+      chaliceRegenerationPerSecond: 0.28,
+      throneArmorBonus: 2
+    },
+    skills: [
+      skill('glop-royal-command', 'Royal Command', {
+        cooldown: 11,
+        windup: 1.45,
+        recovery: 0.75,
+        targetPolicy: 'hostiles-in-room',
+        telegraph: { shape: 'royal-sigil', radius: 4.2, colorRole: 'slime-gold', cue: 'many-voices-command' },
+        effects: [
+          { type: 'royal-command', modes: ['kneel', 'approach'], slowDuration: 3.5, staggerDuration: 0.8 }
+        ],
+        ai: { priority: 6, minimumHostiles: 1 }
+      }),
+      skill('glop-digest-evidence', 'Digest the Evidence', {
+        cooldown: 13,
+        windup: 1.9,
+        recovery: 0.8,
+        targetPolicy: 'digestible-object',
+        telegraph: { shape: 'digest-spiral', radius: 2.6, colorRole: 'slime-teal', cue: 'artifacts-churn' },
+        effects: [
+          { type: 'digest-evidence', heal: 24, stanceByType: { corpse: 'crown', cargo: 'key', potion: 'chalice', structure: 'throne', prop: 'crown' } }
+        ],
+        ai: { priority: 7, healthBelow: 0.78 }
+      }),
+      skill('glop-one-court', 'The One and Only Court', {
+        cooldown: 40,
+        windup: 2.4,
+        recovery: 1.1,
+        interruptDamageRatio: 0.3,
+        targetPolicy: 'self',
+        telegraph: { shape: 'triune-court', radius: 5, colorRole: 'slime-gold', cue: 'court-divides' },
+        effects: [
+          { type: 'split-hero-court', duration: 11, aspects: ['king', 'guard', 'scribe'] }
+        ],
+        ai: { priority: 10, healthBelow: 0.48, minimumHostiles: 2 }
+      })
+    ]
   })
+
 });
 
 export const HERO_BY_ROLE = Object.freeze(Object.fromEntries(Object.values(HERO_DEFINITIONS).map(definition => [definition.role, definition])));
@@ -313,7 +565,7 @@ export function validateHeroDefinitions() {
     if (!definition.initialRoomId) errors.push(`${definition.id} missing initialRoomId`);
     if (definition.visual.dedicatedParts.length < 6) errors.push(`${definition.id} needs at least six dedicated visual parts`);
     if (definition.visual.silhouette.length < 3) errors.push(`${definition.id} needs three silhouette anchors`);
-    if (definition.skills.length !== 3) errors.push(`${definition.id} must have exactly three active skills in WP8-A`);
+    if (definition.skills.length !== 3) errors.push(`${definition.id} must have exactly three active skills`);
     for (const action of definition.skills) {
       if (skillIds.has(action.id)) errors.push(`duplicate skill id ${action.id}`);
       skillIds.add(action.id);

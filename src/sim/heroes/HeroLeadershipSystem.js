@@ -17,6 +17,9 @@ export class HeroLeadershipSystem {
       if (definition.id === 'hero.nibble') this.applyNibble(hero, definition, sim);
       if (definition.id === 'hero.kirik') this.applyKirik(hero, definition, dt, sim);
       if (definition.id === 'hero.karg') this.applyKarg(hero, definition, sim);
+      if (definition.id === 'hero.isara') this.applyIsara(hero, definition, sim);
+      if (definition.id === 'hero.orum-bell') this.applyOrumBell(hero, definition, dt, sim);
+      if (definition.id === 'hero.glop') this.applyGlop(hero, definition, dt, sim);
     }
   }
 
@@ -90,6 +93,63 @@ export class HeroLeadershipSystem {
       affected += 1;
     }
     if (affected) this.activeEffects.push({ heroId: definition.id, type: 'red-tusk-veteran', affected, duelActive });
+  }
+
+  applyIsara(hero, definition, sim) {
+    const eligibleRooms = new Set([hero.roomId, ...(sim?.graph?.get?.(hero.roomId) ?? [])]);
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || factionOf(ally) !== definition.factionId || !eligibleRooms.has(ally.roomId)) continue;
+      if (!String(ally.role ?? '').includes('wraith') && !ally.heroFormKind?.startsWith?.('shade')) continue;
+      const baseline = capture(ally);
+      ally.courage = baseline.courage + (definition.leadership.wraithCourageBonus ?? 0);
+      ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.wraithSpeedMultiplier ?? 1);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      ally.heroStatuses ??= {};
+      ally.heroStatuses.isaraProcession = { remaining: 0.35 };
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'black-veil-procession', affected });
+  }
+
+  applyOrumBell(hero, definition, dt, sim) {
+    if (hero.communionEnabled === false || hero.heroStatuses?.solitaryBloom) return;
+    let affected = 0;
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      const baseline = capture(ally);
+      ally.courage = baseline.courage + (definition.leadership.myconidCourageBonus ?? 0);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      const maximum = ally.maxHp ?? ally.hp ?? 1;
+      ally.hp = Math.min(maximum, (ally.hp ?? maximum) + (definition.leadership.regenerationPerSecond ?? 0) * dt);
+      ally.heroStatuses ??= {};
+      for (const key of ['fear', 'confusion']) {
+        if (ally.heroStatuses[key]?.remaining) ally.heroStatuses[key].remaining *= Math.pow(definition.leadership.statusDurationMultiplier ?? 1, dt);
+      }
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'spore-communion', affected });
+  }
+
+  applyGlop(hero, definition, dt, sim) {
+    let affected = 0;
+    const stance = hero.heroStance ?? 'crown';
+    for (const ally of sim?.agents ?? []) {
+      if (ally.id === hero.id || ally.alive === false || ally.roomId !== hero.roomId || factionOf(ally) !== definition.factionId) continue;
+      const baseline = capture(ally);
+      if (stance === 'crown') ally.attack = baseline.attack + (definition.leadership.crownAttackBonus ?? 0);
+      if (stance === 'key') ally.speedMultiplier = baseline.speedMultiplier * (definition.leadership.keySpeedMultiplier ?? 1);
+      if (stance === 'throne') ally.armor = baseline.armor + (definition.leadership.throneArmorBonus ?? 0);
+      if (stance === 'chalice') ally.hp = Math.min(ally.maxHp ?? ally.hp ?? 1, (ally.hp ?? 1) + (definition.leadership.chaliceRegenerationPerSecond ?? 0) * dt);
+      ally.heroLeadershipApplied = baseline;
+      ally.heroLeadershipSourceId = definition.id;
+      ally.heroStatuses ??= {};
+      ally.heroStatuses.royalRegalia = { remaining: 0.35, stance };
+      affected += 1;
+    }
+    if (affected) this.activeEffects.push({ heroId: definition.id, type: 'royal-regalia', affected, stance });
   }
 
   snapshot() {

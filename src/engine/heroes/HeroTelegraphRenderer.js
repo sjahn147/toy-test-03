@@ -7,18 +7,25 @@ const COLORS = {
   'kobold-blue': 0x78cbd5,
   'orc-red': 0xc64e45,
   'orc-bright-red': 0xff6954,
+  'undead-veil': 0x678aa5,
+  'undead-crown': 0xc5e9f2,
+  'fungal-blue': 0x5e96b5,
+  'fungal-gold': 0xe0bc72,
+  'slime-gold': 0xe4c65c,
+  'slime-teal': 0x56bdb0,
   hero: 0xf2d47c
 };
 
 export function createHeroEffect(effect) {
   if (!String(effect?.type ?? '').startsWith('hero-')) return null;
   const group = new THREE.Group();
-  group.name = `hero-effect:${effect.type}:${effect.skillId ?? effect.heroId ?? ''}`;
+  group.name = `hero-effect:${effect.type}:${effect.skillId ?? effect.heroId ?? effect.formKind ?? ''}`;
   group.userData.heroEffect = true;
   group.userData.effectType = effect.type;
-  group.userData.shape = effect.shape ?? defaultShape(effect.type);
+  group.userData.shape = effect.shape ?? defaultShape(effect.type, effect);
   group.userData.baseRadius = effect.radius ?? 2;
   group.userData.baseOpacity = 0.74;
+  group.userData.formKind = effect.formKind ?? null;
   const color = COLORS[effect.colorRole] ?? COLORS.hero;
   const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: group.userData.baseOpacity, depthWrite: false });
 
@@ -26,36 +33,58 @@ export function createHeroEffect(effect) {
   else if (effect.type === 'hero-armor-drop') buildArmorDrop(group, material);
   else if (effect.type === 'hero-interrupt') buildInterrupt(group, material);
   else if (effect.type === 'hero-passive') buildPassive(group, material);
-  else buildShape(group, group.userData.shape, effect.radius ?? 2, material);
+  else if (effect.type === 'hero-form-reveal') buildFormReveal(group, material, effect);
+  else if (effect.type === 'hero-form-merge') buildFormMerge(group, material, effect);
+  else if (effect.type === 'hero-form-effect') buildFormEffect(group, material, effect);
+  else buildShape(group, group.userData.shape, effect.radius ?? 2, material, effect);
+  captureEffectBaseTransforms(group);
   return group;
 }
 
 export function animateHeroEffect(mesh, effect, age, progress) {
   if (!mesh?.userData?.heroEffect) return false;
   const shape = mesh.userData.shape;
+  resetEffectBaseTransforms(mesh);
   const pulse = 1 + Math.sin(age * 7) * 0.04;
-  mesh.rotation.y = shape === 'triangle' || shape === 'three-gear-circle' ? age * 0.28 : 0;
+  mesh.rotation.y = rotatingShape(shape) ? age * rotationSpeed(shape) : 0;
   mesh.scale.setScalar(pulse);
 
   if (effect.type === 'hero-telegraph') {
     const appear = Math.min(1, age * 4);
     mesh.scale.multiplyScalar(0.82 + appear * 0.18);
     setOpacity(mesh, Math.max(0.18, 0.32 + progress * 0.62));
+    animateShapeParts(mesh, shape, age, progress, true);
   } else if (effect.type === 'hero-impact') {
     mesh.scale.multiplyScalar(0.7 + progress * 1.5);
     setOpacity(mesh, Math.max(0, 1 - progress));
+    animateShapeParts(mesh, shape, age, progress, false);
   } else if (effect.type === 'hero-route-lock' || effect.type === 'hero-zone' || effect.type === 'hero-duel') {
-    setOpacity(mesh, 0.5 + Math.sin(age * 3) * 0.16);
+    setOpacity(mesh, 0.48 + Math.sin(age * 3) * 0.14);
+    animateShapeParts(mesh, shape, age, progress, false);
   } else if (effect.type === 'hero-armor-drop') {
     mesh.rotation.z = age * 0.5;
     setOpacity(mesh, Math.max(0.2, 1 - progress * 0.7));
+  } else if (effect.type === 'hero-form-reveal') {
+    const rise = smoothstep(progress);
+    offsetEffectChildren(mesh, rise * 0.65);
+    mesh.scale.multiplyScalar(0.25 + rise * 1.25);
+    setOpacity(mesh, Math.sin(Math.PI * progress));
+    animateNamed(mesh, 'form-orbit', age * 1.8, rise * 0.24);
+  } else if (effect.type === 'hero-form-merge') {
+    const inverse = 1 - progress;
+    mesh.scale.multiplyScalar(0.35 + inverse * 1.45);
+    mesh.rotation.y = age * 2.1;
+    setOpacity(mesh, Math.max(0, inverse));
+  } else if (effect.type === 'hero-form-effect') {
+    mesh.scale.multiplyScalar(0.65 + Math.sin(progress * Math.PI) * 0.9);
+    setOpacity(mesh, Math.max(0, 1 - progress));
   } else {
     setOpacity(mesh, Math.max(0, 1 - progress));
   }
   return true;
 }
 
-function buildShape(group, shape, radius, material) {
+function buildShape(group, shape, radius, material, effect = {}) {
   if (shape === 'route-wall') return buildRouteWall(group, material, { radius });
   if (shape === 'key-sigil') return buildKeySigil(group, material, radius);
   if (shape === 'outward-arrows') return buildOutwardArrows(group, material, radius);
@@ -64,11 +93,20 @@ function buildShape(group, shape, radius, material) {
   if (shape === 'triangle') return buildTriangle(group, material, radius);
   if (shape === 'duel-ring') return buildDuelRing(group, material, radius);
   if (shape === 'shattering-armor') return buildShatteringArmor(group, material, radius);
+  if (shape === 'mourning-veil') return buildMourningVeil(group, material, radius);
+  if (shape === 'soul-procession') return buildSoulProcession(group, material, radius);
+  if (shape === 'ethereal-domain') return buildEtherealDomain(group, material, radius);
+  if (shape === 'fungal-lance') return buildFungalLance(group, material, effect.length ?? radius * 2.4, effect.width ?? 0.8);
+  if (shape === 'memory-flower') return buildMemoryFlower(group, material, radius);
+  if (shape === 'solitary-bloom') return buildSolitaryBloom(group, material, radius);
+  if (shape === 'royal-sigil') return buildRoyalSigil(group, material, radius);
+  if (shape === 'digest-spiral') return buildDigestSpiral(group, material, radius);
+  if (shape === 'triune-court') return buildTriuneCourt(group, material, radius);
   return buildRing(group, material, radius);
 }
 
 function buildRing(group, material, radius) {
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.055, 8, 48), material);
+  const ring = namedMesh('pulse-ring', new THREE.TorusGeometry(radius, 0.055, 8, 48), material);
   ring.rotation.x = Math.PI / 2;
   ring.position.y = 0.035;
   group.add(ring);
@@ -77,16 +115,16 @@ function buildRing(group, material, radius) {
 function buildRouteWall(group, material, effect) {
   const width = Math.max(2.4, effect?.radius ?? 4);
   for (const x of [-width / 2, width / 2]) {
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.25, 0.12), material);
+    const post = namedMesh('route-post', new THREE.BoxGeometry(0.12, 1.25, 0.12), material);
     post.position.set(x, 0.62, 0);
     group.add(post);
   }
   for (let i = 0; i < 3; i += 1) {
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(width, 0.08, 0.08), material);
+    const bar = namedMesh('route-bar', new THREE.BoxGeometry(width, 0.08, 0.08), material);
     bar.position.y = 0.28 + i * 0.35;
     group.add(bar);
   }
-  const lock = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.05, 8, 24), material);
+  const lock = namedMesh('route-lock', new THREE.TorusGeometry(0.22, 0.05, 8, 24), material);
   lock.position.y = 0.78;
   lock.rotation.x = Math.PI / 2;
   group.add(lock);
@@ -94,10 +132,10 @@ function buildRouteWall(group, material, effect) {
 
 function buildKeySigil(group, material, radius) {
   buildRing(group, material, Math.max(0.8, radius * 0.55));
-  const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, radius * 1.2), material);
+  const shaft = namedMesh('key-shaft', new THREE.BoxGeometry(0.1, 0.05, radius * 1.2), material);
   shaft.position.y = 0.06;
   group.add(shaft);
-  const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.05, 0.12), material);
+  const tooth = namedMesh('key-tooth', new THREE.BoxGeometry(0.42, 0.05, 0.12), material);
   tooth.position.set(0.2, 0.06, radius * 0.42);
   group.add(tooth);
 }
@@ -106,7 +144,7 @@ function buildOutwardArrows(group, material, radius) {
   buildRing(group, material, radius * 0.55);
   for (let i = 0; i < 8; i += 1) {
     const angle = (i / 8) * Math.PI * 2;
-    const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.45, 5), material);
+    const arrow = namedMesh('outward-arrow', new THREE.ConeGeometry(0.14, 0.45, 5), material);
     arrow.rotation.x = Math.PI / 2;
     arrow.rotation.z = -angle;
     arrow.position.set(Math.cos(angle) * radius * 0.78, 0.08, Math.sin(angle) * radius * 0.78);
@@ -119,11 +157,12 @@ function buildGearCircle(group, material, radius) {
   for (let i = 0; i < 3; i += 1) {
     const angle = -Math.PI / 2 + i * Math.PI * 2 / 3;
     const gear = new THREE.Group();
-    const hub = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.2, 0.04, 6, 20), material);
+    gear.name = 'gear-orbit';
+    const hub = namedMesh('gear-hub', new THREE.TorusGeometry(radius * 0.2, 0.04, 6, 20), material);
     hub.rotation.x = Math.PI / 2;
     gear.add(hub);
     for (let tooth = 0; tooth < 8; tooth += 1) {
-      const item = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.04, 0.25), material);
+      const item = namedMesh('gear-tooth', new THREE.BoxGeometry(0.13, 0.04, 0.25), material);
       const toothAngle = tooth / 8 * Math.PI * 2;
       item.position.set(Math.cos(toothAngle) * radius * 0.27, 0, Math.sin(toothAngle) * radius * 0.27);
       item.rotation.y = -toothAngle;
@@ -135,11 +174,11 @@ function buildGearCircle(group, material, radius) {
 }
 
 function buildWrenchArc(group, material, radius) {
-  const arc = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.65, 0.05, 8, 32, Math.PI * 1.4), material);
+  const arc = namedMesh('wrench-arc', new THREE.TorusGeometry(radius * 0.65, 0.05, 8, 32, Math.PI * 1.4), material);
   arc.rotation.x = Math.PI / 2;
   arc.rotation.z = -Math.PI * 0.2;
   group.add(arc);
-  const jawA = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.5), material);
+  const jawA = namedMesh('wrench-jaw', new THREE.BoxGeometry(0.12, 0.05, 0.5), material);
   jawA.position.set(radius * 0.46, 0.05, -radius * 0.36);
   jawA.rotation.y = 0.5;
   const jawB = jawA.clone();
@@ -160,7 +199,7 @@ function buildTriangle(group, material, radius) {
     const dx = b[0] - a[0];
     const dz = b[1] - a[1];
     const length = Math.hypot(dx, dz);
-    const edge = new THREE.Mesh(new THREE.BoxGeometry(length, 0.05, 0.08), material);
+    const edge = namedMesh('triangle-edge', new THREE.BoxGeometry(length, 0.05, 0.08), material);
     edge.position.set((a[0] + b[0]) / 2, 0.05, (a[1] + b[1]) / 2);
     edge.rotation.y = -Math.atan2(dz, dx);
     group.add(edge);
@@ -170,7 +209,7 @@ function buildTriangle(group, material, radius) {
 function buildDuelRing(group, material, radius) {
   buildRing(group, material, radius);
   for (const angle of [0, Math.PI]) {
-    const blade = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.9, 4), material);
+    const blade = namedMesh('duel-blade', new THREE.ConeGeometry(0.1, 0.9, 4), material);
     blade.position.set(Math.cos(angle) * radius * 0.65, 0.18, Math.sin(angle) * radius * 0.65);
     blade.rotation.z = Math.PI / 2;
     blade.rotation.y = angle;
@@ -180,7 +219,7 @@ function buildDuelRing(group, material, radius) {
 
 function buildShatteringArmor(group, material, radius) {
   for (let i = 0; i < 10; i += 1) {
-    const shard = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.42, 4), material);
+    const shard = namedMesh('armor-shard', new THREE.ConeGeometry(0.08, 0.42, 4), material);
     const angle = i / 10 * Math.PI * 2;
     shard.position.set(Math.cos(angle) * radius * 0.6, 0.2 + (i % 3) * 0.12, Math.sin(angle) * radius * 0.6);
     shard.rotation.z = angle;
@@ -188,8 +227,201 @@ function buildShatteringArmor(group, material, radius) {
   }
 }
 
+function buildMourningVeil(group, material, radius) {
+  buildRing(group, material, radius);
+  const inner = namedMesh('veil-inner-ring', new THREE.TorusGeometry(radius * 0.62, 0.035, 7, 40), material);
+  inner.rotation.x = Math.PI / 2;
+  inner.position.y = 0.04;
+  group.add(inner);
+  for (let i = 0; i < 8; i += 1) {
+    const angle = i / 8 * Math.PI * 2;
+    const veil = namedMesh('veil-panel', new THREE.ConeGeometry(0.24, 1.5, 5, 1, true), material);
+    veil.position.set(Math.cos(angle) * radius * 0.82, 0.74, Math.sin(angle) * radius * 0.82);
+    veil.rotation.z = Math.PI;
+    veil.rotation.y = -angle;
+    veil.scale.z = 0.35;
+    veil.userData.phase = i * 0.57;
+    group.add(veil);
+  }
+}
+
+function buildSoulProcession(group, material, radius) {
+  const count = 7;
+  for (let i = 0; i < count; i += 1) {
+    const z = -radius + (i / (count - 1)) * radius * 2;
+    const left = namedMesh('procession-step', new THREE.ConeGeometry(0.13, 0.36, 5), material);
+    left.rotation.x = Math.PI / 2;
+    left.position.set(i % 2 ? -0.26 : 0.26, 0.055, z);
+    left.userData.phase = i * 0.3;
+    group.add(left);
+  }
+  for (const x of [-0.75, 0.75]) {
+    const guide = namedMesh('procession-guide', new THREE.BoxGeometry(0.045, 0.035, radius * 2.1), material);
+    guide.position.set(x, 0.03, 0);
+    group.add(guide);
+  }
+}
+
+function buildEtherealDomain(group, material, radius) {
+  buildRing(group, material, radius);
+  const middle = namedMesh('domain-middle', new THREE.TorusGeometry(radius * 0.68, 0.035, 7, 44), material);
+  middle.rotation.x = Math.PI / 2;
+  middle.position.y = 0.045;
+  group.add(middle);
+  for (let i = 0; i < 12; i += 1) {
+    const angle = i / 12 * Math.PI * 2;
+    const pillar = namedMesh('domain-pillar', new THREE.BoxGeometry(0.07, 1.2 + (i % 3) * 0.22, 0.07), material);
+    pillar.position.set(Math.cos(angle) * radius * 0.86, 0.55, Math.sin(angle) * radius * 0.86);
+    pillar.userData.phase = i * 0.43;
+    group.add(pillar);
+  }
+}
+
+function buildFungalLance(group, material, length, width) {
+  const safeLength = Math.max(2.4, length);
+  const lane = namedMesh('lance-lane', new THREE.BoxGeometry(Math.max(0.4, width), 0.035, safeLength), material);
+  lane.position.set(0, 0.035, safeLength * 0.5);
+  group.add(lane);
+  for (let i = 0; i < 5; i += 1) {
+    const root = namedMesh('lance-root', new THREE.ConeGeometry(0.12 + i * 0.015, 0.45 + i * 0.06, 6), material);
+    root.position.set((i % 2 ? -1 : 1) * width * 0.38, 0.18, safeLength * (0.14 + i * 0.18));
+    root.rotation.z = i % 2 ? -0.5 : 0.5;
+    root.userData.phase = i * 0.45;
+    group.add(root);
+  }
+  const tip = namedMesh('lance-tip', new THREE.ConeGeometry(width * 0.42, 0.75, 6), material);
+  tip.rotation.x = Math.PI / 2;
+  tip.position.set(0, 0.12, safeLength + 0.32);
+  group.add(tip);
+}
+
+function buildMemoryFlower(group, material, radius) {
+  buildRing(group, material, radius);
+  for (let i = 0; i < 8; i += 1) {
+    const angle = i / 8 * Math.PI * 2;
+    const petal = namedMesh('memory-petal', new THREE.ConeGeometry(radius * 0.18, radius * 0.62, 7), material);
+    petal.position.set(Math.cos(angle) * radius * 0.44, 0.055, Math.sin(angle) * radius * 0.44);
+    petal.rotation.x = Math.PI / 2;
+    petal.rotation.z = -angle;
+    petal.scale.z = 0.34;
+    petal.userData.phase = i * 0.61;
+    group.add(petal);
+  }
+  const center = namedMesh('memory-center', new THREE.SphereGeometry(radius * 0.15, 12, 8), material);
+  center.position.y = 0.12;
+  group.add(center);
+}
+
+function buildSolitaryBloom(group, material, radius) {
+  buildRing(group, material, radius);
+  for (let i = 0; i < 10; i += 1) {
+    const angle = i / 10 * Math.PI * 2;
+    const spike = namedMesh('solitary-root-spike', new THREE.ConeGeometry(0.1, radius * 0.58, 6), material);
+    spike.position.set(Math.cos(angle) * radius * 0.62, 0.18, Math.sin(angle) * radius * 0.62);
+    spike.rotation.z = Math.PI / 2;
+    spike.rotation.y = -angle;
+    spike.userData.phase = i * 0.34;
+    group.add(spike);
+  }
+  const cap = namedMesh('solitary-cap', new THREE.ConeGeometry(radius * 0.42, 0.32, 12), material);
+  cap.rotation.x = Math.PI;
+  cap.position.y = 0.22;
+  group.add(cap);
+}
+
+function buildRoyalSigil(group, material, radius) {
+  buildRing(group, material, radius);
+  const crownBase = namedMesh('royal-crown-base', new THREE.BoxGeometry(radius * 0.85, 0.045, 0.15), material);
+  crownBase.position.set(0, 0.06, 0);
+  group.add(crownBase);
+  for (let i = -2; i <= 2; i += 1) {
+    const tooth = namedMesh('royal-crown-tooth', new THREE.ConeGeometry(0.13, 0.5 + (2 - Math.abs(i)) * 0.09, 5), material);
+    tooth.position.set(i * radius * 0.17, 0.18, 0);
+    group.add(tooth);
+  }
+  for (const angle of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
+    const line = namedMesh('royal-command-line', new THREE.BoxGeometry(0.06, 0.035, radius * 0.62), material);
+    line.position.set(Math.sin(angle) * radius * 0.31, 0.03, Math.cos(angle) * radius * 0.31);
+    line.rotation.y = angle;
+    group.add(line);
+  }
+}
+
+function buildDigestSpiral(group, material, radius) {
+  for (let i = 0; i < 14; i += 1) {
+    const t = i / 13;
+    const angle = t * Math.PI * 3.4;
+    const distance = radius * (0.18 + t * 0.75);
+    const bead = namedMesh('digest-bead', new THREE.SphereGeometry(0.08 + t * 0.05, 8, 6), material);
+    bead.position.set(Math.cos(angle) * distance, 0.08 + t * 0.12, Math.sin(angle) * distance);
+    bead.userData.phase = i * 0.3;
+    group.add(bead);
+  }
+  const core = namedMesh('digest-core', new THREE.SphereGeometry(radius * 0.16, 12, 8), material);
+  core.position.y = 0.16;
+  group.add(core);
+}
+
+function buildTriuneCourt(group, material, radius) {
+  for (let i = 0; i < 3; i += 1) {
+    const angle = -Math.PI / 2 + i * Math.PI * 2 / 3;
+    const court = new THREE.Group();
+    court.name = 'court-orbit';
+    court.position.set(Math.cos(angle) * radius * 0.52, 0.05, Math.sin(angle) * radius * 0.52);
+    const ring = namedMesh('court-ring', new THREE.TorusGeometry(radius * 0.24, 0.045, 7, 28), material);
+    ring.rotation.x = Math.PI / 2;
+    court.add(ring);
+    const markerGeometry = i === 0
+      ? new THREE.ConeGeometry(radius * 0.12, 0.48, 5)
+      : i === 1
+        ? new THREE.BoxGeometry(radius * 0.25, 0.38, 0.12)
+        : new THREE.SphereGeometry(radius * 0.12, 10, 7);
+    const marker = namedMesh(`court-marker-${i}`, markerGeometry, material);
+    marker.position.y = 0.22;
+    court.add(marker);
+    group.add(court);
+  }
+  buildRing(group, material, radius);
+}
+
+function buildFormReveal(group, material, effect) {
+  const radius = effect.formKind?.startsWith?.('shade') ? 0.8 : 1.05;
+  for (let i = 0; i < 3; i += 1) {
+    const orbit = namedMesh('form-orbit', new THREE.TorusGeometry(radius * (0.55 + i * 0.16), 0.035, 6, 24), material);
+    orbit.rotation.x = Math.PI / 2;
+    orbit.rotation.z = i * Math.PI / 3;
+    orbit.position.y = 0.12 + i * 0.18;
+    group.add(orbit);
+  }
+  const rise = namedMesh('form-rise', new THREE.ConeGeometry(radius * 0.22, 1.4, 7, 1, true), material);
+  rise.position.y = 0.55;
+  rise.rotation.x = Math.PI;
+  group.add(rise);
+}
+
+function buildFormMerge(group, material) {
+  for (let i = 0; i < 3; i += 1) {
+    const angle = i * Math.PI * 2 / 3;
+    const orb = namedMesh('merge-orb', new THREE.SphereGeometry(0.18, 9, 7), material);
+    orb.position.set(Math.cos(angle) * 1.1, 0.35, Math.sin(angle) * 1.1);
+    group.add(orb);
+  }
+  buildDigestSpiral(group, material, 1.25);
+}
+
+function buildFormEffect(group, material, effect) {
+  if (effect.formKind === 'scribe') {
+    buildRoyalSigil(group, material, 1.2);
+    return;
+  }
+  buildRing(group, material, 1.15);
+  const flare = namedMesh('form-flare', new THREE.OctahedronGeometry(0.35, 0), material);
+  flare.position.y = 0.55;
+  group.add(flare);
+}
+
 function buildArmorDrop(group, material) {
-  const plate = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.7, 0.18), material);
+  const plate = namedMesh('armor-drop', new THREE.BoxGeometry(0.8, 0.7, 0.18), material);
   plate.position.y = 0.35;
   plate.rotation.z = 0.25;
   group.add(plate);
@@ -197,7 +429,7 @@ function buildArmorDrop(group, material) {
 
 function buildInterrupt(group, material) {
   for (let i = 0; i < 4; i += 1) {
-    const slash = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 1.1), material);
+    const slash = namedMesh('interrupt-slash', new THREE.BoxGeometry(0.08, 0.08, 1.1), material);
     slash.rotation.y = i * Math.PI / 2;
     slash.rotation.z = Math.PI / 4;
     group.add(slash);
@@ -205,19 +437,107 @@ function buildInterrupt(group, material) {
 }
 
 function buildPassive(group, material) {
-  const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.45, 0), material);
+  const diamond = namedMesh('passive-diamond', new THREE.OctahedronGeometry(0.45, 0), material);
   diamond.position.y = 0.6;
   group.add(diamond);
 }
 
-function defaultShape(type) {
+function animateShapeParts(root, shape, age, progress, telegraph) {
+  root.traverse(node => {
+    const phase = node.userData?.phase ?? 0;
+    if (node.name === 'veil-panel') {
+      node.rotation.z += Math.sin(age * 2.1 + phase) * 0.12;
+      node.position.y += Math.sin(age * 1.5 + phase) * 0.06;
+    } else if (node.name === 'domain-pillar') {
+      node.scale.y *= 0.75 + Math.sin(age * 1.8 + phase) * 0.12 + progress * 0.25;
+    } else if (node.name === 'procession-step') {
+      node.position.y += Math.max(0, Math.sin(age * 5 + phase)) * 0.12;
+    } else if (node.name === 'memory-petal') {
+      node.rotation.y += Math.sin(age * 1.7 + phase) * 0.15;
+      node.scale.x *= 0.85 + progress * 0.25;
+    } else if (node.name === 'solitary-root-spike') {
+      node.scale.y *= 0.7 + progress * 0.42;
+    } else if (node.name === 'digest-bead') {
+      node.rotation.y += age * 1.4 + phase;
+      node.position.y += Math.sin(age * 3 + phase) * 0.035;
+    } else if (node.name === 'lance-root') {
+      node.scale.y *= telegraph ? 0.55 + progress * 0.7 : 1 + progress * 0.25;
+    } else if (node.name === 'gear-orbit') {
+      node.rotation.y += age * 0.6;
+    } else if (node.name === 'court-orbit') {
+      node.rotation.y += age * 0.35;
+    }
+  });
+  if (shape === 'ethereal-domain') offsetEffectChildren(root, Math.sin(age * 1.25) * 0.025);
+}
+
+function defaultShape(type, effect = {}) {
   if (type === 'hero-duel') return 'duel-ring';
-  if (type === 'hero-zone') return 'ring';
+  if (type === 'hero-zone') return effect.shape ?? 'ring';
+  if (type === 'hero-form-reveal') return 'form-reveal';
+  if (type === 'hero-form-merge') return 'form-merge';
   return 'ring';
+}
+
+function rotatingShape(shape) {
+  return ['triangle', 'three-gear-circle', 'memory-flower', 'solitary-bloom', 'royal-sigil', 'digest-spiral', 'triune-court', 'ethereal-domain'].includes(shape);
+}
+
+function rotationSpeed(shape) {
+  if (shape === 'digest-spiral') return 0.9;
+  if (shape === 'triune-court') return 0.42;
+  if (shape === 'ethereal-domain') return 0.08;
+  return 0.28;
+}
+
+function animateNamed(root, name, angle, lift) {
+  root.traverse(node => {
+    if (node.name !== name) return;
+    node.rotation.y += angle;
+    node.position.y += Math.sin(angle) * lift;
+  });
+}
+
+
+function captureEffectBaseTransforms(root) {
+  root.traverse(node => {
+    if (node === root) return;
+    node.userData ??= {};
+    node.userData.heroEffectBaseTransform = {
+      position: node.position.clone(),
+      rotation: node.rotation.clone(),
+      scale: node.scale.clone()
+    };
+  });
+}
+
+function resetEffectBaseTransforms(root) {
+  root.traverse(node => {
+    const base = node.userData?.heroEffectBaseTransform;
+    if (!base) return;
+    node.position.copy(base.position);
+    node.rotation.copy(base.rotation);
+    node.scale.copy(base.scale);
+  });
+}
+
+function offsetEffectChildren(root, amount) {
+  for (const child of root.children ?? []) child.position.y += amount;
+}
+
+function namedMesh(name, geometry, material) {
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.name = name;
+  return mesh;
 }
 
 function setOpacity(root, opacity) {
   root.traverse(node => {
     if (node.material?.transparent) node.material.opacity = opacity;
   });
+}
+
+function smoothstep(value) {
+  const t = Math.max(0, Math.min(1, value));
+  return t * t * (3 - 2 * t);
 }

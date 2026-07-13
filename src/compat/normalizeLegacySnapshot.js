@@ -156,6 +156,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const settlementOrders = tableOf(raw.settlementOperations?.orders, 'settlement-order');
   const zoneInteractions = tableOf(raw.zoneInteractions?.tasks, 'zone-interaction');
   const heroes = tableOf(raw.heroes?.heroes ?? raw.heroes, 'hero');
+  const heroForms = tableOf(raw.heroForms?.forms, 'hero-form');
   const factions = factionTable(agents, settlements);
 
   const visited = new Set(Array.isArray(raw.visited) ? raw.visited : []);
@@ -167,7 +168,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       turn: finiteNumber(turn ?? raw.turn),
       ended: raw.ended === true
     },
-    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, effects },
+    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, heroForms, effects },
     indexes: {
       agentsByRoom: groupIndex(agents, agent =>
         agent.alive !== false && agent.departed !== true ? agent.roomId : null
@@ -181,7 +182,9 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       zoneInteractionsByRoom: groupIndex(zoneInteractions, task => task.targetRoomId),
       zoneInteractionsByAction: groupIndex(zoneInteractions, task => task.actionId),
       heroesByFaction: groupIndex(heroes, hero => hero.factionId),
-      heroesByRoom: groupIndex(heroes, hero => hero.roomId)
+      heroesByRoom: groupIndex(heroes, hero => hero.roomId),
+      heroFormsByOwner: groupIndex(heroForms, form => form.ownerHeroId),
+      heroFormsByRoom: groupIndex(heroForms, form => form.roomId)
     },
     events: Array.isArray(events)
       ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object')

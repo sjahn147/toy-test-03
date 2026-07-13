@@ -1,0 +1,26 @@
+name: WP8-B Irregular Hero Physics
+
+on:
+  pull_request:
+    paths:
+      - 'src/content/heroes/**'
+      - 'src/sim/heroes/**'
+      - 'src/engine/heroes/**'
+      - 'src/sim/DungeonSimulation.js'
+      - 'src/sim/ProjectileSystem.js'
+      - 'src/domain/snapshotContract.js'
+      - 'src/compat/normalizeLegacySnapshot.js'
+      - 'content/campaigns/sleeping-citadel/faction-heroes.json'
+      - 'tests/wp8b-*.mjs'
+      - 'package.json'
+  workflow_dispatch:
+
+jobs:
+  irregular-heroes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:wp8b

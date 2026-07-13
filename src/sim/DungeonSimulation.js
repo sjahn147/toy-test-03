@@ -10,6 +10,7 @@ import { EliteBehaviorSystem } from './EliteBehaviorSystem.js';
 import { HeroSystem } from './heroes/HeroSystem.js';
 import { HeroSkillSystem } from './heroes/HeroSkillSystem.js';
 import { HeroLeadershipSystem } from './heroes/HeroLeadershipSystem.js';
+import { HeroFormSystem } from './heroes/HeroFormSystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -50,13 +51,16 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroSystem = new HeroSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroSkillSystem = new HeroSkillSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroLeadershipSystem = new HeroLeadershipSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.heroFormSystem = new HeroFormSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroSystem.initialize(this);
     this.heroSkillSystem.initialize(this);
+    this.heroFormSystem.initialize(this);
   }
 
   update(dt) {
     this.heroSystem.update(dt, this);
     this.heroSkillSystem.update(dt, this);
+    this.heroFormSystem.update(dt, this);
     this.heroLeadershipSystem.update(dt, this);
     this.eliteEcologySystem.update(dt, this);
     this.eliteAbilitySystem.update(dt, this);
@@ -71,6 +75,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
 
   resolve(agent, action) {
     if (this.isActive(agent) && !agent.travel && !agent.combat) {
+      const heroFormAction = this.heroFormSystem.decide(agent, this);
+      if (heroFormAction && this.heroFormSystem.resolve(agent, heroFormAction, this)) return;
       const heroAction = this.heroSkillSystem.decide(agent, this);
       if (heroAction && this.heroSkillSystem.resolve(agent, heroAction, this)) return;
       const eliteAbility = this.eliteAbilitySystem.decide(agent, this);
@@ -106,6 +112,11 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     super.resolve(agent, action);
   }
 
+  applyCombatDamage(source, target, amount, metadata = {}) {
+    const resolvedAmount = this.heroSkillSystem?.modifyIncomingDamage?.(source, target, amount, metadata) ?? amount;
+    return super.applyCombatDamage(source, target, resolvedAmount, metadata);
+  }
+
   beginTravel(agent, toRoomId) {
     if (this.heroSkillSystem?.isMovementBlocked(agent)) {
       this.event(`${agent.name} cannot move while deployed as a hero bastion.`, { type: 'hero-movement-blocked', agentId: agent.id, roomId: agent.roomId });
@@ -127,6 +138,7 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       this.event(`${target.name} remains standing under a deathless ward.`, { type: 'elite-death-prevented', agentId: target.id });
       return;
     }
+    this.heroFormSystem.onAgentDeath(target, this);
     this.heroSystem.onAgentDeath(target, this);
     this.eliteEcologySystem.onAgentDeath(target, this);
     this.zoneInteractionSystem.clearAgent(target, 'agent-lost');
@@ -175,7 +187,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       eliteBehavior: this.eliteBehaviorSystem.snapshot(),
       heroes: this.heroSystem.snapshot(),
       heroSkills: this.heroSkillSystem.snapshot(),
-      heroLeadership: this.heroLeadershipSystem.snapshot()
+      heroLeadership: this.heroLeadershipSystem.snapshot(),
+      heroForms: this.heroFormSystem.snapshot(this)
     };
   }
 
@@ -192,7 +205,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...this.eliteBehaviorSystem.metrics(),
       ...this.heroSystem.metrics(),
       ...this.heroSkillSystem.metrics(),
-      ...this.heroLeadershipSystem.metrics()
+      ...this.heroLeadershipSystem.metrics(),
+      ...this.heroFormSystem.metrics()
     };
   }
 }

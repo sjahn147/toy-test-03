@@ -62,6 +62,8 @@ export class HeroSystem {
       state.disposition = agent.heroDisposition ?? state.disposition;
       state.relationship = clamp(agent.heroRelationship ?? state.relationship, -100, 100);
       state.flags = [...new Set([...(state.flags ?? []), ...(agent.heroFlags ?? [])])];
+      state.stance = agent.heroStance ?? null;
+      state.variant = agent.heroVariant ?? null;
       agent.heroLastHp = agent.hp;
     }
   }
@@ -174,6 +176,13 @@ export function ensureHeroRuntime(agent, definition = getHeroDefinition(agent?.h
   agent.heroCast ??= null;
   agent.heroStatModifiers ??= {};
   agent.heroBaseStats ??= { ...definition.baseStats };
+  for (const [key, value] of Object.entries(definition.runtimeDefaults ?? {})) {
+    if (agent[key] !== undefined) continue;
+    agent[key] = cloneDefault(value);
+  }
+  if (definition.id === 'hero.isara') { agent.incorporeal = true; agent.trapImmune = true; }
+  if (definition.id === 'hero.orum-bell') agent.communionEnabled ??= true;
+  if (definition.id === 'hero.glop') agent.heroStance ??= 'crown';
   agent.maxHp = Math.max(agent.maxHp ?? 0, definition.baseStats.hp);
   agent.hp = agent.alive === false ? 0 : Math.max(1, Math.min(agent.hp ?? definition.baseStats.hp, agent.maxHp));
   agent.baseAttack = definition.baseStats.attack;
@@ -224,6 +233,8 @@ function createHeroState(definition) {
     skillPhase: null,
     cooldowns: {},
     flags: [],
+    stance: definition.runtimeDefaults?.heroStance ?? null,
+    variant: null,
     missingReason: null,
     deathTime: null
   };
@@ -294,6 +305,12 @@ function cloneState(state) {
     cooldowns: { ...(state.cooldowns ?? {}) },
     flags: [...(state.flags ?? [])]
   };
+}
+
+function cloneDefault(value) {
+  if (Array.isArray(value)) return value.map(cloneDefault);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneDefault(item)]));
+  return value;
 }
 
 function clamp(value, min, max) {

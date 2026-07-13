@@ -49,6 +49,50 @@ export function decideHeroAction(agent, sim, skillSystem) {
     }
   }
 
+  if (definition.id === 'hero.isara') {
+    if (healthRatio <= 0.55 && hostiles.length >= 3 && !skillSystem.hasZone('ethereal-domain', agent.roomId, definition.id)) {
+      return cast(agent, 'isara-unburied-queen', { targetRoomId: agent.roomId });
+    }
+    if (hostiles.length >= 1 && skillSystem.adjacentWraithCount(agent, sim) > 0) {
+      return cast(agent, 'isara-soul-procession', { targetRoomId: agent.roomId });
+    }
+    if (hostiles.length >= 2 && !skillSystem.hasZone('mourning-veil', agent.roomId, definition.id)) {
+      return cast(agent, 'isara-mourning-veil', { targetRoomId: agent.roomId });
+    }
+  }
+
+  if (definition.id === 'hero.orum-bell') {
+    if (healthRatio <= 0.46 && !agent.heroStatuses?.solitaryBloom) {
+      return cast(agent, 'orum-solitary-bloom', { targetId: agent.id, targetRoomId: agent.roomId });
+    }
+    const allyNeedsMemory = allies.some(ally => ally.heroStatuses?.fear || ally.heroStatuses?.confusion || (ally.sporeSleep ?? 0) > 0);
+    if ((hostiles.length >= 2 || allyNeedsMemory) && !skillSystem.hasZone('memory-bloom', agent.roomId, definition.id)) {
+      return cast(agent, 'orum-memory-bloom', { targetRoomId: agent.roomId });
+    }
+    if (hostiles.length) {
+      return cast(agent, 'orum-mycelial-lance', { targetId: strongest(hostiles)?.id, targetRoomId: agent.roomId });
+    }
+  }
+
+  if (definition.id === 'hero.glop') {
+    if (healthRatio <= 0.48 && hostiles.length >= 2 && !sim?.heroFormSystem?.groupForOwner?.(agent.id)) {
+      return cast(agent, 'glop-one-court', { targetId: agent.id, targetRoomId: agent.roomId });
+    }
+    const digestible = skillSystem.findDigestible(agent, sim);
+    if (digestible && healthRatio <= 0.78) {
+      return cast(agent, 'glop-digest-evidence', {
+        targetRoomId: agent.roomId,
+        targetPropId: digestible.kind === 'prop' ? digestible.item.id : null,
+        targetCargoId: digestible.kind === 'cargo' ? digestible.item.id : null,
+        targetCorpseId: digestible.kind === 'corpse' ? digestible.item.id : null,
+        targetStructureId: digestible.kind === 'structure' ? digestible.item.id : null
+      });
+    }
+    if (hostiles.length) {
+      return cast(agent, 'glop-royal-command', { targetRoomId: agent.roomId, commandMode: hostiles.length >= 2 ? 'kneel' : 'approach' });
+    }
+  }
+
   return null;
 }
 

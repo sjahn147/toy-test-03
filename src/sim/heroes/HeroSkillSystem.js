@@ -75,6 +75,10 @@ export class HeroSkillSystem {
       targetRouteId: action.targetRouteId ?? null,
       targetTrapId: action.targetTrapId ?? null,
       targetStructureId: action.targetStructureId ?? null,
+      targetPropId: action.targetPropId ?? null,
+      targetCargoId: action.targetCargoId ?? null,
+      targetCorpseId: action.targetCorpseId ?? null,
+      commandMode: action.commandMode ?? null,
       startHp: agent.hp,
       impactApplied: false
     };
@@ -197,6 +201,19 @@ export class HeroSkillSystem {
       case 'armor-break': return this.roomArmorBreak(agent, effect, sim);
       case 'second-defeat-stance': return this.enterSecondDefeat(agent, definition, effect, sim);
       case 'drop-armor-prop': return this.dropArmor(agent, sim);
+      case 'deploy-mourning-veil': return this.deployMourningVeil(agent, definition, effect, sim);
+      case 'grant-veil-concealment': return true;
+      case 'call-adjacent-wraiths': return this.callAdjacentWraiths(agent, definition, effect, sim);
+      case 'raise-temporary-shades': return this.raiseTemporaryShades(agent, effect, sim);
+      case 'deploy-ethereal-domain': return this.deployEtherealDomain(agent, definition, effect, sim);
+      case 'line-damage-root': return this.lineDamageRoot(agent, cast, effect, sim);
+      case 'grow-lance-variant': return this.growLanceVariant(agent, effect);
+      case 'deploy-memory-bloom': return this.deployMemoryBloom(agent, definition, effect, sim);
+      case 'cleanse-fungal-allies': return this.cleanseFungalAllies(agent, sim);
+      case 'enter-solitary-bloom': return this.enterSolitaryBloom(agent, definition, effect, sim);
+      case 'royal-command': return this.royalCommand(agent, cast, effect, sim);
+      case 'digest-evidence': return this.digestEvidence(agent, cast, effect, sim);
+      case 'split-hero-court': return this.splitHeroCourt(agent, effect, sim);
       case 'emit-command': return true;
       default: return false;
     }
@@ -418,6 +435,217 @@ export class HeroSkillSystem {
     return true;
   }
 
+
+  deployMourningVeil(agent, definition, effect, sim) {
+    if (this.zones.some(zone => zone.kind === 'mourning-veil' && zone.heroId === definition.id && zone.remaining > 0)) return false;
+    const zone = {
+      id: `hero-zone-${this.sequence++}`,
+      kind: 'mourning-veil',
+      heroId: definition.id,
+      factionId: definition.factionId,
+      roomId: agent.roomId,
+      remaining: effect.duration ?? 10,
+      radius: effect.radius ?? 4.6,
+      multiplier: effect.slowMultiplier ?? 0.78,
+      attackPenalty: effect.attackPenalty ?? 2,
+      affected: new Set()
+    };
+    this.zones.push(zone);
+    agent.heroStatuses.mourningVeil = { zoneId: zone.id, remaining: zone.remaining };
+    sim?.emitEffect?.('hero-zone', { roomId: agent.roomId, agentId: agent.id, duration: zone.remaining, heroId: definition.id, shape: 'mourning-veil', radius: zone.radius, colorRole: 'undead-veil' });
+    return true;
+  }
+
+  callAdjacentWraiths(agent, definition, effect, sim) {
+    const adjacent = new Set(sim?.graph?.get?.(agent.roomId) ?? []);
+    const candidates = (sim?.agents ?? [])
+      .filter(candidate => candidate.id !== agent.id && candidate.alive !== false && !candidate.departed && !candidate.hidden && !candidate.travel)
+      .filter(candidate => factionOf(candidate) === definition.factionId)
+      .filter(candidate => String(candidate.role ?? '').includes('wraith') || candidate.species === 'wraith')
+      .filter(candidate => adjacent.has(candidate.roomId))
+      .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+      .slice(0, effect.maximum ?? 3);
+    for (const wraith of candidates) {
+      sim?.occupancy?.release?.(wraith.id);
+      wraith.roomId = agent.roomId;
+      wraith.travel = null;
+      wraith.combat = null;
+      wraith.mood = 'soul-procession';
+      wraith.heroStatuses ??= {};
+      wraith.heroStatuses.procession = { remaining: 5, sourceId: agent.id };
+      sim?.occupancy?.placeAgent?.(wraith, agent.roomId);
+      sim?.emitEffect?.('hero-form-reveal', { roomId: agent.roomId, agentId: wraith.id, duration: 0.9, formKind: 'wraith-arrival', heroId: definition.id, colorRole: 'undead-veil' });
+    }
+    return candidates.length > 0;
+  }
+
+  raiseTemporaryShades(agent, effect, sim) {
+    return (sim?.heroFormSystem?.raiseShades?.(agent, { maximum: effect.maximum ?? 2, duration: effect.duration ?? 9 }, sim) ?? 0) > 0;
+  }
+
+  deployEtherealDomain(agent, definition, effect, sim) {
+    if (this.zones.some(zone => zone.kind === 'ethereal-domain' && zone.heroId === definition.id && zone.remaining > 0)) return false;
+    const zone = {
+      id: `hero-zone-${this.sequence++}`,
+      kind: 'ethereal-domain',
+      heroId: definition.id,
+      factionId: definition.factionId,
+      roomId: agent.roomId,
+      remaining: effect.duration ?? 12,
+      radius: effect.radius ?? 6,
+      projectileSlow: effect.projectileSlow ?? 0.62,
+      affected: new Set()
+    };
+    this.zones.push(zone);
+    agent.heroStatuses.etherealDomain = { zoneId: zone.id, remaining: zone.remaining };
+    agent.heroVariant = 'unburied-queen';
+    sim?.emitEffect?.('hero-zone', { roomId: agent.roomId, agentId: agent.id, duration: zone.remaining, heroId: definition.id, shape: 'ethereal-domain', radius: zone.radius, colorRole: 'undead-crown' });
+    return true;
+  }
+
+  lineDamageRoot(agent, cast, effect, sim) {
+    const hostiles = this.hostilesInRoom(agent, sim);
+    if (!hostiles.length) return false;
+    const primary = hostiles.find(target => target.id === cast.targetId) ?? strongest(hostiles);
+    const ordered = [primary, ...hostiles.filter(target => target.id !== primary?.id).sort((a, b) => projectedDistance(agent, a) - projectedDistance(agent, b))]
+      .filter(Boolean)
+      .slice(0, effect.maximum ?? 3);
+    for (let index = 0; index < ordered.length; index += 1) {
+      const target = ordered[index];
+      const amount = Math.max(1, Math.round((effect.amount ?? 14) * (1 - index * 0.18)));
+      sim?.applyCombatDamage?.(agent, target, amount, { melee: false, projectileType: 'fungal', heroSkill: true });
+      if (target.alive === false) continue;
+      target.heroStatuses ??= {};
+      target.heroStatuses.rooted = { remaining: effect.rootDuration ?? 3.2, sourceId: agent.id };
+      target.combat = null;
+    }
+    return ordered.length > 0;
+  }
+
+  growLanceVariant(agent, effect) {
+    agent.heroStatuses.lanceGrown = { remaining: effect.duration ?? 1.6 };
+    agent.heroVariant = 'lance-grown';
+    return true;
+  }
+
+  deployMemoryBloom(agent, definition, effect, sim) {
+    if (this.zones.some(zone => zone.kind === 'memory-bloom' && zone.heroId === definition.id && zone.remaining > 0)) return false;
+    const zone = {
+      id: `hero-zone-${this.sequence++}`,
+      kind: 'memory-bloom',
+      heroId: definition.id,
+      factionId: definition.factionId,
+      roomId: agent.roomId,
+      remaining: effect.duration ?? 9,
+      radius: effect.radius ?? 4.4,
+      attackPenalty: effect.attackPenalty ?? 2,
+      affected: new Set()
+    };
+    this.zones.push(zone);
+    sim?.emitEffect?.('hero-zone', { roomId: agent.roomId, agentId: agent.id, duration: zone.remaining, heroId: definition.id, shape: 'memory-flower', radius: zone.radius, colorRole: 'fungal-blue' });
+    return true;
+  }
+
+  cleanseFungalAllies(agent, sim) {
+    let changed = 0;
+    for (const ally of (sim?.agents ?? []).filter(candidate => candidate.alive !== false && candidate.roomId === agent.roomId && factionOf(candidate) === factionOf(agent))) {
+      ally.heroStatuses ??= {};
+      for (const key of ['fear', 'confusion', 'memoryLost']) {
+        if (!ally.heroStatuses[key]) continue;
+        delete ally.heroStatuses[key];
+        changed += 1;
+      }
+      if ((ally.sporeSleep ?? 0) > 0) {
+        ally.sporeSleep = 0;
+        changed += 1;
+      }
+    }
+    return changed > 0;
+  }
+
+  enterSolitaryBloom(agent, definition, effect, sim) {
+    if (agent.heroStatuses.solitaryBloom) return false;
+    agent.heroStatuses.solitaryBloom = {
+      remaining: effect.duration ?? 14,
+      endingHealthCostRatio: effect.endingHealthCostRatio ?? 0.12
+    };
+    agent.heroStatModifiers.skill = {
+      attack: effect.attackBonus ?? 4,
+      armor: 0,
+      courage: 4,
+      speedMultiplier: effect.speedMultiplier ?? 1.22,
+      interruptResistance: effect.interruptResistance ?? 0.35
+    };
+    agent.communionEnabled = false;
+    agent.heroVariant = 'solitary-bloom';
+    recomputeHeroStats(agent, definition);
+    return true;
+  }
+
+  royalCommand(agent, cast, effect, sim) {
+    const hostiles = this.hostilesInRoom(agent, sim);
+    if (!hostiles.length) return false;
+    const mode = cast.commandMode ?? (hostiles.length >= 2 ? 'kneel' : 'approach');
+    if (mode === 'approach') {
+      for (const target of hostiles.slice(0, 3)) {
+        target.heroStatuses ??= {};
+        target.heroStatuses.royalApproach = { remaining: 1.1, sourceId: agent.id };
+        target.combat = null;
+        pullToward(agent, target, 0.62);
+      }
+    } else {
+      for (const target of hostiles) {
+        applyExternalSlow(target, 0.58, effect.slowDuration ?? 3.5, `royal-command:${agent.id}`);
+        target.heroStatuses ??= {};
+        target.heroStatuses.stagger = { remaining: effect.staggerDuration ?? 0.8 };
+        target.combat = null;
+      }
+    }
+    agent.heroLastCommand = mode;
+    return true;
+  }
+
+  digestEvidence(agent, cast, effect, sim) {
+    const digestible = this.findDigestible(agent, sim, cast);
+    if (!digestible) return false;
+    const { kind, item } = digestible;
+    let consumed = false;
+    if (kind === 'corpse') {
+      const source = sim?.ecosystem?.corpses ?? [];
+      const index = source.findIndex(candidate => candidate.id === item.id);
+      if (index >= 0) { source.splice(index, 1); consumed = true; }
+    } else if (kind === 'cargo') {
+      item.state = 'consumed';
+      item.amount = 0;
+      item.heroConsumedBy = agent.heroId;
+      consumed = true;
+    } else if (kind === 'structure') {
+      item.heroConsumedBy = agent.heroId;
+      item.hp = 0;
+      item.integrity = 0;
+      item.state = 'consumed';
+      consumed = true;
+    } else {
+      item.heroConsumedBy = agent.heroId;
+      item.consumed = true;
+      item.hidden = true;
+      consumed = true;
+    }
+    if (!consumed) return false;
+    agent.hp = Math.min(agent.maxHp, agent.hp + (effect.heal ?? 24));
+    const stanceKey = kind === 'prop' && String(item.type ?? '').includes('potion') ? 'potion' : kind;
+    const stance = effect.stanceByType?.[stanceKey] ?? effect.stanceByType?.[kind] ?? 'crown';
+    agent.heroStance = stance;
+    agent.heroVariant = `regalia-${stance}`;
+    agent.heroFlags = [...new Set([...(agent.heroFlags ?? []), `digested-${kind}`])];
+    sim?.emitEffect?.('hero-impact', { roomId: agent.roomId, agentId: agent.id, duration: 1, heroId: agent.heroId, skillId: 'glop-digest-evidence', shape: 'digest-spiral', radius: 2.6, colorRole: 'slime-teal' });
+    return true;
+  }
+
+  splitHeroCourt(agent, effect, sim) {
+    return Boolean(sim?.heroFormSystem?.splitCourt?.(agent, { duration: effect.duration ?? 11, aspects: effect.aspects ?? ['king', 'guard', 'scribe'] }, sim));
+  }
+
   updateRouteLocks(dt, sim) {
     for (const lock of this.routeLocks) lock.remaining -= dt;
     this.routeLocks = this.routeLocks.filter(lock => lock.remaining > 0);
@@ -446,6 +674,52 @@ export class HeroSkillSystem {
           trap.cooldown = Math.max(0, (trap.cooldown ?? 0) - dt * 1.5);
           trap.heroOverclocked = true;
         }
+      } else if (zone.kind === 'mourning-veil') {
+        for (const target of (sim.agents ?? []).filter(candidate => candidate.alive !== false && candidate.roomId === zone.roomId)) {
+          target.heroStatuses ??= {};
+          if (factionOf(target) === zone.factionId) {
+            target.heroStatuses.veilConcealment = { remaining: 0.4, sourceId: zone.id };
+            continue;
+          }
+          applyExternalSlow(target, zone.multiplier, 0.4, zone.id);
+          applyAttackPenalty(target, zone.attackPenalty, 0.4, zone.id);
+          if (!zone.affected.has(target.id)) target.combat = null;
+          zone.affected.add(target.id);
+        }
+      } else if (zone.kind === 'ethereal-domain') {
+        for (const ally of (sim.agents ?? []).filter(candidate => candidate.alive !== false && candidate.roomId === zone.roomId && factionOf(candidate) === zone.factionId)) {
+          ally.heroStatuses ??= {};
+          ally.heroStatuses.etherealPassage = { remaining: 0.4, sourceId: zone.id };
+          applyExternalSlow(ally, 1.14, 0.4, zone.id);
+        }
+      } else if (zone.kind === 'memory-bloom') {
+        for (const target of (sim.agents ?? []).filter(candidate => candidate.alive !== false && candidate.roomId === zone.roomId)) {
+          target.heroStatuses ??= {};
+          if (factionOf(target) === zone.factionId) {
+            for (const key of ['fear', 'confusion', 'memoryLost']) delete target.heroStatuses[key];
+            target.sporeSleep = Math.max(0, (target.sporeSleep ?? 0) - dt * 2.5);
+            continue;
+          }
+          applyAttackPenalty(target, zone.attackPenalty, 0.4, zone.id);
+          if (!zone.affected.has(target.id)) {
+            target.combat = null;
+            target.lastAttackerId = null;
+            target.mood = 'memory-scattered';
+          }
+          zone.affected.add(target.id);
+        }
+      }
+    }
+    const expired = this.zones.filter(zone => zone.remaining <= 0);
+    for (const zone of expired) {
+      if (zone.kind === 'ethereal-domain') {
+        const hero = (sim.agents ?? []).find(agent => agent.heroId === zone.heroId);
+        if (hero?.heroStatuses) delete hero.heroStatuses.etherealDomain;
+        if (hero?.heroVariant === 'unburied-queen') hero.heroVariant = null;
+      }
+      if (zone.kind === 'mourning-veil') {
+        const hero = (sim.agents ?? []).find(agent => agent.heroId === zone.heroId);
+        if (hero?.heroStatuses) delete hero.heroStatuses.mourningVeil;
       }
     }
     this.zones = this.zones.filter(zone => zone.remaining > 0);
@@ -494,11 +768,33 @@ export class HeroSkillSystem {
       status.remaining -= dt;
       if (status.remaining > 0) continue;
       delete statuses[key];
-      if (key === 'bastion' || key === 'secondDefeat') delete agent.heroStatModifiers.skill;
+      delete agent.heroStatModifiers.skill;
       if (key === 'bastion') agent.heroVariant = null;
       if (key === 'secondDefeat') agent.heroVariant = 'unarmored';
       recomputeHeroStats(agent, definition);
     }
+    if (statuses.lanceGrown) {
+      statuses.lanceGrown.remaining -= dt;
+      if (statuses.lanceGrown.remaining <= 0) {
+        delete statuses.lanceGrown;
+        if (agent.heroVariant === 'lance-grown') agent.heroVariant = null;
+      }
+    }
+    if (statuses.solitaryBloom) {
+      statuses.solitaryBloom.remaining -= dt;
+      if (statuses.solitaryBloom.remaining <= 0) {
+        const cost = Math.max(1, Math.round(agent.maxHp * (statuses.solitaryBloom.endingHealthCostRatio ?? 0.12)));
+        delete statuses.solitaryBloom;
+        delete agent.heroStatModifiers.skill;
+        agent.communionEnabled = true;
+        if (agent.heroVariant === 'solitary-bloom') agent.heroVariant = null;
+        agent.hp = Math.max(1, agent.hp - cost);
+        recomputeHeroStats(agent, definition);
+        this.emit(`${definition.displayName} paid the cost of blooming alone.`, { type: 'hero-solitary-bloom-ended', heroId: definition.id, agentId: agent.id, roomId: agent.roomId, healthCost: cost });
+      }
+    }
+    if (statuses.etherealDomain) statuses.etherealDomain.remaining = Math.max(0, statuses.etherealDomain.remaining - dt);
+    if (statuses.mourningVeil) statuses.mourningVeil.remaining = Math.max(0, statuses.mourningVeil.remaining - dt);
   }
 
   updateExternalStatuses(dt, sim) {
@@ -511,6 +807,14 @@ export class HeroSkillSystem {
         if (slow.remaining <= 0) {
           agent.speedMultiplier = slow.originalSpeedMultiplier;
           delete statuses.externalSlow;
+        }
+      }
+      const attackPenalty = statuses.externalAttackPenalty;
+      if (attackPenalty) {
+        attackPenalty.remaining -= dt;
+        if (attackPenalty.remaining <= 0) {
+          agent.attack = attackPenalty.originalAttack;
+          delete statuses.externalAttackPenalty;
         }
       }
       const stagger = statuses.stagger;
@@ -526,17 +830,51 @@ export class HeroSkillSystem {
           delete statuses.armorBreak;
         }
       }
+      const rooted = statuses.rooted;
+      if (rooted) {
+        rooted.remaining -= dt;
+        agent.travel = null;
+        if (rooted.remaining <= 0) delete statuses.rooted;
+      }
+      for (const key of ['royalApproach', 'veilConcealment', 'etherealPassage', 'procession']) {
+        const status = statuses[key];
+        if (!status) continue;
+        status.remaining -= dt;
+        if (status.remaining <= 0) delete statuses[key];
+      }
+      const annotation = statuses.courtAnnotation;
+      if (annotation) {
+        annotation.remaining -= dt;
+        if (annotation.remaining <= 0) {
+          agent.attack = annotation.originalAttack;
+          delete statuses.courtAnnotation;
+        }
+      }
     }
   }
 
   isRouteBlocked(fromRoomId, toRoomId, agent) {
     const lock = this.routeLocks.find(candidate => pairMatches(candidate, fromRoomId, toRoomId));
     if (!lock) return false;
+    if (agent?.incorporeal || agent?.heroStatuses?.etherealPassage || agent?.heroStatuses?.etherealDomain) return false;
     return factionOf(agent) !== lock.allowFaction;
   }
 
   isMovementBlocked(agent) {
-    return Boolean(agent?.heroStatuses?.bastion?.rooted);
+    return Boolean(agent?.heroStatuses?.bastion?.rooted || agent?.heroStatuses?.rooted);
+  }
+
+  modifyIncomingDamage(source, target, amount, metadata = {}) {
+    let result = amount;
+    if (target?.heroId === 'hero.isara' || target?.heroFormKind?.startsWith?.('shade')) {
+      const holy = metadata.holy === true || metadata.projectileType === 'holy';
+      const physical = metadata.melee === true || metadata.projectileType === 'arrow' || !metadata.projectileType;
+      if (holy) result *= 1.45;
+      else if (physical) result *= 0.7;
+    }
+    if (target?.heroStatuses?.veilConcealment && !metadata.holy) result *= 0.82;
+    if (target?.heroFormKind === 'guard') result *= 0.8;
+    return Math.max(1, Math.round(result));
   }
 
   modifyOutgoingDamage(attacker, target, amount) {
@@ -547,7 +885,16 @@ export class HeroSkillSystem {
       if (target?.id === opponent) result *= 1 + duel.damageBonus;
       else result *= Math.max(0.1, 1 - duel.offTargetPenalty);
     }
+    if (attacker?.heroFormKind === 'king') result *= 1.08;
+    if (attacker?.heroFormKind === 'scribe' && target?.heroStatuses?.courtAnnotation) result *= 1.12;
     return Math.max(1, Math.round(result));
+  }
+
+  projectileSpeedMultiplier(projectile) {
+    const zone = this.zones.find(candidate => candidate.kind === 'ethereal-domain' && candidate.roomId === projectile?.roomId && candidate.remaining > 0);
+    if (!zone) return 1;
+    const sourceFaction = projectile?.sourceFactionId ?? null;
+    return sourceFaction === zone.factionId ? 1 : zone.projectileSlow ?? 0.62;
   }
 
   hasRoomRouteLock(roomId) {
@@ -556,6 +903,29 @@ export class HeroSkillSystem {
 
   hasSlowZone(roomId, factionId) {
     return this.zones.some(zone => zone.kind === 'gear-lockfield' && zone.roomId === roomId && zone.factionId === factionId && zone.remaining > 0);
+  }
+
+  hasZone(kind, roomId, heroId = null) {
+    return this.zones.some(zone => zone.kind === kind && zone.roomId === roomId && zone.remaining > 0 && (!heroId || zone.heroId === heroId));
+  }
+
+  adjacentWraithCount(agent, sim) {
+    const adjacent = new Set(sim?.graph?.get?.(agent.roomId) ?? []);
+    return (sim?.agents ?? []).filter(candidate => candidate.alive !== false && !candidate.departed && !candidate.hidden && adjacent.has(candidate.roomId) && factionOf(candidate) === factionOf(agent) && String(candidate.role ?? '').includes('wraith')).length;
+  }
+
+  findDigestible(agent, sim, cast = {}) {
+    const corpses = sim?.ecosystem?.corpses ?? [];
+    const corpse = cast.targetCorpseId ? corpses.find(candidate => candidate.id === cast.targetCorpseId) : corpses.find(candidate => candidate.roomId === agent.roomId);
+    if (corpse) return { kind: 'corpse', item: corpse };
+    const cargoSource = sim?.logisticsSystem?.cargo ?? [];
+    const cargo = cast.targetCargoId ? cargoSource.find(candidate => candidate.id === cast.targetCargoId) : cargoSource.find(candidate => (candidate.roomId ?? candidate.currentRoomId) === agent.roomId && candidate.state !== 'consumed');
+    if (cargo) return { kind: 'cargo', item: cargo };
+    const props = sim?.props ?? [];
+    const prop = cast.targetPropId ? props.find(candidate => candidate.id === cast.targetPropId) : props.find(candidate => candidate.roomId === agent.roomId && !candidate.consumed && !candidate.unique && !candidate.heroProtected);
+    if (prop) return { kind: 'prop', item: prop };
+    const structure = this.allStructures(sim).find(candidate => candidate.roomId === agent.roomId && candidate.factionId !== factionOf(agent) && candidate.state !== 'consumed');
+    return structure ? { kind: 'structure', item: structure } : null;
   }
 
   duelForHero(heroId) {
@@ -669,6 +1039,35 @@ function applyExternalSlow(agent, multiplier, duration, sourceId) {
 
 function factionOf(agent) {
   return agent?.ecologyFaction ?? agent?.factionId ?? agent?.faction ?? null;
+}
+
+function applyAttackPenalty(agent, amount, duration, sourceId) {
+  agent.heroStatuses ??= {};
+  const current = agent.heroStatuses.externalAttackPenalty;
+  if (current?.sourceId === sourceId) {
+    current.remaining = Math.max(current.remaining, duration);
+    return;
+  }
+  if (current) agent.attack = current.originalAttack;
+  const original = Number.isFinite(agent.attack) ? agent.attack : 1;
+  agent.heroStatuses.externalAttackPenalty = { sourceId, remaining: duration, originalAttack: original };
+  agent.attack = Math.max(1, original - Math.max(0, amount ?? 0));
+}
+
+function strongest(list) {
+  return [...list].sort((a, b) => ((b.hp ?? 0) + (b.attack ?? 0) * 4 + (b.armor ?? 0) * 2) - ((a.hp ?? 0) + (a.attack ?? 0) * 4 + (a.armor ?? 0) * 2) || String(a.id).localeCompare(String(b.id)))[0] ?? null;
+}
+
+function projectedDistance(source, target) {
+  if (!source?.roomCell || !target?.roomCell) return Number.MAX_SAFE_INTEGER;
+  return Math.hypot((target.roomCell.x ?? 0) - (source.roomCell.x ?? 0), (target.roomCell.z ?? 0) - (source.roomCell.z ?? 0));
+}
+
+function pullToward(source, target, strength) {
+  if (!source?.roomCell || !target?.roomCell) return false;
+  target.roomCell.x += ((source.roomCell.x ?? 0) - (target.roomCell.x ?? 0)) * strength;
+  target.roomCell.z += ((source.roomCell.z ?? 0) - (target.roomCell.z ?? 0)) * strength;
+  return true;
 }
 
 function pairMatches(lock, from, to) {

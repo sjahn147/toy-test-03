@@ -4,10 +4,15 @@ import { HERO_ANIMATION_CLIPS } from '../src/content/heroes/HeroAnimationClips.j
 
 assert.deepEqual(validateHeroDefinitions(), []);
 const heroes = listHeroDefinitions();
-assert.equal(heroes.length, 3);
-assert.deepEqual(heroes.map(hero => hero.id), ['hero.nibble', 'hero.kirik', 'hero.karg']);
+// WP8a's own roster is these 3; later work packages (WP8b onward) append more
+// to the same registry, so this checks WP8a's heroes are present rather than
+// that the registry's total size is frozen at exactly 3.
+assert.ok(heroes.length >= 3);
+for (const id of ['hero.nibble', 'hero.kirik', 'hero.karg']) {
+  assert.ok(heroes.some(hero => hero.id === id), `missing WP8a hero ${id}`);
+}
 
-for (const hero of heroes) {
+for (const hero of heroes.filter(hero => ['hero.nibble', 'hero.kirik', 'hero.karg'].includes(hero.id))) {
   assert.equal(hero.unique, true);
   assert.equal(hero.rank, 'faction-hero');
   assert.equal(hero.skills.length, 3);

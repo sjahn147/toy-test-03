@@ -115,9 +115,138 @@ export const HERO_ANIMATION_CLIPS = Object.freeze({
       channel('weaponRoot', 'rotation.z', [[0, 0], [1, 1.7]]),
       channel('head', 'rotation.x', [[0, 0], [1, -0.5]])
     ])
+  }),
+
+  'isara-spectral': Object.freeze({
+    'idle-primary': clip('isara.idle-primary', 4.2, [
+      channel('crown', 'position.y', [[0, 0.03], [0.5, 0.12], [1, 0.03]]),
+      channel('handL', 'position.y', [[0, -0.02], [0.5, 0.08], [1, -0.02]]),
+      channel('handR', 'position.y', [[0, 0.04], [0.5, -0.05], [1, 0.04]]),
+      channel('faceVoid', 'scale.y', [[0, 0], [0.5, 0.12], [1, 0]])
+    ], { loop: true }),
+    'idle-secondary': clip('isara.idle-secondary', 5.1, [
+      channel('veilRoot', 'rotation.y', [[0, -0.03], [0.5, 0.05], [1, -0.03]]),
+      channel('shadow0', 'rotation.z', [[0, 0.04], [0.5, -0.07], [1, 0.04]]),
+      channel('shadow1', 'rotation.z', [[0, -0.03], [0.5, 0.08], [1, -0.03]])
+    ], { loop: true }),
+    'skill:isara-mourning-veil': clip('isara.mourning-veil', 1.75, [
+      channel('crown', 'position.y', [[0, 0], [0.55, 0.28], [1, 0.14]]),
+      channel('handL', 'rotation.z', [[0, 0], [0.52, -1.05], [1, -0.22]]),
+      channel('handR', 'rotation.z', [[0, 0], [0.52, 1.05], [1, 0.22]]),
+      channel('veilRoot', 'scale.x', [[0, 0], [0.62, 0.48], [1, 0.16]]),
+      channel('veilRoot', 'scale.z', [[0, 0], [0.62, 0.42], [1, 0.14]])
+    ], { events: [{ at: 0.64, type: 'impact' }] }),
+    'skill:isara-soul-procession': clip('isara.soul-procession', 2.0, [
+      channel('motionRoot', 'position.y', [[0, 0], [0.58, 0.22], [1, 0.08]]),
+      channel('crown', 'rotation.y', [[0, 0], [1, 3.4]], 'linear'),
+      channel('handL', 'rotation.x', [[0, 0], [0.58, -0.72], [1, -0.15]]),
+      channel('handR', 'rotation.x', [[0, 0], [0.58, -0.72], [1, -0.15]]),
+      channel('shadow2', 'scale.y', [[0, 0], [0.7, 0.65], [1, 0.15]])
+    ], { events: [{ at: 0.68, type: 'impact' }] }),
+    'skill:isara-unburied-queen': clip('isara.unburied-queen', 2.35, [
+      channel('crown', 'position.y', [[0, 0], [0.64, 0.58], [1, 0.34]]),
+      channel('crown', 'scale.x', [[0, 0], [0.64, 0.36], [1, 0.2]]),
+      channel('veilRoot', 'scale.x', [[0, 0], [0.72, 0.7], [1, 0.38]]),
+      channel('veilRoot', 'scale.z', [[0, 0], [0.72, 0.7], [1, 0.38]]),
+      channel('faceVoid', 'scale.y', [[0, 0], [0.72, 0.9], [1, 0.42]]),
+      channel('handL', 'position.x', [[0, 0], [0.72, -0.38], [1, -0.18]]),
+      channel('handR', 'position.x', [[0, 0], [0.72, 0.38], [1, 0.18]])
+    ], { events: [{ at: 0.73, type: 'impact' }] }),
+    death: clip('isara.death', 2.8, [
+      channel('crown', 'position.y', [[0, 0], [0.4, -0.2], [1, -1.3]]),
+      channel('crown', 'rotation.z', [[0, 0], [1, 1.4]]),
+      channel('veilRoot', 'scale.y', [[0, 0], [1, -0.75]]),
+      channel('motionRoot', 'position.y', [[0, 0], [1, -0.9]])
+    ])
+  }),
+
+  'orum-fungal': Object.freeze({
+    'idle-primary': clip('orum.idle-primary', 4.6, [
+      channel('capRoot', 'rotation.z', [[0, -0.025], [0.5, 0.035], [1, -0.025]]),
+      channel('chest', 'scale.y', [[0, 0], [0.5, 0.045], [1, 0]]),
+      channel('branchHand', 'rotation.y', [[0, -0.08], [0.5, 0.12], [1, -0.08]])
+    ], { loop: true }),
+    'idle-secondary': clip('orum.idle-secondary', 5.4, [
+      channel('sporeSacL', 'scale.x', [[0, 0], [0.5, 0.16], [1, 0]]),
+      channel('sporeSacR', 'scale.x', [[0, 0.12], [0.5, 0], [1, 0.12]]),
+      channel('mantle0', 'rotation.z', [[0, 0.04], [0.5, -0.05], [1, 0.04]])
+    ], { loop: true }),
+    'skill:orum-mycelial-lance': clip('orum.mycelial-lance', 1.25, [
+      channel('chest', 'rotation.y', [[0, 0], [0.35, -0.42], [0.7, 0.34], [1, 0]]),
+      channel('spearRoot', 'rotation.x', [[0, 0], [0.35, -1.08], [0.72, 0.38], [1, 0]]),
+      channel('spearShaft', 'scale.y', [[0, 0], [0.62, 1.15], [1, 0.25]]),
+      channel('spearTip', 'position.y', [[0, 0], [0.62, 0.72], [1, 0.18]])
+    ], { events: [{ at: 0.64, type: 'impact' }] }),
+    'skill:orum-memory-bloom': clip('orum.memory-bloom', 1.8, [
+      channel('capRoot', 'scale.x', [[0, 0], [0.62, 0.3], [1, 0.12]]),
+      channel('capRoot', 'scale.z', [[0, 0], [0.62, 0.3], [1, 0.12]]),
+      channel('capRim', 'rotation.y', [[0, 0], [1, 2.8]], 'linear'),
+      channel('sporeSacL', 'scale.x', [[0, 0], [0.58, 0.7], [1, 0.15]]),
+      channel('sporeSacR', 'scale.x', [[0, 0], [0.58, 0.7], [1, 0.15]])
+    ], { events: [{ at: 0.68, type: 'impact' }] }),
+    'skill:orum-solitary-bloom': clip('orum.solitary-bloom', 2.2, [
+      channel('motionRoot', 'position.y', [[0, 0], [0.55, -0.14], [0.76, 0.2], [1, 0.08]]),
+      channel('capRoot', 'scale.x', [[0, 0], [0.7, 0.48], [1, 0.28]]),
+      channel('capRoot', 'scale.z', [[0, 0], [0.7, 0.48], [1, 0.28]]),
+      channel('spearShaft', 'scale.y', [[0, 0], [0.7, 0.8], [1, 0.42]]),
+      channel('mantleRoot', 'scale.y', [[0, 0], [0.7, -0.35], [1, -0.2]])
+    ], { events: [{ at: 0.72, type: 'impact' }] }),
+    death: clip('orum.death', 2.6, [
+      channel('stemLower', 'rotation.z', [[0, 0], [0.65, 0.62], [1, 1.25]]),
+      channel('capRoot', 'rotation.z', [[0, 0], [1, -0.8]]),
+      channel('rootCore', 'scale.y', [[0, 0], [1, -0.45]])
+    ])
+  }),
+
+  'glop-regal': Object.freeze({
+    'idle-primary': clip('glop.idle-primary', 4.0, [
+      channel('crown', 'position.y', [[0, 0.02], [0.5, 0.12], [1, 0.02]]),
+      channel('blobRoot', 'scale.y', [[0, 0], [0.5, 0.055], [1, 0]]),
+      channel('core', 'scale.x', [[0, 0.04], [0.5, -0.04], [1, 0.04]])
+    ], { loop: true }),
+    'idle-secondary': clip('glop.idle-secondary', 5.2, [
+      channel('pseudoArmL', 'rotation.z', [[0, 0.06], [0.5, -0.1], [1, 0.06]]),
+      channel('pseudoArmR', 'rotation.z', [[0, -0.06], [0.5, 0.1], [1, -0.06]]),
+      channel('artifactOrbit', 'rotation.y', [[0, 0], [1, 1.1]], 'linear')
+    ], { loop: true }),
+    'skill:glop-royal-command': clip('glop.royal-command', 1.45, [
+      channel('crown', 'position.y', [[0, 0], [0.56, 0.32], [1, 0.12]]),
+      channel('pseudoArmL', 'rotation.z', [[0, 0], [0.55, -1.0], [1, -0.2]]),
+      channel('pseudoArmR', 'rotation.z', [[0, 0], [0.55, 1.0], [1, 0.2]]),
+      channel('blobRoot', 'scale.y', [[0, 0], [0.45, -0.12], [0.72, 0.18], [1, 0]])
+    ], { events: [{ at: 0.66, type: 'impact' }] }),
+    'skill:glop-digest-evidence': clip('glop.digest-evidence', 1.9, [
+      channel('shell', 'scale.x', [[0, 0], [0.45, 0.25], [0.7, -0.12], [1, 0]]),
+      channel('shell', 'scale.z', [[0, 0], [0.45, 0.25], [0.7, -0.12], [1, 0]]),
+      channel('core', 'scale.x', [[0, 0], [0.65, 0.55], [1, 0.15]]),
+      channel('artifactOrbit', 'rotation.y', [[0, 0], [1, 5.8]], 'linear')
+    ], { events: [{ at: 0.7, type: 'impact' }] }),
+    'skill:glop-one-court': clip('glop.one-court', 2.4, [
+      channel('blobRoot', 'scale.x', [[0, 0], [0.58, 0.62], [0.82, -0.35], [1, -0.15]]),
+      channel('blobRoot', 'scale.z', [[0, 0], [0.58, 0.62], [0.82, -0.35], [1, -0.15]]),
+      channel('crown', 'position.y', [[0, 0], [0.62, 0.55], [1, 0.3]]),
+      channel('artifactOrbit', 'rotation.y', [[0, 0], [1, 7.4]], 'linear'),
+      channel('core', 'scale.y', [[0, 0], [0.72, 0.8], [1, -0.25]])
+    ], { events: [{ at: 0.74, type: 'impact' }] }),
+    death: clip('glop.death', 2.8, [
+      channel('crown', 'position.y', [[0, 0], [0.35, -0.15], [1, -1.0]]),
+      channel('crown', 'rotation.z', [[0, 0], [1, 1.7]]),
+      channel('blobRoot', 'scale.y', [[0, 0], [1, -0.72]]),
+      channel('blobRoot', 'scale.x', [[0, 0], [1, 0.55]]),
+      channel('blobRoot', 'scale.z', [[0, 0], [1, 0.55]])
+    ])
   })
+
 });
 
 export function getHeroAnimationClip(profile, clipId) {
   return HERO_ANIMATION_CLIPS[profile]?.[clipId] ?? null;
+}
+
+export function getHeroAnimationProfile(profile) {
+  return HERO_ANIMATION_CLIPS[profile] ?? null;
+}
+
+export function listHeroAnimationProfiles() {
+  return Object.entries(HERO_ANIMATION_CLIPS).map(([id, clips]) => ({ id, ...clips }));
 }

@@ -33,7 +33,7 @@ const payload = {
 const serialized = JSON.stringify(payload);
 assert.ok(serialized.length > 100);
 const roundTrip = JSON.parse(serialized);
-assert.equal(roundTrip.heroes.heroes.length, 3);
+assert.ok(roundTrip.heroes.heroes.length >= 3, 'shared HeroDefinitions registry grows in later work packages');
 assert.ok(Array.isArray(roundTrip.heroSkills.routeLocks));
 assert.ok(Array.isArray(roundTrip.heroLeadership.activeEffects));
 assert.equal(containsMapOrSet(payload), false, 'snapshot payload must not leak Map or Set');

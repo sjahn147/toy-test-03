@@ -52,6 +52,7 @@ export const ENTITY_TABLES = [
   'settlementOrders',
   'zoneInteractions',
   'heroes',
+  'heroForms',
   'effects'
 ];
 
@@ -66,7 +67,9 @@ export const INDEX_NAMES = [
   'zoneInteractionsByRoom',
   'zoneInteractionsByAction',
   'heroesByFaction',
-  'heroesByRoom'
+  'heroesByRoom',
+  'heroFormsByOwner',
+  'heroFormsByRoom'
 ];
 
 const CLOCK_KEYS = ['time', 'turn', 'ended'];

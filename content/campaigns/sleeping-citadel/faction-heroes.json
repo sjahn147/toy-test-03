@@ -1,28 +1,64 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "campaignId": "sleeping-citadel",
-  "scope": "WP8-1 foundation + WP8-2A frontline trio",
+  "scope": "WP8-1 foundation + WP8-2A frontline trio + WP8-B irregular physics trio",
   "heroes": [
     {
       "id": "hero.nibble",
       "role": "hero-nibble",
       "name": "Nibble Hundred-Button",
+      "localizedName": "니블 백단추",
       "factionId": "goblin-clan",
-      "initialRoomId": "D19"
+      "initialRoomId": "D19",
+      "slice": "wp8a"
     },
     {
       "id": "hero.kirik",
       "role": "hero-kirik",
       "name": "Kirik, Third Gear",
+      "localizedName": "세 번째 톱니 키릭",
       "factionId": "copper-tail-clutch",
-      "initialRoomId": "D18"
+      "initialRoomId": "D18",
+      "slice": "wp8a"
     },
     {
       "id": "hero.karg",
       "role": "hero-karg",
       "name": "Karg Twice-Defeated",
+      "localizedName": "카르그 두 번 패한 자",
       "factionId": "red-tusk-tribe",
-      "initialRoomId": "J49"
+      "initialRoomId": "J49",
+      "slice": "wp8a"
+    },
+    {
+      "id": "hero.isara",
+      "role": "hero-isara",
+      "name": "Isara of the Black Veil",
+      "localizedName": "검은 베일의 이사라",
+      "factionId": "undead-host",
+      "initialRoomId": "E25",
+      "slice": "wp8b",
+      "frameworkContribution": ["spectral-secondary-motion", "temporary-shades", "ethereal-projectile-field"]
+    },
+    {
+      "id": "hero.orum-bell",
+      "role": "hero-orum-bell",
+      "name": "Orum-Bell, Bluecap Knight",
+      "localizedName": "푸른갓 기사 오룸-벨",
+      "factionId": "bluecap-colony",
+      "initialRoomId": "F28",
+      "slice": "wp8b",
+      "frameworkContribution": ["root-locomotion", "organic-growth-weapon", "memory-spore-field"]
+    },
+    {
+      "id": "hero.glop",
+      "role": "hero-glop",
+      "name": "Glop XVII, the Crown-Swallowed",
+      "localizedName": "왕관을 삼킨 글롭 17세",
+      "factionId": "slime-bloom",
+      "initialRoomId": "L57",
+      "slice": "wp8b",
+      "frameworkContribution": ["volume-preserving-amorphous-body", "internal-artifact-rig", "split-merge-hero-forms"]
     }
   ]
 }

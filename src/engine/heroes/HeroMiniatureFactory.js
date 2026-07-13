@@ -5,6 +5,7 @@ const geometryCache = new Map();
 const materialCache = new Map();
 
 export function createHeroMiniature(agent) {
+  if (agent?.heroFormOf) return createHeroFormMiniature(agent);
   const definition = getHeroDefinition(agent?.heroId ?? agent?.role);
   if (!definition) return null;
 
@@ -28,12 +29,17 @@ export function createHeroMiniature(agent) {
   if (definition.id === 'hero.nibble') assembly = buildNibble(model, definition, materials);
   else if (definition.id === 'hero.kirik') assembly = buildKirik(model, definition, materials);
   else if (definition.id === 'hero.karg') assembly = buildKarg(model, definition, materials);
+  else if (definition.id === 'hero.isara') assembly = buildIsara(model, definition, materials);
+  else if (definition.id === 'hero.orum-bell') assembly = buildOrumBell(model, definition, materials);
+  else if (definition.id === 'hero.glop') assembly = buildGlop(model, definition, materials);
   else return null;
 
   root.userData.joints = assembly.joints;
   root.userData.secondary = assembly.secondary ?? {};
   root.userData.damageParts = assembly.damageParts ?? { stage1Hide: [], stage2Hide: [], stage1Show: [], stage2Show: [] };
   root.userData.skillParts = assembly.skillParts ?? {};
+  root.userData.secondaryMotionConfig = assembly.secondaryMotionConfig ?? [];
+  root.userData.dynamicMaterials = assembly.dynamicMaterials ?? [];
   root.userData.heroMeshCount = countMeshes(root);
   addHeroIndicators(root, definition, materials);
   root.traverse(node => { node.userData.agentId = agent.id; node.userData.heroId = definition.id; });
@@ -394,8 +400,524 @@ function buildKarg(model, definition, materials) {
   };
 }
 
+
+function buildIsara(model, definition, materials) {
+  const specs = {
+    motionRoot: { parent: null, position: [0, 0.32, 0] },
+    veilRoot: { parent: 'motionRoot', position: [0, 0.92, 0] },
+    crown: { parent: 'veilRoot', position: [0, 0.86, 0] },
+    faceVoid: { parent: 'veilRoot', position: [0, 0.34, 0.16] },
+    handL: { parent: 'motionRoot', position: [-0.68, 1.02, 0.08] },
+    handR: { parent: 'motionRoot', position: [0.68, 1.02, 0.08] },
+    baseFx: { parent: 'motionRoot', position: [0, -0.28, 0] }
+  };
+  let parent = 'veilRoot';
+  for (let i = 0; i < 6; i += 1) {
+    specs[`veil${i}`] = { parent, position: [0, i === 0 ? -0.1 : -0.28, 0] };
+    parent = `veil${i}`;
+  }
+  specs.shadow0 = { parent: 'veil5', position: [-0.22, -0.18, -0.04] };
+  specs.shadow1 = { parent: 'veil5', position: [0.22, -0.18, -0.04] };
+  specs.shadow2 = { parent: 'veil5', position: [0, -0.22, -0.14] };
+  specs.memoryFace0 = { parent: 'veil2', position: [-0.18, -0.05, 0.34] };
+  specs.memoryFace1 = { parent: 'veil3', position: [0.2, -0.06, 0.3] };
+  const joints = buildHierarchy(model, specs);
+
+  const collar = torus('hero:isara:collar', 0.34, 0.055, materials.metal);
+  collar.rotation.x = Math.PI / 2;
+  joints.veilRoot.add(collar);
+  const shoulderVeil = openCone('hero:isara:shoulder-veil', 0.78, 0.72, 14, materials.veil);
+  shoulderVeil.position.y = -0.22;
+  shoulderVeil.scale.z = 0.8;
+  joints.veilRoot.add(shoulderVeil);
+
+  const faceVoid = sphere('hero:isara:face-void', 0.24, materials.darkTransparent);
+  faceVoid.scale.set(0.58, 1.25, 0.32);
+  joints.faceVoid.add(faceVoid);
+  const faceSlit = box('hero:isara:face-slit', [0.035, 0.48, 0.035], materials.spectral);
+  faceSlit.position.z = 0.08;
+  joints.faceVoid.add(faceSlit);
+
+  const crownRing = torus('hero:isara:crown-ring', 0.31, 0.035, materials.metal);
+  crownRing.rotation.x = Math.PI / 2;
+  joints.crown.add(crownRing);
+  const crownInner = torus('hero:isara:crown-inner', 0.19, 0.018, materials.spectral);
+  crownInner.rotation.x = Math.PI / 2;
+  crownInner.position.y = 0.03;
+  joints.crown.add(crownInner);
+  const crownSpikes = [];
+  for (let i = 0; i < 7; i += 1) {
+    const angle = (i / 7) * Math.PI * 2;
+    const spike = cone('hero:isara:crown-spike', 0.045, 0.34 + (i % 2) * 0.08, materials.metal);
+    spike.position.set(Math.cos(angle) * 0.29, 0.17 + (i % 2) * 0.04, Math.sin(angle) * 0.29);
+    spike.rotation.z = -Math.cos(angle) * 0.18;
+    spike.rotation.x = Math.sin(angle) * 0.18;
+    joints.crown.add(spike);
+    crownSpikes.push(spike);
+  }
+
+  // Four suspended crown chains make the crown readable as a separate floating relic.
+  // Each chain is deliberately built from a rigid link and a spectral drop so that it
+  // inherits the crown stabilizer while lagging behind the larger veil silhouette.
+  for (let i = 0; i < 4; i += 1) {
+    const angle = Math.PI * 0.25 + i * Math.PI / 2;
+    const chain = capsule('hero:isara:crown-chain', 0.012, 0.28 + (i % 2) * 0.05, materials.metal);
+    chain.position.set(Math.cos(angle) * 0.24, -0.12, Math.sin(angle) * 0.24);
+    chain.rotation.z = Math.cos(angle) * 0.18;
+    chain.rotation.x = -Math.sin(angle) * 0.18;
+    const drop = sphere('hero:isara:crown-drop', 0.045, materials.spectral);
+    drop.position.set(Math.cos(angle) * 0.27, -0.31 - (i % 2) * 0.04, Math.sin(angle) * 0.27);
+    joints.crown.add(chain, drop);
+  }
+
+  const veilPanels = [];
+  for (let i = 0; i < 6; i += 1) {
+    const radius = 0.72 - i * 0.055;
+    const panel = openCone(`hero:isara:veil-panel-${i}`, radius, 0.54, 12, materials.veil);
+    panel.position.y = -0.24;
+    panel.scale.z = 0.78 + i * 0.02;
+    joints[`veil${i}`].add(panel);
+    veilPanels.push(panel);
+    for (const side of [-1, 1]) {
+      const edge = box('hero:isara:veil-edge', [0.035, 0.5, 0.04], materials.spectral);
+      edge.position.set(side * radius * 0.56, -0.22, 0.12);
+      edge.rotation.z = side * 0.08;
+      joints[`veil${i}`].add(edge);
+    }
+  }
+
+  for (const [jointName, side] of [['handL', -1], ['handR', 1]]) {
+    const palm = sphere('hero:isara:palm', 0.13, materials.spectral);
+    palm.scale.set(0.8, 1.1, 0.45);
+    joints[jointName].add(palm);
+    for (let i = 0; i < 4; i += 1) {
+      const finger = capsule('hero:isara:finger', 0.018, 0.2 + i * 0.02, materials.spectral);
+      finger.position.set((i - 1.5) * 0.045, -0.14, 0.02);
+      finger.rotation.z = side * (i - 1.5) * 0.06;
+      joints[jointName].add(finger);
+    }
+  }
+
+  for (let i = 0; i < 3; i += 1) {
+    const tail = openCone(`hero:isara:shadow-tail-${i}`, 0.22 - i * 0.025, 0.72 + i * 0.08, 8, materials.darkTransparent);
+    tail.position.y = -0.32;
+    tail.scale.z = 0.55;
+    joints[`shadow${i}`].add(tail);
+  }
+
+  const memoryFaces = [];
+  for (let i = 0; i < 2; i += 1) {
+    const mask = sphere('hero:isara:memory-mask', 0.11, materials.spectral);
+    mask.scale.set(0.75, 1.1, 0.24);
+    mask.material = materials.spectral;
+    joints[`memoryFace${i}`].add(mask);
+    memoryFaces.push(mask);
+  }
+
+  const tornVeil = box('hero:isara:torn-veil', [0.42, 0.72, 0.035], materials.veil);
+  tornVeil.position.set(0.35, -0.28, 0.12);
+  tornVeil.rotation.z = -0.32;
+  tornVeil.visible = false;
+  joints.veil3.add(tornVeil);
+  const crownFracture = makeSparkCluster(materials.spectral, 5);
+  crownFracture.visible = false;
+  joints.crown.add(crownFracture);
+
+  return {
+    joints,
+    secondary: { veilRoot: joints.veilRoot, crown: joints.crown, handL: joints.handL, handR: joints.handR },
+    secondaryMotionConfig: [
+      { id: 'isara-veil', mode: 'veil-chain', joints: ['veil0','veil1','veil2','veil3','veil4','veil5','shadow0','shadow1','shadow2'], property: 'rotation', amplitude: 0.11, frequency: 1.2, phaseStep: 0.37, stiffness: 16, damping: 6.2, movementMultiplier: 2.1, castMultiplier: 1.2 },
+      { id: 'isara-hands', mode: 'floating-hands', joints: ['handL','handR'], property: 'position', amplitude: 0.12, frequency: 1.05, phaseStep: 1.6, stiffness: 14, damping: 5.6 },
+      { id: 'isara-crown', mode: 'crown-stabilizer', joints: ['crown'], property: 'position', amplitude: 0.11, frequency: 0.8, stiffness: 12, damping: 5 }
+    ],
+    dynamicMaterials: [materials.veil, materials.spectral, materials.darkTransparent],
+    damageParts: {
+      stage1Hide: [veilPanels[1], memoryFaces[0]],
+      stage2Hide: [veilPanels[3], ...crownSpikes.filter((_, index) => index % 3 === 0)],
+      stage1Show: [tornVeil],
+      stage2Show: [crownFracture]
+    },
+    skillParts: { crown: joints.crown, veilRoot: joints.veilRoot, hands: [joints.handL, joints.handR], faceVoid: joints.faceVoid }
+  };
+}
+
+function buildOrumBell(model, definition, materials) {
+  const specs = {
+    motionRoot: { parent: null, position: [0, 0, 0] },
+    rootCore: { parent: 'motionRoot', position: [0, 0.32, 0] },
+    rootLeg0: { parent: 'rootCore', position: [-0.22, -0.22, 0.06] },
+    rootLeg1: { parent: 'rootCore', position: [0.22, -0.22, 0.06] },
+    rootLeg2: { parent: 'rootCore', position: [0, -0.2, -0.2] },
+    stemLower: { parent: 'rootCore', position: [0, 0.38, 0] },
+    chest: { parent: 'stemLower', position: [0, 0.56, 0] },
+    capRoot: { parent: 'chest', position: [0, 0.62, 0] },
+    capRim: { parent: 'capRoot', position: [0, -0.03, 0] },
+    branchArm: { parent: 'chest', position: [-0.38, 0.16, 0] },
+    branchHand: { parent: 'branchArm', position: [-0.16, -0.34, 0] },
+    spearRoot: { parent: 'chest', position: [0.4, 0.17, 0] },
+    spearShaft: { parent: 'spearRoot', position: [0, -0.2, 0] },
+    spearTip: { parent: 'spearShaft', position: [0, -0.62, 0] },
+    mantleRoot: { parent: 'chest', position: [0, 0.18, -0.18] },
+    mantle0: { parent: 'mantleRoot', position: [-0.32, -0.1, 0] },
+    mantle1: { parent: 'mantleRoot', position: [-0.11, -0.12, -0.03] },
+    mantle2: { parent: 'mantleRoot', position: [0.11, -0.12, -0.03] },
+    mantle3: { parent: 'mantleRoot', position: [0.32, -0.1, 0] },
+    sporeSacL: { parent: 'chest', position: [-0.24, 0.34, -0.12] },
+    sporeSacR: { parent: 'chest', position: [0.24, 0.34, -0.12] },
+    memoryLights: { parent: 'capRoot', position: [0, -0.12, 0.18] },
+    baseFx: { parent: 'motionRoot', position: [0, 0.03, 0] }
+  };
+  const joints = buildHierarchy(model, specs);
+
+  const rootBody = sphere('hero:orum:root-core', 0.28, materials.leather);
+  rootBody.scale.set(1.05, 0.8, 1);
+  joints.rootCore.add(rootBody);
+  for (let i = 0; i < 3; i += 1) {
+    const leg = capsule('hero:orum:root-leg', 0.09, 0.58, materials.skin);
+    leg.position.y = -0.24;
+    leg.rotation.z = i === 0 ? -0.2 : i === 1 ? 0.2 : 0;
+    joints[`rootLeg${i}`].add(leg);
+    for (let fork = 0; fork < 3; fork += 1) {
+      const toe = cone('hero:orum:root-toe', 0.045, 0.32, materials.dark);
+      toe.rotation.x = Math.PI / 2;
+      toe.rotation.z = (fork - 1) * 0.32;
+      toe.position.set((fork - 1) * 0.09, -0.5, 0.13);
+      joints[`rootLeg${i}`].add(toe);
+    }
+  }
+  const stem = capsule('hero:orum:stem', 0.23, 0.82, materials.skin);
+  stem.scale.set(0.9, 1, 0.86);
+  joints.stemLower.add(stem);
+  const chest = capsule('hero:orum:chest', 0.3, 0.62, materials.leather);
+  chest.scale.set(1.05, 1, 0.82);
+  joints.chest.add(chest);
+  for (let i = 0; i < 5; i += 1) {
+    const plate = openCone('hero:orum:mycelial-plate', 0.34 + i * 0.025, 0.26, 8, i % 2 ? materials.cloth : materials.skin);
+    plate.position.y = 0.22 - i * 0.12;
+    plate.scale.z = 0.7;
+    joints.chest.add(plate);
+  }
+
+  const cap = dome('hero:orum:bell-cap', 0.83, materials.cloth);
+  cap.scale.set(1.18, 0.62, 1.05);
+  cap.position.y = -0.12;
+  joints.capRoot.add(cap);
+  const capEdge = torus('hero:orum:cap-edge', 0.72, 0.06, materials.brass);
+  capEdge.rotation.x = Math.PI / 2;
+  capEdge.scale.z = 0.9;
+  joints.capRim.add(capEdge);
+  for (let i = 0; i < 7; i += 1) {
+    const gill = torus('hero:orum:gill', 0.18 + i * 0.07, 0.018, i % 2 ? materials.clothInner : materials.accent);
+    gill.rotation.x = Math.PI / 2;
+    gill.position.y = -0.04 - i * 0.004;
+    joints.capRim.add(gill);
+  }
+  for (let i = 0; i < 6; i += 1) {
+    const light = sphere('hero:orum:memory-light', 0.035 + (i % 2) * 0.012, materials.spore);
+    const angle = i / 6 * Math.PI * 2;
+    light.position.set(Math.cos(angle) * 0.3, Math.sin(angle * 2) * 0.05, Math.sin(angle) * 0.16);
+    joints.memoryLights.add(light);
+  }
+
+  const branch = capsule('hero:orum:branch-arm', 0.075, 0.64, materials.skin);
+  branch.position.y = -0.24;
+  branch.rotation.z = -0.08;
+  joints.branchArm.add(branch);
+  for (let i = 0; i < 4; i += 1) {
+    const twig = capsule('hero:orum:branch-finger', 0.022, 0.24, materials.skin);
+    twig.position.set((i - 1.5) * 0.05, -0.12, 0);
+    twig.rotation.z = (i - 1.5) * 0.14;
+    joints.branchHand.add(twig);
+  }
+
+  const spearArm = capsule('hero:orum:spear-arm', 0.085, 0.54, materials.skin);
+  spearArm.position.y = -0.2;
+  joints.spearRoot.add(spearArm);
+  const spear = cylinder('hero:orum:spear-shaft', 0.055, 1.15, materials.skin);
+  spear.position.y = -0.42;
+  joints.spearShaft.add(spear);
+  const spearTip = cone('hero:orum:spear-tip', 0.14, 0.48, materials.accent);
+  spearTip.position.y = -0.22;
+  spearTip.rotation.z = Math.PI;
+  joints.spearTip.add(spearTip);
+  for (let i = 0; i < 4; i += 1) {
+    const barb = cone('hero:orum:spear-barb', 0.045, 0.22, materials.brass);
+    const angle = i / 4 * Math.PI * 2;
+    barb.position.set(Math.cos(angle) * 0.08, -0.1, Math.sin(angle) * 0.08);
+    barb.rotation.z = Math.PI + Math.cos(angle) * 0.35;
+    joints.spearTip.add(barb);
+  }
+
+  const mantleMeshes = [];
+  for (let i = 0; i < 4; i += 1) {
+    const strip = openCone('hero:orum:mantle-strip', 0.18, 0.92 + (i % 2) * 0.14, 7, materials.veil);
+    strip.position.y = -0.42;
+    strip.scale.z = 0.38;
+    joints[`mantle${i}`].add(strip);
+    mantleMeshes.push(strip);
+  }
+  for (const name of ['sporeSacL','sporeSacR']) {
+    const sac = sphere('hero:orum:spore-sac', 0.15, materials.spore);
+    sac.scale.set(0.85, 1.2, 0.75);
+    joints[name].add(sac);
+  }
+
+  const capCrack = makeSparkCluster(materials.accent, 6);
+  capCrack.visible = false;
+  joints.capRoot.add(capCrack);
+  const exposedCore = sphere('hero:orum:exposed-core', 0.16, materials.spore);
+  exposedCore.visible = false;
+  exposedCore.position.z = 0.22;
+  joints.chest.add(exposedCore);
+
+  return {
+    joints,
+    secondary: { mantleRoot: joints.mantleRoot, capRoot: joints.capRoot, spearRoot: joints.spearRoot },
+    secondaryMotionConfig: [
+      { id: 'orum-roots', mode: 'root-tendrils', joints: ['rootLeg0','rootLeg1','rootLeg2'], property: 'rotation', amplitude: 0.06, frequency: 0.9, phaseStep: 1.7, stiffness: 20, damping: 8 },
+      { id: 'orum-mantle', mode: 'root-tendrils', joints: ['mantle0','mantle1','mantle2','mantle3'], property: 'rotation', amplitude: 0.1, frequency: 1.1, phaseStep: 0.58, stiffness: 14, damping: 5.5, movementMultiplier: 1.8, castMultiplier: 1.1 }
+    ],
+    dynamicMaterials: [materials.spore, materials.veil],
+    damageParts: {
+      stage1Hide: [mantleMeshes[0]],
+      stage2Hide: [mantleMeshes[2], capEdge],
+      stage1Show: [capCrack],
+      stage2Show: [exposedCore]
+    },
+    skillParts: { spearRoot: joints.spearRoot, spearShaft: joints.spearShaft, capRoot: joints.capRoot, sporeSacs: [joints.sporeSacL, joints.sporeSacR] }
+  };
+}
+
+function buildGlop(model, definition, materials) {
+  const specs = {
+    motionRoot: { parent: null, position: [0, 0, 0] },
+    blobRoot: { parent: 'motionRoot', position: [0, 0.7, 0] },
+    shell: { parent: 'blobRoot', position: [0, 0, 0] },
+    core: { parent: 'blobRoot', position: [0.08, 0.05, 0.04] },
+    crown: { parent: 'motionRoot', position: [0, 1.72, 0] },
+    artifactOrbit: { parent: 'blobRoot', position: [0, 0, 0] },
+    royalSeal: { parent: 'artifactOrbit', position: [-0.28, 0.18, 0.22] },
+    keyRingArtifact: { parent: 'artifactOrbit', position: [0.34, 0.12, 0.16] },
+    chalice: { parent: 'artifactOrbit', position: [-0.16, -0.22, 0.28] },
+    throneFragment: { parent: 'artifactOrbit', position: [0.22, -0.18, -0.2] },
+    boneHand: { parent: 'artifactOrbit', position: [-0.32, -0.12, -0.12] },
+    scribePen: { parent: 'artifactOrbit', position: [0.1, 0.28, -0.24] },
+    pseudoArmL: { parent: 'blobRoot', position: [-0.58, 0.08, 0] },
+    pseudoArmR: { parent: 'blobRoot', position: [0.58, 0.08, 0] },
+    lobe0: { parent: 'motionRoot', position: [-0.48, 0.24, 0.24] },
+    lobe1: { parent: 'motionRoot', position: [0.48, 0.24, 0.24] },
+    lobe2: { parent: 'motionRoot', position: [-0.3, 0.2, -0.35] },
+    lobe3: { parent: 'motionRoot', position: [0.3, 0.2, -0.35] },
+    bubbleRoot: { parent: 'blobRoot', position: [0, 0, 0] },
+    baseFx: { parent: 'motionRoot', position: [0, 0.02, 0] }
+  };
+  const joints = buildHierarchy(model, specs);
+
+  const shell = sphere('hero:glop:shell', 0.82, materials.slimeShell);
+  shell.scale.set(1.08, 0.92, 1.02);
+  joints.shell.add(shell);
+  const innerShell = sphere('hero:glop:inner-shell', 0.66, materials.darkTransparent);
+  innerShell.scale.set(1.05, 0.9, 1);
+  joints.shell.add(innerShell);
+  const core = sphere('hero:glop:gold-core', 0.22, materials.accent);
+  joints.core.add(core);
+  for (let i = 0; i < 8; i += 1) {
+    const bubble = sphere('hero:glop:bubble', 0.055 + (i % 3) * 0.018, materials.glass);
+    const angle = i / 8 * Math.PI * 2;
+    bubble.position.set(Math.cos(angle) * (0.34 + (i % 2) * 0.12), -0.24 + (i % 4) * 0.16, Math.sin(angle) * 0.34);
+    joints.bubbleRoot.add(bubble);
+  }
+  for (let i = 0; i < 4; i += 1) {
+    const lobe = sphere('hero:glop:base-lobe', 0.34, materials.slimeShell);
+    lobe.scale.set(1.18, 0.55, 1.05);
+    joints[`lobe${i}`].add(lobe);
+  }
+
+  const crownRing = torus('hero:glop:crown-ring', 0.36, 0.055, materials.brass);
+  crownRing.rotation.x = Math.PI / 2;
+  joints.crown.add(crownRing);
+  for (let i = 0; i < 6; i += 1) {
+    const spike = cone('hero:glop:crown-spike', 0.055, 0.38 + (i % 2) * 0.1, materials.brass);
+    const angle = i / 6 * Math.PI * 2;
+    spike.position.set(Math.cos(angle) * 0.33, 0.18, Math.sin(angle) * 0.33);
+    joints.crown.add(spike);
+  }
+  const crownGem = sphere('hero:glop:crown-gem', 0.09, materials.accent);
+  crownGem.position.y = 0.06;
+  joints.crown.add(crownGem);
+
+  const seal = cylinder('hero:glop:royal-seal', 0.14, 0.055, materials.brass, true);
+  seal.rotation.x = Math.PI / 2;
+  joints.royalSeal.add(seal);
+  const sealMark = torus('hero:glop:seal-mark', 0.08, 0.018, materials.accent);
+  sealMark.rotation.x = Math.PI / 2;
+  sealMark.position.z = 0.04;
+  joints.royalSeal.add(sealMark);
+
+  const artifactKeys = new THREE.Group();
+  for (let i = 0; i < 4; i += 1) {
+    const key = makeKey(materials.brass, i);
+    key.position.set((i - 1.5) * 0.08, (i % 2) * 0.08, 0);
+    artifactKeys.add(key);
+  }
+  joints.keyRingArtifact.add(artifactKeys);
+
+  const cup = cylinder('hero:glop:chalice-cup', 0.13, 0.22, materials.brass);
+  cup.position.y = 0.08;
+  const cupRim = torus('hero:glop:chalice-rim', 0.15, 0.025, materials.accent);
+  cupRim.rotation.x = Math.PI / 2;
+  cupRim.position.y = 0.2;
+  const cupStem = cylinder('hero:glop:chalice-stem', 0.035, 0.24, materials.brass);
+  cupStem.position.y = -0.12;
+  joints.chalice.add(cup, cupRim, cupStem);
+
+  const throneSeat = box('hero:glop:throne-seat', [0.34, 0.12, 0.28], materials.leather);
+  const throneBack = box('hero:glop:throne-back', [0.32, 0.48, 0.1], materials.brass);
+  throneBack.position.set(0, 0.24, -0.1);
+  joints.throneFragment.add(throneSeat, throneBack);
+
+  const palm = sphere('hero:glop:bone-palm', 0.09, materials.bone);
+  joints.boneHand.add(palm);
+  for (let i = 0; i < 4; i += 1) {
+    const finger = capsule('hero:glop:bone-finger', 0.018, 0.22, materials.bone);
+    finger.position.set((i - 1.5) * 0.035, 0.13, 0);
+    finger.rotation.z = (i - 1.5) * 0.08;
+    joints.boneHand.add(finger);
+  }
+  const penShaft = cylinder('hero:glop:scribe-pen', 0.025, 0.5, materials.metal);
+  penShaft.rotation.z = -0.55;
+  const nib = cone('hero:glop:pen-nib', 0.045, 0.14, materials.brass);
+  nib.position.set(0.2, -0.19, 0);
+  nib.rotation.z = -0.55;
+  joints.scribePen.add(penShaft, nib);
+
+  for (const name of ['pseudoArmL','pseudoArmR']) {
+    const arm = capsule('hero:glop:pseudo-arm', 0.11, 0.6, materials.slimeShell);
+    arm.position.y = -0.18;
+    arm.rotation.z = name.endsWith('L') ? -0.32 : 0.32;
+    joints[name].add(arm);
+    const hand = sphere('hero:glop:pseudo-hand', 0.14, materials.slimeShell);
+    hand.position.y = -0.5;
+    joints[name].add(hand);
+  }
+
+  const clouding = makeSmokePuff(materials.darkTransparent, 7);
+  clouding.visible = false;
+  clouding.position.set(0, 0.1, 0.1);
+  joints.blobRoot.add(clouding);
+  const fracture = new THREE.Group();
+  for (let i = 0; i < 8; i += 1) {
+    const shard = torus('hero:glop:fracture-ring', 0.18 + i * 0.045, 0.012, materials.accent);
+    shard.rotation.x = Math.PI / 2;
+    shard.rotation.z = i * 0.45;
+    shard.position.set(Math.cos(i) * 0.18, (i - 4) * 0.07, Math.sin(i) * 0.14);
+    fracture.add(shard);
+  }
+  fracture.visible = false;
+  joints.shell.add(fracture);
+
+  return {
+    joints,
+    secondary: { artifactOrbit: joints.artifactOrbit, crown: joints.crown, blobRoot: joints.blobRoot },
+    secondaryMotionConfig: [
+      { id: 'glop-artifacts', mode: 'artifact-float', joints: ['royalSeal','keyRingArtifact','chalice','throneFragment','boneHand','scribePen'], property: 'position', amplitude: 0.1, frequency: 0.9, phaseStep: 0.8, stiffness: 10, damping: 4.2, movementMultiplier: 1.6, castMultiplier: 1.2 },
+      { id: 'glop-crown', mode: 'crown-stabilizer', joints: ['crown'], property: 'position', amplitude: 0.14, frequency: 0.72, stiffness: 11, damping: 4.8 },
+      { id: 'glop-arms', mode: 'floating-hands', joints: ['pseudoArmL','pseudoArmR'], property: 'rotation', amplitude: 0.08, frequency: 0.92, phaseStep: 1.4, stiffness: 13, damping: 5 }
+    ],
+    dynamicMaterials: [materials.slimeShell, materials.glass, materials.darkTransparent],
+    damageParts: {
+      stage1Hide: [],
+      stage2Hide: [innerShell],
+      stage1Show: [clouding],
+      stage2Show: [fracture]
+    },
+    skillParts: {
+      crown: joints.crown,
+      blobRoot: joints.blobRoot,
+      shell: joints.shell,
+      artifacts: { crown: joints.crown, key: joints.keyRingArtifact, chalice: joints.chalice, throne: joints.throneFragment },
+      pseudoArms: [joints.pseudoArmL, joints.pseudoArmR]
+    }
+  };
+}
+
+function createHeroFormMiniature(agent) {
+  const root = new THREE.Group();
+  root.name = `hero-form:${agent.heroFormKind ?? 'unknown'}`;
+  root.userData.agentId = agent.id;
+  root.userData.heroFormOf = agent.heroFormOf;
+  root.userData.heroFormKind = agent.heroFormKind;
+  root.userData.isHeroForm = true;
+  root.userData.baseScale = 1;
+
+  const model = new THREE.Group();
+  model.name = 'hero-form-model';
+  root.add(model);
+  const spectral = materialFor('hero-form:spectral', 0xbcecff, { transparent: true, opacity: 0.48, emissive: 0xbcecff, emissiveIntensity: 0.3, depthWrite: false, roughness: 0.08 });
+  const slime = materialFor('hero-form:slime', 0x56aaa2, { transparent: true, opacity: 0.66, emissive: 0x183c3b, emissiveIntensity: 0.08, depthWrite: false, roughness: 0.12 });
+  const gold = materialFor('hero-form:gold', 0xe0bd55, { metalness: 0.24, roughness: 0.38, emissive: 0x5b4310, emissiveIntensity: 0.08 });
+  const dark = materialFor('hero-form:dark', 0x173332, { roughness: 0.6 });
+  const joints = buildHierarchy(model, {
+    motionRoot: { parent: null, position: [0, 0, 0] },
+    body: { parent: 'motionRoot', position: [0, 0.48, 0] },
+    accent: { parent: 'body', position: [0, 0.42, 0] },
+    baseFx: { parent: 'motionRoot', position: [0, 0.02, 0] }
+  });
+
+  if (String(agent.heroFormKind ?? '').startsWith('shade')) {
+    const veil = openCone('hero-form:shade-veil', 0.38, 0.9, 9, spectral);
+    veil.position.y = -0.18;
+    joints.body.add(veil);
+    const voidCore = sphere('hero-form:shade-core', 0.12, dark);
+    voidCore.position.y = 0.2;
+    joints.body.add(voidCore);
+    const halo = torus('hero-form:shade-halo', 0.22, 0.025, spectral);
+    halo.rotation.x = Math.PI / 2;
+    joints.accent.add(halo);
+  } else {
+    const body = sphere('hero-form:court-blob', agent.heroFormKind === 'guard' ? 0.48 : 0.38, slime);
+    body.scale.set(1.05, agent.heroFormKind === 'guard' ? 0.95 : 0.82, 1);
+    joints.body.add(body);
+    if (agent.heroFormKind === 'king') {
+      const crown = torus('hero-form:king-crown', 0.24, 0.04, gold);
+      crown.rotation.x = Math.PI / 2;
+      joints.accent.add(crown);
+      for (let i = 0; i < 4; i += 1) {
+        const spike = cone('hero-form:king-spike', 0.04, 0.24, gold);
+        const angle = i / 4 * Math.PI * 2;
+        spike.position.set(Math.cos(angle) * 0.2, 0.12, Math.sin(angle) * 0.2);
+        joints.accent.add(spike);
+      }
+    } else if (agent.heroFormKind === 'guard') {
+      const plate = box('hero-form:guard-plate', [0.62, 0.55, 0.16], gold);
+      plate.position.z = 0.25;
+      joints.body.add(plate);
+    } else {
+      const pen = cylinder('hero-form:scribe-pen', 0.025, 0.62, gold);
+      pen.rotation.z = -0.55;
+      joints.accent.add(pen);
+      const tablet = box('hero-form:scribe-tablet', [0.38, 0.46, 0.08], dark);
+      tablet.position.set(-0.22, 0, 0.12);
+      joints.body.add(tablet);
+    }
+  }
+
+  const ringRadius = agent.heroFormKind === 'guard' ? 0.48 : 0.38;
+  const ring = new THREE.Mesh(geo(`hero-form:ring:${ringRadius}`, () => new THREE.TorusGeometry(ringRadius, 0.025, 6, 24)), new THREE.MeshBasicMaterial({ color: agent.heroFormOf === 'hero.isara' ? 0xbcecff : 0xe0bd55, transparent: true, opacity: 0.65 }));
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = -0.26;
+  ring.name = 'hero-form-ring';
+  root.add(ring);
+
+  root.userData.joints = joints;
+  root.userData.heroMeshCount = countMeshes(root);
+  root.traverse(node => { node.userData.agentId = agent.id; node.userData.heroFormOf = agent.heroFormOf; });
+  return root;
+}
+
 function addHeroIndicators(root, definition, materials) {
-  const radius = definition.id === 'hero.karg' ? 0.72 : definition.id === 'hero.kirik' ? 0.62 : 0.5;
+  const radius = definition.visual.indicatorRadius ?? (definition.id === 'hero.karg' ? 0.72 : definition.id === 'hero.kirik' ? 0.62 : 0.5);
   const outer = new THREE.Mesh(geo(`hero:ring:${radius}`, () => new THREE.TorusGeometry(radius, 0.045, 8, 32)), new THREE.MeshBasicMaterial({ color: materials.brass.color, transparent: true, opacity: 0.86 }));
   outer.rotation.x = Math.PI / 2;
   outer.position.y = -0.36;
@@ -407,7 +929,7 @@ function addHeroIndicators(root, definition, materials) {
   root.add(outer, inner);
 
   const marker = new THREE.Mesh(geo('hero:marker', () => new THREE.OctahedronGeometry(0.11, 0)), new THREE.MeshBasicMaterial({ color: materials.brass.color }));
-  marker.position.set(0, definition.id === 'hero.karg' ? 2.65 : definition.id === 'hero.kirik' ? 2.35 : 2.0, 0);
+  marker.position.set(0, definition.visual.markerHeight ?? (definition.id === 'hero.karg' ? 2.65 : definition.id === 'hero.kirik' ? 2.35 : 2.0), 0);
   marker.name = 'hero-marker';
   root.add(marker);
 
@@ -464,12 +986,25 @@ function makeMaterials(definition) {
   }
   result.bone = materialFor(`${definition.id}:bone`, 0xd5cfb8, { roughness: 0.62 });
   result.glass = materialFor(`${definition.id}:glass`, 0x8ed3dc, { roughness: 0.08, transparent: true, opacity: 0.42, metalness: 0.04 });
-  result.darkTransparent = materialFor(`${definition.id}:dark-transparent`, definition.visual.palette.dark, { roughness: 0.3, transparent: true, opacity: 0.45 });
+  result.darkTransparent = materialFor(`${definition.id}:dark-transparent`, definition.visual.palette.dark, { roughness: 0.3, transparent: true, opacity: 0.45, depthWrite: false });
+  result.spectral = materialFor(`${definition.id}:spectral`, definition.visual.palette.accent, { roughness: 0.08, transparent: true, opacity: 0.5, emissive: definition.visual.palette.accent, emissiveIntensity: 0.36, depthWrite: false });
+  result.veil = materialFor(`${definition.id}:veil`, definition.visual.palette.cloth, { roughness: 0.28, transparent: true, opacity: 0.78, emissive: definition.visual.palette.clothInner, emissiveIntensity: 0.08, depthWrite: false });
+  result.slimeShell = materialFor(`${definition.id}:slime-shell`, definition.visual.palette.skin, { roughness: 0.12, transparent: true, opacity: 0.62, emissive: definition.visual.palette.dark, emissiveIntensity: 0.06, depthWrite: false });
+  result.spore = materialFor(`${definition.id}:spore`, definition.visual.palette.accent, { roughness: 0.18, transparent: true, opacity: 0.7, emissive: definition.visual.palette.accent, emissiveIntensity: 0.22, depthWrite: false });
   return result;
 }
 
 function materialFor(key, color, options = {}) {
-  if (!materialCache.has(key)) materialCache.set(key, new THREE.MeshStandardMaterial({ color, roughness: options.roughness ?? 0.72, metalness: options.metalness ?? 0, transparent: options.transparent ?? false, opacity: options.opacity ?? 1 }));
+  if (!materialCache.has(key)) materialCache.set(key, new THREE.MeshStandardMaterial({
+    color,
+    roughness: options.roughness ?? 0.72,
+    metalness: options.metalness ?? 0,
+    transparent: options.transparent ?? false,
+    opacity: options.opacity ?? 1,
+    depthWrite: options.depthWrite ?? true,
+    emissive: options.emissive ?? 0x000000,
+    emissiveIntensity: options.emissiveIntensity ?? 0
+  }));
   return materialCache.get(key);
 }
 
