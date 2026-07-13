@@ -103,7 +103,8 @@ export class HeroAdaptationSystem {
   clearHostileFields(roomId, kinds, sim) {
     const allowed = new Set(kinds ?? []);
     const systems = [sim?.heroEnvironmentSystem?.fields, sim?.heroSkillSystem?.zones, sim?.heroGardenSystem?.patches];
-    for (const records of systems) {
+    for (const source of systems) {
+      const records = source instanceof Map ? [...source.values()] : source;
       if (!Array.isArray(records)) continue;
       for (const record of records) {
         if (record.roomId !== roomId) continue;
