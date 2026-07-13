@@ -1,0 +1,29 @@
+name: WP8-D Fallen Kingdom Command
+
+on:
+  push:
+    paths:
+      - 'src/content/heroes/**'
+      - 'src/sim/heroes/**'
+      - 'src/engine/heroes/**'
+      - 'content/campaigns/sleeping-citadel/faction-heroes.json'
+      - 'tests/wp8d-*.mjs'
+      - 'package.json'
+  pull_request:
+    paths:
+      - 'src/content/heroes/**'
+      - 'src/sim/heroes/**'
+      - 'src/engine/heroes/**'
+      - 'content/campaigns/sleeping-citadel/faction-heroes.json'
+      - 'tests/wp8d-*.mjs'
+      - 'package.json'
+
+jobs:
+  wp8d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:wp8d

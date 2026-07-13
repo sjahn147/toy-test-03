@@ -21,6 +21,7 @@ export class ProjectileSystem {
       id: `projectile-${this.sequence++}`,
       type,
       sourceId: source.id,
+      sourceFactionId: source.ecologyFaction ?? source.factionId ?? source.faction ?? null,
       targetId: target.id,
       roomId: roomId ?? source.roomId,
       amount,
@@ -44,6 +45,8 @@ export class ProjectileSystem {
     const survivors = [];
     for (const projectile of this.projectiles) {
       projectile.age += dt;
+      const timeScale = Math.max(0.1, Math.min(2, sim.heroSkillSystem?.projectileSpeedMultiplier?.(projectile) ?? 1));
+      const simulationStep = dt * timeScale;
       const source = sim.agents.find(agent => agent.id === projectile.sourceId);
       const target = sim.agents.find(agent => agent.id === projectile.targetId);
       if (!target || projectile.age >= projectile.lifetime || target.roomId !== projectile.roomId || target.travel) continue;
@@ -54,22 +57,22 @@ export class ProjectileSystem {
       const dz = targetPoint.z - projectile.z;
       const distance = Math.hypot(dx, dy, dz);
 
-      if (distance <= Math.max(0.24, projectile.speed * dt * 1.25)) {
+      if (distance <= Math.max(0.24, projectile.speed * simulationStep * 1.25)) {
         this.impact(projectile, source, target, sim);
         continue;
       }
 
       if (projectile.homing) {
         const direction = normalize(dx, dy, dz);
-        const steering = Math.min(1, dt * 5.5);
+        const steering = Math.min(1, simulationStep * 5.5);
         projectile.vx = lerp(projectile.vx, direction.x * projectile.speed, steering);
         projectile.vy = lerp(projectile.vy, direction.y * projectile.speed, steering);
         projectile.vz = lerp(projectile.vz, direction.z * projectile.speed, steering);
       }
 
-      projectile.x += projectile.vx * dt;
-      projectile.y += projectile.vy * dt;
-      projectile.z += projectile.vz * dt;
+      projectile.x += projectile.vx * simulationStep;
+      projectile.y += projectile.vy * simulationStep;
+      projectile.z += projectile.vz * simulationStep;
       projectile.rotation = Math.atan2(projectile.vx, projectile.vz);
       survivors.push(projectile);
     }

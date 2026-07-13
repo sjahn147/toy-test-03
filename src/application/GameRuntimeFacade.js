@@ -1,5 +1,4 @@
-// UI가 sim 내부 대신 사용하는 단일 런타임 진입점
-// (docs/architecture/production-layering.md §4).
+// UI-facing runtime facade.
 
 import {
   selectGlobalBar,
@@ -59,12 +58,18 @@ export class GameRuntimeFacade {
   }
 
   subscribe(listener) {
-    if (this.destroyed) throw new Error('GameRuntimeFacade is destroyed');
+    if (this.destroyed) throw new Error('game runtime is destroyed');
     return this.runtime.subscribe(listener);
   }
 
   getViewModel(context = {}) {
     const state = this.getSnapshot();
+    const timeline = selectTimelineEvents(state, {
+      filter: context.timelineFilter ?? 'all',
+      limit: context.timelineLimit ?? 50,
+      mode: context.timelineMode ?? 'chronicle',
+      locale: context.locale ?? 'en'
+    });
     return {
       topBar: selectGlobalBar(state),
       observerFaction: selectObserverFactionSummary(state, context.observerFactionId ?? null),
@@ -76,11 +81,12 @@ export class GameRuntimeFacade {
       },
       followRoster: selectFollowRoster(state),
       selection: selectSelection(state, context),
-      timeline: selectTimelineEvents(state, {
-        filter: context.timelineFilter ?? 'all',
-        limit: context.timelineLimit ?? 50
-      }),
-      alerts: state.events.filter(event => ALERT_SEVERITIES.has(event.severity))
+      timeline,
+      timelineMode: context.timelineMode ?? 'chronicle',
+      locale: context.locale ?? 'en',
+      alerts: state.events.filter(event =>
+        ALERT_SEVERITIES.has(event.severity) && (event.channel ?? 'chronicle') === 'chronicle'
+      )
     };
   }
 

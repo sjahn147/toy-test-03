@@ -16,6 +16,7 @@
 
 import { layoutZones } from './layout/zoneLayout.js';
 import { getAuthoredCampaignLayout } from './layout/AuthoredCampaignLayout.js';
+import { getCampaignSpawnNetwork } from './spawn/SpawnNetworkCatalog.js';
 import {
   SIZE_SCALE,
   POSITION_SCALE,
@@ -66,6 +67,7 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     size: { w: room.size[0], d: room.size[1] }
   }));
   const authoredLayout = getAuthoredCampaignLayout(manifest);
+  const spawnNetwork = getCampaignSpawnNetwork(manifest);
   const centers = authoredLayout?.centers ?? layoutZones({ zones, rooms: roomsForLayout, layout: manifest.layout });
 
   // 연결 shape: connections는 [a,b] pair, secretConnections/conditionalConnections는 객체.
@@ -92,6 +94,9 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
       kind: mapRoomKind(source.kind, source.id, entryRoomId),
       floor: authoredPlacement?.floor ?? 0,
       rotation: authoredPlacement?.rotation ?? 0,
+      layoutRole: authoredPlacement?.role ?? null,
+      depthBand: authoredPlacement?.depthBand ?? null,
+      spawnSockets: authoredPlacement?.spawnSockets?.map(socket => ({ ...socket, position: [...(socket.position ?? [0, 0])] })) ?? [],
       x: center?.x ?? 0,
       z: center?.z ?? 0,
       w,
@@ -107,14 +112,14 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
 
   // --- authored routes / active initial graph ---
   const baseLinks = (manifest.connections ?? []).map(([a, b]) => [a, b]);
-  const conditionalLinks = conditionalConnections.map(connection => [connection.from, connection.to]);
-  const secretLinks = secretConnections.map(connection => [connection.from, connection.to]);
   const fallbackRouteDefinitions = [
     ...baseLinks.map(([from, to], index) => ({ id: `route-${index}-${from}-${to}`, from, to, kind: 'ordinary', defaultState: 'open', state: 'open', active: true })),
     ...conditionalConnections.map(connection => ({ ...connection, kind: 'conditional', state: connection.defaultState ?? 'locked', active: false })),
     ...secretConnections.map(connection => ({ ...connection, kind: 'secret', defaultState: 'hidden', state: 'hidden', active: false }))
   ];
   const routeDefinitions = authoredLayout?.routes ?? fallbackRouteDefinitions;
+  const conditionalLinks = routeDefinitions.filter(route => route.kind === 'conditional').map(route => [route.from, route.to]);
+  const secretLinks = routeDefinitions.filter(route => route.kind === 'secret').map(route => [route.from, route.to]);
   // Only ordinary open routes enter the initial legacy graph. Conditional and secret
   // routes remain first-class definitions and can be activated through ActiveCampaignGraph.
   const links = authoredLayout
@@ -297,6 +302,7 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     props,
     ecologyLairs,
     advancedEcologyLairs,
+    spawnNetwork,
     // Phase8 선점: 크기는 이미 post-scale, 아래 가드로 재스케일 방지
     phase8SpatialScaleApplied: true,
     spatialScale: {
@@ -313,8 +319,13 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
       conditionalLinks,
       authoredPhysicalLayout: Boolean(authoredLayout),
       authoredLayoutSource: authoredLayout ? 'content/campaigns/sleeping-citadel/authored-layout.json' : null,
+      entryPolicy: authoredLayout?.entryPolicy ?? null,
+      entryRoomId: authoredLayout?.entryRoomId ?? entryRoomId,
+      facilityPlacements: authoredLayout?.facilityPlacements ?? {},
+      depthBands: authoredLayout?.depthBands ?? {},
       cameraLandmarks: authoredLayout?.cameraLandmarks ?? {},
       zoneTransitions: authoredLayout?.zoneTransitions ?? [],
+      spawnNetwork,
       propBundlesByRoom
     }
   };

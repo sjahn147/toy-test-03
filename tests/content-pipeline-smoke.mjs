@@ -36,8 +36,9 @@ try {
   assert.equal(registry.zones.size, 13, 'registry did not index 13 zones');
   assert.equal(registry.rooms.size, 63, 'registry did not index 63 rooms');
   assert.equal(registry.factions.size, 7, 'registry did not index 7 factions');
-  assert.equal((manifest.secretConnections ?? []).length, 6, 'campaign does not have 6 secret connections');
-  assert.equal((manifest.conditionalConnections ?? []).length, 4, 'campaign does not have 4 conditional connections');
+  // See the WP7 route-reclassification note further down: secret 6->7, conditional 4->3.
+  assert.equal((manifest.secretConnections ?? []).length, 7, 'campaign does not have 7 secret connections');
+  assert.equal((manifest.conditionalConnections ?? []).length, 3, 'campaign does not have 3 conditional connections');
   assert.throws(() => registry.registerCampaign(manifest), /duplicate campaign id/, 'duplicate campaign registration did not throw');
   console.log('registry ok');
 
@@ -63,8 +64,12 @@ try {
   }
   assert.equal(scenario.phase8SpatialScaleApplied, true, 'compiler did not pre-empt phase8 spatial scale');
   assert.ok(scenario.links.length >= 80, `expected at least 80 links, got ${scenario.links.length}`);
-  assert.equal(scenario.secretLinks.length, 6, 'compiled scenario does not preserve 6 secret links');
-  assert.equal(report.stats.conditionalConnections, 4, 'compiled scenario does not report 4 conditional connections');
+  // WP7 reclassified two routes: E25-L56 promoted conditional -> ordinary
+  // (now a formal cathedral entrance), and ordinary B10-E21 replaced by a new
+  // secret-B10-E21 (a hidden funeral stair). Net: conditional 4 -> 3, secret
+  // 6 -> 7, ordinary count unchanged (documented in WP7_IMPLEMENTATION.md).
+  assert.equal(scenario.secretLinks.length, 7, 'compiled scenario does not preserve 7 secret links');
+  assert.equal(report.stats.conditionalConnections, 3, 'compiled scenario does not report 3 conditional connections');
   const party = scenario.agents.filter(agent => agent.faction === 'party');
   assert.equal(party.length, 4, 'compiled scenario does not have a party of 4');
   assert.ok(party.every(agent => agent.roomId === manifest.entryRoomId), 'party does not start at the entrance room');

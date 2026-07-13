@@ -49,6 +49,21 @@ export const ENTITY_TABLES = [
   'cargo',
   'structures',
   'environmentTasks',
+  'settlementOrders',
+  'zoneInteractions',
+  'heroes',
+  'heroForms',
+  'heroDeployables',
+  'heroProjectiles',
+  'heroFields',
+  'heroFormations',
+  'heroSummons',
+  'heroBarriers',
+  'heroAdaptationFields',
+  'heroBroodActors',
+  'heroMimicActors',
+  'heroGardenPatches',
+  'heroHoardActors',
   'effects'
 ];
 
@@ -57,7 +72,26 @@ export const INDEX_NAMES = [
   'propsByRoom',
   'settlementsByFaction',
   'environmentTasksByRoom',
-  'environmentTasksByTarget'
+  'environmentTasksByTarget',
+  'settlementOrdersByRoom',
+  'settlementOrdersBySettlement',
+  'zoneInteractionsByRoom',
+  'zoneInteractionsByAction',
+  'heroesByFaction',
+  'heroesByRoom',
+  'heroFormsByOwner',
+  'heroFormsByRoom',
+  'heroDeployablesByRoom',
+  'heroProjectilesByRoom',
+  'heroFieldsByRoom',
+  'heroFormationsByRoom',
+  'heroSummonsByRoom',
+  'heroBarriersByRoom',
+  'heroAdaptationFieldsByRoom',
+  'heroBroodActorsByRoom',
+  'heroMimicActorsByRoom',
+  'heroGardenPatchesByRoom',
+  'heroHoardActorsByRoom'
 ];
 
 const CLOCK_KEYS = ['time', 'turn', 'ended'];

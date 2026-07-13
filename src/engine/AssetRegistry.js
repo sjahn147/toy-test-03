@@ -1,5 +1,6 @@
 import { THREE } from './ThreeScene.js';
 import { MiniatureFactory } from './MiniatureFactory.js';
+import { createHeroEffect } from './heroes/HeroTelegraphRenderer.js';
 
 export const ROOM_COLORS = {
   start: 0x4f6d7a,
@@ -158,6 +159,8 @@ export class AssetRegistry {
   }
 
   makeEffect(effect) {
+    const heroEffect = createHeroEffect(effect);
+    if (heroEffect) return heroEffect;
     const group = new THREE.Group();
     group.userData.effectType = effect.type;
 

@@ -114,7 +114,8 @@ export class OperationsActivitySystem {
     }
     const job = this.constructionSystem.jobs.find(candidate => candidate.id === activity.jobId && candidate.state === 'building');
     if (!job) return;
-    const contribution = activity.type === 'handling-materials' ? 1.8 : 2.8 + this.constructionSystem.siegePower(agent) * 0.35;
+    const workshopBonus = this.rooms.find(room => room.id === 'D16')?.workshopOperational ? 1.18 : 1;
+    const contribution = (activity.type === 'handling-materials' ? 1.8 : 2.8 + this.constructionSystem.siegePower(agent) * 0.35) * workshopBonus;
     job.progress = Math.min(job.duration, job.progress + contribution);
     const prop = this.props.find(candidate => candidate.id === job.propId);
     if (prop) {

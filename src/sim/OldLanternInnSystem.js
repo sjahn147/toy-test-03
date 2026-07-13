@@ -169,7 +169,7 @@ export class OldLanternInnSystem {
 
   completeUpgrade(settlement, cost, sim) {
     settlement.materials = Math.max(0, (settlement.materials ?? 0) - cost.materials);
-    this.territorySystem?.factionSupply?.set('adventurer-expedition', Math.max(0, this.availableSupply() - cost.supply));
+    this.consumeSupply(cost.supply);
     this.tier += 1;
     this.integrity = Math.max(this.integrity, 34 + this.tier * 13);
     this.progress = 0;
@@ -224,6 +224,14 @@ export class OldLanternInnSystem {
       foodService: this.roomStates.get('H37') === 'working',
       guestRooms: this.roomStates.get('H38') === 'guestrooms'
     };
+    settlement.supplyReserve ??= 0;
+    settlement.nextUpgrade = OLD_LANTERN_UPGRADE_COSTS[this.tier + 1] ? { ...OLD_LANTERN_UPGRADE_COSTS[this.tier + 1] } : null;
+    settlement.upgradeProgress = Math.round(this.progress * 10) / 10;
+    settlement.workerTarget ??= 0;
+    settlement.garrisonTarget ??= 0;
+    settlement.assignedWorkerIds ??= [];
+    settlement.assignedGarrisonIds ??= [];
+    settlement.defenseMode ??= 'normal';
     settlement.presentIds = signals.friendlies.map(agent => agent.id);
     settlement.presentPopulation = settlement.presentIds.length;
   }
@@ -249,7 +257,19 @@ export class OldLanternInnSystem {
     if (this.state === 'sacked') sim.emitEffect?.('old-lantern-sacked', { roomId: 'H36', duration: 1.6 });
   }
 
-  availableSupply() { return this.territorySystem?.factionSupply?.get('adventurer-expedition') ?? 0; }
+  consumeSupply(amount) {
+    const settlement = this.settlementSystem?.settlements?.get(this.settlementId);
+    const reserve = Math.min(Math.max(0, settlement?.supplyReserve ?? 0), amount);
+    if (settlement) settlement.supplyReserve = Math.max(0, (settlement.supplyReserve ?? 0) - reserve);
+    const remaining = Math.max(0, amount - reserve);
+    const global = this.territorySystem?.factionSupply?.get('adventurer-expedition') ?? 0;
+    this.territorySystem?.factionSupply?.set('adventurer-expedition', Math.max(0, global - remaining));
+  }
+
+  availableSupply() {
+    const settlement = this.settlementSystem?.settlements?.get(this.settlementId);
+    return (this.territorySystem?.factionSupply?.get('adventurer-expedition') ?? 0) + (settlement?.supplyReserve ?? 0);
+  }
 
   buildSnapshot(signals, settlement) {
     return {

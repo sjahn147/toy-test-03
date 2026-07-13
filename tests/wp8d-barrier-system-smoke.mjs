@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import { HeroBarrierSystem } from '../src/sim/heroes/HeroBarrierSystem.js';
+
+const arvek={id:'arvek',heroId:'hero.arvek',name:'Arvek',role:'hero-arvek',ecologyFaction:'undead-host',roomId:'L59',roomCell:{x:0,z:0},alive:true,hp:146,maxHp:146};
+const enemy={id:'enemy',name:'Enemy',role:'fighter',faction:'party',roomId:'L59',roomCell:{x:0,z:2},alive:true,hp:80,maxHp:80};
+const route={id:'L59-M61',from:'L59',to:'M61',width:3};
+const effects=[]; const impulses=[];
+const sim={agents:[arvek,enemy],emitEffect:(type,data)=>effects.push({type,...data}),applyCombatDamage:(_s,t,a)=>{t.hp-=a;},heroPhysicsSystem:{applyImpulse:(t,d,m)=>impulses.push({t,d,m})}};
+const system=new HeroBarrierSystem();
+const gate=system.createSpectralGate(arvek,route,{duration:10,hp:40,allowFaction:'undead-host'},sim);
+assert.ok(gate);
+assert.equal(system.isRouteBlocked('L59','M61',enemy),true);
+assert.equal(system.isRouteBlocked('L59','M61',arvek),false);
+assert.ok(system.modifyIncomingDamage(enemy,arvek,20)<20);
+system.banishmentCharge(arvek,enemy,{damage:9,barrierCollisionDamage:12,impulse:7,stagger:1.2},sim);
+assert.equal(enemy.hp,59);
+assert.equal(impulses.length,1);
+assert.ok(effects.some(e=>e.type==='hero-gate-collision'));
+system.damageBarrier(gate,40,enemy,sim);
+assert.equal(system.barriers.length,0);
+const routes=[route,{id:'L59-L58',from:'L59',to:'L58',width:2.2}];
+assert.equal(system.sealAllRoomRoutes(arvek,routes,{duration:4,hp:20},sim).length,2);
+system.rootHero(arvek,2);
+assert.equal(system.isMovementBlocked(arvek),true);
+system.update(2.1,sim);
+assert.equal(system.isMovementBlocked(arvek),false);
+assert.doesNotThrow(()=>JSON.stringify(system.snapshot()));
+console.log('WP8-D barrier system smoke passed');

@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import { HeroFormationSystem } from '../src/sim/heroes/HeroFormationSystem.js';
+
+const aldren = { id:'aldren', heroId:'hero.aldren', name:'Aldren', role:'hero-aldren', ecologyFaction:'undead-host', roomId:'E22', roomCell:{x:0,z:0}, alive:true, hp:100, maxHp:100, armor:7, attack:10 };
+const skeletons = [0,1,2].map(i => ({ id:`sk-${i}`, name:`Skeleton ${i}`, role:'skeleton', species:'skeleton', ecologyFaction:'undead-host', roomId:'E22', roomCell:{x:i-1,z:0.2}, alive:true, hp:25, armor:2, attack:5 }));
+const enemy = { id:'enemy', name:'Enemy', role:'fighter', faction:'party', roomId:'E22', roomCell:{x:0,z:2.4}, alive:true, hp:60, maxHp:60, attack:8, armor:1 };
+const impulses=[];
+const sim={ agents:[aldren,...skeletons,enemy], applyCombatDamage:(_s,t,a)=>{t.hp-=a;}, heroPhysicsSystem:{applyImpulse:(t,d,m)=>impulses.push({t,d,m})}, emitEffect(){} };
+const formations=new HeroFormationSystem();
+const line=formations.createRoyalLine(aldren,{duration:5,maximumAllies:3},sim);
+assert.ok(line);
+assert.equal(line.memberIds.length,4);
+for (const member of [aldren,...skeletons]) assert.ok(member.heroStatuses.royalFormation);
+const raw=20;
+assert.ok(formations.modifyIncomingDamage(enemy,aldren,raw,{}) < raw);
+aldren.heroFacing={x:0,z:1};
+const hit=formations.shieldBash(aldren,{targetId:enemy.id,length:3.6,width:2.4,damage:6,impulse:5,armorBreak:{amount:2,duration:5}},sim);
+assert.equal(hit,1);
+assert.equal(enemy.hp,54);
+assert.equal(enemy.heroStatuses.armorBreak.amount,2);
+assert.equal(impulses.length,1);
+formations.update(5.1,sim);
+assert.equal(formations.formations.length,0);
+assert.equal(aldren.heroStatuses.royalFormation,undefined);
+console.log('WP8-D formation system smoke passed');

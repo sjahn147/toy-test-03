@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { getHeroDefinition } from '../src/content/heroes/HeroDefinitions.js';
+import { ensureHeroRuntime } from '../src/sim/heroes/HeroSystem.js';
+import { HeroAdaptationSystem } from '../src/sim/heroes/HeroAdaptationSystem.js';
+const d=getHeroDefinition('hero.pev');const pev={id:'pev',heroId:d.id,role:d.role,name:d.displayName,faction:'dungeon',ecologyFaction:d.factionId,roomId:'H36',roomCell:{x:0,z:0},alive:true,hp:60,maxHp:d.baseStats.hp,attack:d.baseStats.attack,armor:d.baseStats.armor,courage:d.baseStats.courage,size:d.size};ensureHeroRuntime(pev,d);
+const ally={id:'ally',role:'slime',faction:'dungeon',ecologyFaction:d.factionId,roomId:'H36',alive:true,hp:8,maxHp:20,poison:3,attack:3,armor:0};const enemy={id:'enemy',role:'fighter',faction:'party',roomId:'H36',alive:true,hp:50,maxHp:50,attack:12,armor:4,speedMultiplier:1.14};
+const hostileField={id:'poison',kind:'poison-cloud',roomId:'H36',remaining:10};const effects=[];const sys=new HeroAdaptationSystem();const sim={agents:[pev,ally,enemy],rooms:[{id:'H36',tags:['clean-spring','metal-workshop']}],props:[{id:'scrap',roomId:'H36',type:'metal-scrap'}],heroEnvironmentSystem:{fields:[hostileField]},heroSkillSystem:{zones:[]},heroGardenSystem:{patches:[]},emitEffect:(t,x)=>effects.push({t,...x})};
+assert.equal(sys.purifyingBubble(pev,{duration:3,heal:9,clearKinds:['poison']},sim),true);sys.update(1.1,sim);assert.ok(ally.hp>8);assert.equal(ally.poison,0);assert.equal(hostileField.remaining,0);
+assert.equal(sys.borrowShape(pev,'enemy',{duration:8,maximumArmor:3,maximumAttack:3,maximumSpeedMultiplier:1.18},sim),true);assert.equal(pev.heroStatuses.borrowedShape.sourceId,'enemy');assert.ok(pev.attack>d.baseStats.attack);
+assert.equal(sys.selectiveAssimilation(pev,{adaptations:['metal'],duration:5,heal:4},sim),true);assert.equal(pev.heroAdaptation,'metal');assert.ok(pev.armor>=d.baseStats.armor+4);assert.ok(sys.modifyIncomingDamage(enemy,pev,10,{melee:true})<10);assert.doesNotThrow(()=>JSON.stringify(sys.snapshot()));
+console.log('WP8-E adaptation system smoke passed');

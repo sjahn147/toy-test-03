@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 2,
+  "campaignId": "sleeping-citadel",
+  "scope": "WP8-A through WP8-E complete hero roster",
+  "heroes": [
+    {
+      "id": "hero.nibble",
+      "role": "hero-nibble",
+      "name": "Nibble Hundred-Button",
+      "localizedName": "니블 백단추",
+      "factionId": "goblin-clan",
+      "initialRoomId": "D19",
+      "slice": "wp8a"
+    },
+    {
+      "id": "hero.kirik",
+      "role": "hero-kirik",
+      "name": "Kirik, Third Gear",
+      "localizedName": "세 번째 톱니 키릭",
+      "factionId": "copper-tail-clutch",
+      "initialRoomId": "D18",
+      "slice": "wp8a"
+    },
+    {
+      "id": "hero.karg",
+      "role": "hero-karg",
+      "name": "Karg Twice-Defeated",
+      "localizedName": "카르그 두 번 패한 자",
+      "factionId": "red-tusk-tribe",
+      "initialRoomId": "J49",
+      "slice": "wp8a"
+    },
+    {
+      "id": "hero.isara",
+      "role": "hero-isara",
+      "name": "Isara of the Black Veil",
+      "localizedName": "검은 베일의 이사라",
+      "factionId": "undead-host",
+      "initialRoomId": "E25",
+      "slice": "wp8b",
+      "frameworkContribution": [
+        "spectral-secondary-motion",
+        "temporary-shades",
+        "ethereal-projectile-field"
+      ]
+    },
+    {
+      "id": "hero.orum-bell",
+      "role": "hero-orum-bell",
+      "name": "Orum-Bell, Bluecap Knight",
+      "localizedName": "푸른갓 기사 오룸-벨",
+      "factionId": "bluecap-colony",
+      "initialRoomId": "F28",
+      "slice": "wp8b",
+      "frameworkContribution": [
+        "root-locomotion",
+        "organic-growth-weapon",
+        "memory-spore-field"
+      ]
+    },
+    {
+      "id": "hero.glop",
+      "role": "hero-glop",
+      "name": "Glop XVII, the Crown-Swallowed",
+      "localizedName": "왕관을 삼킨 글롭 17세",
+      "factionId": "slime-bloom",
+      "initialRoomId": "L57",
+      "slice": "wp8b",
+      "frameworkContribution": [
+        "volume-preserving-amorphous-body",
+        "internal-artifact-rig",
+        "split-merge-hero-forms"
+      ]
+    },
+    {
+      "id": "hero.jijik",
+      "role": "hero-jijik",
+      "name": "Jijik Soot-Hand",
+      "localizedName": "찌직 검댕손",
+      "factionId": "goblin-clan",
+      "initialRoomId": "D20",
+      "slice": "wp8c",
+      "frameworkContribution": [
+        "room-local-impulse-physics",
+        "destructible-explosives",
+        "arcing-barrage-projectiles"
+      ]
+    },
+    {
+      "id": "hero.tissa",
+      "role": "hero-tissa",
+      "name": "Tissa Water-Scale",
+      "localizedName": "물비늘 티사",
+      "factionId": "copper-tail-clutch",
+      "initialRoomId": "C14",
+      "slice": "wp8c",
+      "frameworkContribution": [
+        "water-pressure-fields",
+        "route-mounted-deployables",
+        "aquatic-locomotion-secondary-motion"
+      ]
+    },
+    {
+      "id": "hero.murga",
+      "role": "hero-murga",
+      "name": "Murga Blood-Pot",
+      "localizedName": "무르가 피솥",
+      "factionId": "red-tusk-tribe",
+      "initialRoomId": "J48",
+      "slice": "wp8c",
+      "frameworkContribution": [
+        "physical-tethers",
+        "corpse-drag-work-cycle",
+        "deployable-support-hearths"
+      ]
+    },
+    {
+      "id": "hero.aldren",
+      "role": "hero-aldren",
+      "name": "Ser Aldren Vale",
+      "localizedName": "세르 알드렌 베일",
+      "factionId": "undead-host",
+      "initialRoomId": "E22",
+      "slice": "wp8d",
+      "frameworkContribution": [
+        "formation-and-line-crossing",
+        "frontal-damage-model",
+        "corpse-reassembly-summons"
+      ]
+    },
+    {
+      "id": "hero.malcor",
+      "role": "hero-malcor",
+      "name": "Malcor Rotten-Tooth",
+      "localizedName": "구린이빨 말코르",
+      "factionId": "undead-host",
+      "initialRoomId": "E24",
+      "slice": "wp8d",
+      "frameworkContribution": [
+        "corpse-consumption-memory-buffs",
+        "fear-paralysis-statuses",
+        "ghoul-pack-lifecycle"
+      ]
+    },
+    {
+      "id": "hero.arvek",
+      "role": "hero-arvek",
+      "name": "Arvek, Who Closed the Gate",
+      "localizedName": "아르벡, 성문을 닫은 자",
+      "factionId": "undead-host",
+      "initialRoomId": "L59",
+      "slice": "wp8d",
+      "frameworkContribution": [
+        "route-mounted-destructible-barriers",
+        "barrier-collision-combat",
+        "multi-route-lockdown"
+      ]
+    },
+    {
+      "id": "hero.pev",
+      "role": "hero-pev",
+      "name": "Pev, the Clear Drop",
+      "localizedName": "맑은 방울 페브",
+      "factionId": "slime-bloom",
+      "initialRoomId": "C11",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "adaptive-body-state",
+        "hazard-absorption",
+        "borrowed-silhouette"
+      ]
+    },
+    {
+      "id": "hero.eighth-cocoon",
+      "role": "hero-eighth-cocoon",
+      "name": "The Eighth Cocoon",
+      "localizedName": "여덟 번째 고치",
+      "factionId": "red-wing-brood",
+      "initialRoomId": "G34",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "arachnid-knight-rig",
+        "directional-silk-guard",
+        "breakaway-shell-transformation"
+      ]
+    },
+    {
+      "id": "hero.empty-queen-hand",
+      "role": "hero-empty-queen-hand",
+      "name": "The Empty Queen's Hand",
+      "localizedName": "빈 여왕의 손",
+      "factionId": "red-wing-brood",
+      "initialRoomId": "G35",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "multi-carrier-rig",
+        "brood-site-incubation",
+        "spawn-network-command"
+      ]
+    },
+    {
+      "id": "hero.failed-successor",
+      "role": "hero-failed-successor",
+      "name": "The Failed Successor",
+      "localizedName": "실패한 계승자",
+      "factionId": "pale-brood",
+      "initialRoomId": "K54",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "observational-skill-mimicry",
+        "royal-access-spoofing",
+        "shell-to-parasite-transformation"
+      ]
+    },
+    {
+      "id": "hero.sleeping-gardener",
+      "role": "hero-sleeping-gardener",
+      "name": "The Sleeping Gardener",
+      "localizedName": "잠든 정원사",
+      "factionId": "bluecap-colony",
+      "initialRoomId": "F29",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "seasonal-state-machine",
+        "persistent-garden-terrain",
+        "hostile-field-pruning"
+      ]
+    },
+    {
+      "id": "hero.goldcrown-back",
+      "role": "hero-goldcrown-back",
+      "name": "Goldcrown-Back",
+      "localizedName": "금관등",
+      "factionId": "carrion-brood",
+      "initialRoomId": "L58",
+      "slice": "wp8e",
+      "frameworkContribution": [
+        "visible-hoard-armor",
+        "relic-projectiles",
+        "breakaway-loot-shell"
+      ]
+    }
+  ],
+  "qualityTier": "hero-key-visual"
+}

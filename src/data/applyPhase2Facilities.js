@@ -1,5 +1,6 @@
 export function applyPhase2Facilities(source) {
   const scenario = clone(source);
+  if (scenario.meta?.entryPolicy === 'authored-hub') return hydrateAuthoredEntryHub(scenario);
   const originalEntry = scenario.rooms.find(room => room.kind === 'start') ?? scenario.rooms[0];
   if (!originalEntry || scenario.rooms.some(room => room.id === 'expedition-waystation')) return scenario;
 
@@ -64,6 +65,24 @@ export function applyPhase2Facilities(source) {
     facility('facility-statue', 'goddess_statue', 'The Returning Lady', 'expedition-waystation', 0.25 * fx, 0.7 * fx, 0, 0.7, { maxResurrectionCharges: 1, rechargeTime: 95 })
   );
 
+  return scenario;
+}
+
+function hydrateAuthoredEntryHub(scenario) {
+  const entryRoomId = scenario.meta?.entryRoomId ?? scenario.rooms.find(room => room.kind === 'start')?.id;
+  const entry = scenario.rooms.find(room => room.id === entryRoomId);
+  if (!entry) return scenario;
+  entry.kind = 'start';
+  entry.tags = [...new Set([...(entry.tags ?? []), 'entrance', 'safe_zone', 'safe-zone', 'water_source', 'camp_site', 'merchant', 'resurrection', 'sanctuary'])];
+  scenario.agents = scenario.agents.map(agent => agent.faction === 'party' ? { ...agent, roomId: entryRoomId } : agent);
+  const placements = scenario.meta?.facilityPlacements ?? {};
+  const existing = new Set(scenario.props.map(prop => prop.id));
+  for (const [id, source] of Object.entries(placements)) {
+    if (existing.has(id) || !source?.roomId || !scenario.rooms.some(room => room.id === source.roomId)) continue;
+    const { roomId, type, label, placement, ...extra } = source;
+    scenario.props.push({ id, roomId, type, label, placement: { ...(placement ?? {}) }, ...extra });
+    existing.add(id);
+  }
   return scenario;
 }
 

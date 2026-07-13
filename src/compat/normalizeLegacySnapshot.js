@@ -153,6 +153,21 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const cargo = tableOf(raw.logistics?.cargo, 'cargo');
   const structures = tableOf(raw.construction?.structures, 'structure');
   const environmentTasks = tableOf(raw.environmentTasks?.tasks, 'environment-task');
+  const settlementOrders = tableOf(raw.settlementOperations?.orders, 'settlement-order');
+  const zoneInteractions = tableOf(raw.zoneInteractions?.tasks, 'zone-interaction');
+  const heroes = tableOf(raw.heroes?.heroes ?? raw.heroes, 'hero');
+  const heroForms = tableOf(raw.heroForms?.forms, 'hero-form');
+  const heroDeployables = tableOf(raw.heroDeployables?.deployables, 'hero-deployable');
+  const heroProjectiles = tableOf(raw.heroDeployables?.projectiles, 'hero-projectile');
+  const heroFields = tableOf(raw.heroEnvironment?.fields, 'hero-field');
+  const heroFormations = tableOf(raw.heroFormations?.formations, 'hero-formation');
+  const heroSummons = tableOf(raw.heroNecromancy?.summons, 'hero-summon');
+  const heroBarriers = tableOf(raw.heroBarriers?.barriers, 'hero-barrier');
+  const heroAdaptationFields = tableOf(raw.heroAdaptation?.bubbles, 'hero-adaptation');
+  const heroBroodActors = tableOf([...(raw.heroBrood?.guards ?? []), ...(raw.heroBrood?.clutches ?? []), ...(raw.heroBrood?.husks ?? []), ...(raw.heroBrood?.domains ?? [])], 'hero-brood');
+  const heroMimicActors = tableOf([...(raw.heroMimicry?.husks ?? []), ...(raw.heroMimicry?.echoes ?? [])], 'hero-mimic');
+  const heroGardenPatches = tableOf(raw.heroGarden?.patches, 'hero-garden');
+  const heroHoardActors = tableOf([...(raw.heroHoard?.shells ?? []), ...(raw.heroHoard?.projectiles ?? [])], 'hero-hoard');
   const factions = factionTable(agents, settlements);
 
   const visited = new Set(Array.isArray(raw.visited) ? raw.visited : []);
@@ -164,7 +179,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       turn: finiteNumber(turn ?? raw.turn),
       ended: raw.ended === true
     },
-    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, effects },
+    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, heroForms, heroDeployables, heroProjectiles, heroFields, heroFormations, heroSummons, heroBarriers, heroAdaptationFields, heroBroodActors, heroMimicActors, heroGardenPatches, heroHoardActors, effects },
     indexes: {
       agentsByRoom: groupIndex(agents, agent =>
         agent.alive !== false && agent.departed !== true ? agent.roomId : null
@@ -172,7 +187,26 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       propsByRoom: groupIndex(props, prop => prop.roomId),
       settlementsByFaction: groupIndex(settlements, settlement => settlement.factionId),
       environmentTasksByRoom: groupIndex(environmentTasks, task => task.targetRoomId),
-      environmentTasksByTarget: groupIndex(environmentTasks, task => task.targetId)
+      environmentTasksByTarget: groupIndex(environmentTasks, task => task.targetId),
+      settlementOrdersByRoom: groupIndex(settlementOrders, order => order.targetRoomId),
+      settlementOrdersBySettlement: groupIndex(settlementOrders, order => order.settlementId),
+      zoneInteractionsByRoom: groupIndex(zoneInteractions, task => task.targetRoomId),
+      zoneInteractionsByAction: groupIndex(zoneInteractions, task => task.actionId),
+      heroesByFaction: groupIndex(heroes, hero => hero.factionId),
+      heroesByRoom: groupIndex(heroes, hero => hero.roomId),
+      heroFormsByOwner: groupIndex(heroForms, form => form.ownerHeroId),
+      heroFormsByRoom: groupIndex(heroForms, form => form.roomId),
+      heroDeployablesByRoom: groupIndex(heroDeployables, item => item.roomId),
+      heroProjectilesByRoom: groupIndex(heroProjectiles, item => item.roomId),
+      heroFieldsByRoom: groupIndex(heroFields, item => item.roomId),
+      heroFormationsByRoom: groupIndex(heroFormations, item => item.roomId),
+      heroSummonsByRoom: groupIndex(heroSummons, item => item.roomId),
+      heroBarriersByRoom: groupIndex(heroBarriers, item => item.roomId),
+      heroAdaptationFieldsByRoom: groupIndex(heroAdaptationFields, item => item.roomId),
+      heroBroodActorsByRoom: groupIndex(heroBroodActors, item => item.roomId),
+      heroMimicActorsByRoom: groupIndex(heroMimicActors, item => item.roomId),
+      heroGardenPatchesByRoom: groupIndex(heroGardenPatches, item => item.roomId),
+      heroHoardActorsByRoom: groupIndex(heroHoardActors, item => item.roomId)
     },
     events: Array.isArray(events)
       ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object')

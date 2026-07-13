@@ -1,0 +1,4611 @@
+{
+  "schemaVersion": 1,
+  "roles": {
+    "goblin-tollmaster": {
+      "role": "goblin-tollmaster",
+      "name": "Brass-Button Tollmaster",
+      "factionId": "goblin-clan",
+      "parentSpecies": "goblin",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 24,
+        "attack": 4,
+        "courage": 9,
+        "speed": 1
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "field-camp",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "food": 1,
+          "stolenGoods": 2
+        },
+        "parentSpecies": "goblin"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "goblin",
+        "scale": 0.9,
+        "animationProfile": "biped",
+        "kit": [
+          "brass-cap",
+          "ledger",
+          "toll-sign",
+          "coin-pouches",
+          "short-spear"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "set-toll-gate",
+          "type": "barricade",
+          "cooldown": 14,
+          "windup": 1.6,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "room",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "set-toll-gate"
+          },
+          "effects": [
+            {
+              "type": "slow-zone",
+              "duration": 8
+            },
+            {
+              "type": "call-reinforcement",
+              "role": "goblin",
+              "count": 1
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "controller",
+        "builder"
+      ]
+    },
+    "goblin-scrap-warden": {
+      "role": "goblin-scrap-warden",
+      "name": "Scrap Warden",
+      "factionId": "goblin-clan",
+      "parentSpecies": "goblin",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 34,
+        "attack": 6,
+        "courage": 11,
+        "speed": 0.82,
+        "armor": 3
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "scrap": 4,
+          "food": 1
+        },
+        "parentSpecies": "goblin"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "goblin",
+        "scale": 0.98,
+        "animationProfile": "biped",
+        "kit": [
+          "scrap-armor",
+          "pot-shoulder",
+          "door-shield",
+          "iron-club",
+          "spare-plates"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "scrap-bulwark",
+          "type": "guard",
+          "cooldown": 9,
+          "windup": 0.7,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "scrap-bulwark"
+          },
+          "effects": [
+            {
+              "type": "guard-allies",
+              "duration": 5,
+              "amount": 3
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "shield-rush",
+          "type": "charge",
+          "cooldown": 11,
+          "windup": 1.1,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "shield-rush"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 7
+            },
+            {
+              "type": "push",
+              "distance": 1.5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "vanguard",
+        "armored"
+      ]
+    },
+    "goblin-bombardier": {
+      "role": "goblin-bombardier",
+      "name": "Goblin Bombardier",
+      "factionId": "goblin-clan",
+      "parentSpecies": "goblin",
+      "tier": "specialist",
+      "size": "small",
+      "stats": {
+        "hp": 17,
+        "attack": 4,
+        "courage": 6,
+        "speed": 1.1
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "powder": 1,
+          "scrap": 1
+        },
+        "parentSpecies": "goblin"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "goblin",
+        "scale": 0.72,
+        "animationProfile": "biped",
+        "kit": [
+          "goggles",
+          "bomb-pack",
+          "fire-pot",
+          "sling"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "lob-fire-pot",
+          "type": "area-damage",
+          "cooldown": 8,
+          "windup": 1.2,
+          "recovery": 0.6,
+          "range": 7,
+          "targetPolicy": "hostile-cluster",
+          "telegraph": {
+            "shape": "circle",
+            "radius": 2.4,
+            "cue": "fuse-hiss"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 6,
+              "radius": 2.4
+            },
+            {
+              "type": "hazard",
+              "hazard": "fire",
+              "duration": 5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "artillery"
+      ]
+    },
+    "goblin-market-ogre": {
+      "role": "goblin-market-ogre",
+      "name": "Market Ogre",
+      "factionId": "goblin-clan",
+      "parentSpecies": "ogre",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 78,
+        "attack": 11,
+        "courage": 12,
+        "speed": 0.72,
+        "armor": 2
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "outpost"
+        ],
+        "siteTier": 2,
+        "populationCost": 4,
+        "globalCap": 2,
+        "localCap": 1,
+        "costs": {
+          "food": 7,
+          "stolenGoods": 4
+        },
+        "parentSpecies": "ogre"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "ogre",
+        "scale": 1.15,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "market-stall-back",
+          "cargo-crates",
+          "harness",
+          "pillar-club",
+          "goblin-riders"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "throw-cargo",
+          "type": "area-damage",
+          "cooldown": 10,
+          "windup": 1.4,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "throw-cargo"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 9,
+              "radius": 2
+            },
+            {
+              "type": "spawn-cover",
+              "duration": 12
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "stall-charge",
+          "type": "charge",
+          "cooldown": 14,
+          "windup": 1.6,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "stall-charge"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 13
+            },
+            {
+              "type": "break-structure"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "carrier",
+        "siege"
+      ]
+    },
+    "goblin-brass-boss": {
+      "role": "goblin-brass-boss",
+      "name": "Brass-Button Boss",
+      "factionId": "goblin-clan",
+      "parentSpecies": "goblin",
+      "tier": "champion",
+      "size": "medium",
+      "stats": {
+        "hp": 48,
+        "attack": 8,
+        "courage": 14,
+        "speed": 1.05,
+        "armor": 2
+      },
+      "ecology": {
+        "siteTypes": [
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "food": 4,
+          "scrap": 3,
+          "stolenGoods": 6
+        },
+        "parentSpecies": "goblin"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "goblin",
+        "scale": 0.96,
+        "animationProfile": "biped",
+        "kit": [
+          "boss-coat",
+          "brass-crown",
+          "cutlass",
+          "pistol-crossbow",
+          "banner-pack"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "boss-order",
+          "type": "buff",
+          "cooldown": 12,
+          "windup": 0.9,
+          "recovery": 0.6,
+          "range": 7,
+          "targetPolicy": "allies",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 7,
+            "cue": "boss-order"
+          },
+          "effects": [
+            {
+              "type": "buff-allies",
+              "stat": "attack",
+              "amount": 2,
+              "duration": 6
+            },
+            {
+              "type": "retarget-allies"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "dirty-retreat",
+          "type": "dash",
+          "cooldown": 16,
+          "windup": 0.4,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "dirty-retreat"
+          },
+          "effects": [
+            {
+              "type": "smoke",
+              "duration": 4
+            },
+            {
+              "type": "retreat-to-site"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "champion",
+        "commander"
+      ]
+    },
+    "kobold-gear-shell": {
+      "role": "kobold-gear-shell",
+      "name": "Gear-Shell Workguard",
+      "factionId": "copper-tail-clutch",
+      "parentSpecies": "kobold",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 36,
+        "attack": 6,
+        "courage": 10,
+        "speed": 0.78,
+        "armor": 4
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "scrap": 4,
+          "mechanismParts": 2
+        },
+        "parentSpecies": "kobold"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "kobold-frame",
+        "scale": 1,
+        "animationProfile": "biped",
+        "kit": [
+          "boiler-chest",
+          "piston-legs",
+          "gear-shoulders",
+          "plate-shield",
+          "wrench-spear",
+          "wind-key"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "lock-frame",
+          "type": "guard",
+          "cooldown": 9,
+          "windup": 0.8,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "lock-frame"
+          },
+          "effects": [
+            {
+              "type": "self-armor",
+              "amount": 5,
+              "duration": 5
+            },
+            {
+              "type": "taunt",
+              "radius": 3
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "steam-vent",
+          "type": "cone-damage",
+          "cooldown": 12,
+          "windup": 1.2,
+          "recovery": 0.6,
+          "range": 3.5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3.5,
+            "cue": "steam-vent"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 6,
+              "radius": 3
+            },
+            {
+              "type": "blind",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "vanguard",
+        "construct-suit"
+      ]
+    },
+    "kobold-sluice-diver": {
+      "role": "kobold-sluice-diver",
+      "name": "Sluice Diver",
+      "factionId": "copper-tail-clutch",
+      "parentSpecies": "kobold",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 25,
+        "attack": 5,
+        "courage": 8,
+        "speed": 1.05
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "scrap": 2,
+          "air": 1
+        },
+        "parentSpecies": "kobold"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "kobold",
+        "scale": 0.86,
+        "animationProfile": "biped",
+        "kit": [
+          "diving-helmet",
+          "air-tanks",
+          "hose-belt",
+          "valve-wrench",
+          "harpoon",
+          "flippers"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "open-sluice",
+          "type": "hazard",
+          "cooldown": 15,
+          "windup": 2,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "room",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "open-sluice"
+          },
+          "effects": [
+            {
+              "type": "hazard",
+              "hazard": "flood",
+              "duration": 10
+            },
+            {
+              "type": "slow-hostiles",
+              "duration": 5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "harpoon",
+          "type": "pull",
+          "cooldown": 8,
+          "windup": 0.9,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "harpoon"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 5
+            },
+            {
+              "type": "pull",
+              "distance": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "controller",
+        "water-adapted"
+      ]
+    },
+    "kobold-powder-sapper": {
+      "role": "kobold-powder-sapper",
+      "name": "Powder-Tail Sapper",
+      "factionId": "copper-tail-clutch",
+      "parentSpecies": "kobold",
+      "tier": "specialist",
+      "size": "small",
+      "stats": {
+        "hp": 19,
+        "attack": 4,
+        "courage": 6,
+        "speed": 1.12
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "powder": 2,
+          "scrap": 1
+        },
+        "parentSpecies": "kobold"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "kobold",
+        "scale": 0.74,
+        "animationProfile": "biped",
+        "kit": [
+          "powder-keg-back",
+          "fuse-tail",
+          "blast-stick",
+          "lantern",
+          "tool-belt"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "place-charge",
+          "type": "delayed-bomb",
+          "cooldown": 12,
+          "windup": 1.5,
+          "recovery": 0.6,
+          "range": 2,
+          "targetPolicy": "structure-or-large",
+          "telegraph": {
+            "shape": "circle",
+            "radius": 2.8,
+            "cue": "burning-fuse"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 12,
+              "radius": 2.8
+            },
+            {
+              "type": "break-structure"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "siege",
+        "builder"
+      ]
+    },
+    "kobold-burrow-engine": {
+      "role": "kobold-burrow-engine",
+      "name": "Copper-Tail Burrow Engine",
+      "factionId": "copper-tail-clutch",
+      "parentSpecies": "kobold",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 82,
+        "attack": 10,
+        "courage": 15,
+        "speed": 0.62,
+        "armor": 5
+      },
+      "ecology": {
+        "siteTypes": [
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 4,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "scrap": 10,
+          "mechanismParts": 6,
+          "powder": 2
+        },
+        "parentSpecies": "kobold"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "drill-construct",
+        "scale": 1.1,
+        "animationProfile": "construct",
+        "kit": [
+          "triple-drill",
+          "six-legs",
+          "three-cockpits",
+          "scrap-bin",
+          "stabilizers"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "drill-rush",
+          "type": "charge",
+          "cooldown": 14,
+          "windup": 2,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "drill-rush"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 15
+            },
+            {
+              "type": "break-structure"
+            },
+            {
+              "type": "push",
+              "distance": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "deploy-repair-post",
+          "type": "spawn-site",
+          "cooldown": 30,
+          "windup": 3,
+          "recovery": 0.6,
+          "range": 1,
+          "targetPolicy": "room",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1,
+            "cue": "deploy-repair-post"
+          },
+          "effects": [
+            {
+              "type": "establish-field-camp",
+              "species": "kobold"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "construct",
+        "siege",
+        "builder"
+      ]
+    },
+    "kobold-master-trapper": {
+      "role": "kobold-master-trapper",
+      "name": "Copper-Tail Master Trapper",
+      "factionId": "copper-tail-clutch",
+      "parentSpecies": "kobold",
+      "tier": "champion",
+      "size": "medium",
+      "stats": {
+        "hp": 42,
+        "attack": 7,
+        "courage": 13,
+        "speed": 1.05,
+        "armor": 2
+      },
+      "ecology": {
+        "siteTypes": [
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "scrap": 6,
+          "mechanismParts": 5,
+          "powder": 2
+        },
+        "parentSpecies": "kobold"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "kobold",
+        "scale": 0.9,
+        "animationProfile": "biped",
+        "kit": [
+          "master-goggles",
+          "trap-rack",
+          "clockwork-crossbow",
+          "wire-spools",
+          "tool-apron"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "trap-web",
+          "type": "build-traps",
+          "cooldown": 10,
+          "windup": 1.4,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "room",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "trap-web"
+          },
+          "effects": [
+            {
+              "type": "build-trap",
+              "count": 2,
+              "charges": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "remote-trigger",
+          "type": "trigger-traps",
+          "cooldown": 13,
+          "windup": 0.6,
+          "recovery": 0.6,
+          "range": 8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 8,
+            "cue": "remote-trigger"
+          },
+          "effects": [
+            {
+              "type": "trigger-friendly-traps"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "champion",
+        "builder",
+        "controller"
+      ]
+    },
+    "orc-shield-wall": {
+      "role": "orc-shield-wall",
+      "name": "Red-Tusk Shieldwall",
+      "factionId": "red-tusk-tribe",
+      "parentSpecies": "orc",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 42,
+        "attack": 7,
+        "courage": 13,
+        "speed": 0.82,
+        "armor": 4
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "meat": 2,
+          "weapons": 2
+        },
+        "parentSpecies": "orc"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "orc-heavy",
+        "scale": 1,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "tower-shield",
+          "short-spear",
+          "shoulder-plates",
+          "red-banner"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "form-shieldwall",
+          "type": "formation",
+          "cooldown": 6,
+          "windup": 0.6,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "form-shieldwall"
+          },
+          "effects": [
+            {
+              "type": "formation-armor",
+              "amount": 4,
+              "duration": 7
+            },
+            {
+              "type": "guard-allies",
+              "duration": 7,
+              "amount": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "shield-shove",
+          "type": "push",
+          "cooldown": 8,
+          "windup": 0.8,
+          "recovery": 0.6,
+          "range": 2,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 2,
+            "cue": "shield-shove"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 6
+            },
+            {
+              "type": "push",
+              "distance": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "vanguard",
+        "formation"
+      ]
+    },
+    "orc-butcher-priest": {
+      "role": "orc-butcher-priest",
+      "name": "Butcher-Priest",
+      "factionId": "red-tusk-tribe",
+      "parentSpecies": "orc",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 34,
+        "attack": 7,
+        "courage": 12,
+        "speed": 0.9
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "meat": 3,
+          "trophy": 1
+        },
+        "parentSpecies": "orc"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "orc",
+        "scale": 0.96,
+        "animationProfile": "biped",
+        "kit": [
+          "butcher-apron",
+          "rib-charms",
+          "meat-hooks",
+          "cleaver",
+          "blood-bowl"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "blood-feast",
+          "type": "heal",
+          "cooldown": 12,
+          "windup": 1.4,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "injured-allies",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "blood-feast"
+          },
+          "effects": [
+            {
+              "type": "heal-allies",
+              "amount": 8,
+              "radius": 5
+            },
+            {
+              "type": "buff-allies",
+              "stat": "attack",
+              "amount": 2,
+              "duration": 5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "dress-corpse",
+          "type": "corpse-consume",
+          "cooldown": 9,
+          "windup": 1.8,
+          "recovery": 0.6,
+          "range": 2,
+          "targetPolicy": "corpse",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 2,
+            "cue": "dress-corpse"
+          },
+          "effects": [
+            {
+              "type": "consume-corpse-resource",
+              "resource": "meat",
+              "amount": 3
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "support",
+        "corpse-user"
+      ]
+    },
+    "orc-chainmaster": {
+      "role": "orc-chainmaster",
+      "name": "Red-Pit Chainmaster",
+      "factionId": "red-tusk-tribe",
+      "parentSpecies": "orc",
+      "tier": "elite",
+      "size": "medium",
+      "stats": {
+        "hp": 40,
+        "attack": 8,
+        "courage": 14,
+        "speed": 1,
+        "armor": 2
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "meat": 2,
+          "weapons": 3,
+          "trophy": 1
+        },
+        "parentSpecies": "orc"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "orc",
+        "scale": 0.98,
+        "animationProfile": "biped",
+        "kit": [
+          "arena-helm",
+          "chain-hook",
+          "chain-coil",
+          "buckler"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "chain-drag",
+          "type": "pull",
+          "cooldown": 8,
+          "windup": 1.2,
+          "recovery": 0.6,
+          "range": 7,
+          "targetPolicy": "ranged-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 7,
+            "cue": "chain-drag"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 6
+            },
+            {
+              "type": "pull",
+              "distance": 3
+            },
+            {
+              "type": "slow",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "controller",
+        "skirmisher"
+      ]
+    },
+    "orc-siege-bearer": {
+      "role": "orc-siege-bearer",
+      "name": "Siege Harness Brute",
+      "factionId": "red-tusk-tribe",
+      "parentSpecies": "orc",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 92,
+        "attack": 13,
+        "courage": 16,
+        "speed": 0.65,
+        "armor": 4
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 4,
+        "globalCap": 2,
+        "localCap": 1,
+        "costs": {
+          "meat": 6,
+          "weapons": 4,
+          "timber": 3
+        },
+        "parentSpecies": "orc"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "orc-large",
+        "scale": 1.15,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "siege-frame",
+          "battering-ram",
+          "braziers",
+          "ammo-sacks",
+          "iron-hammer"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "battering-charge",
+          "type": "charge",
+          "cooldown": 14,
+          "windup": 1.8,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "battering-charge"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 16
+            },
+            {
+              "type": "break-structure"
+            },
+            {
+              "type": "knockdown",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "drop-brazier",
+          "type": "hazard",
+          "cooldown": 16,
+          "windup": 1.2,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "drop-brazier"
+          },
+          "effects": [
+            {
+              "type": "hazard",
+              "hazard": "fire",
+              "duration": 7
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "siege"
+      ]
+    },
+    "orc-war-chief": {
+      "role": "orc-war-chief",
+      "name": "Red-Tusk War Chief",
+      "factionId": "red-tusk-tribe",
+      "parentSpecies": "orc",
+      "tier": "champion",
+      "size": "large",
+      "stats": {
+        "hp": 76,
+        "attack": 12,
+        "courage": 18,
+        "speed": 0.9,
+        "armor": 4
+      },
+      "ecology": {
+        "siteTypes": [
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "meat": 7,
+          "weapons": 5,
+          "trophy": 6
+        },
+        "parentSpecies": "orc"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "orc-heavy",
+        "scale": 1.12,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "chieftain-helm",
+          "great-axe",
+          "trophy-cloak",
+          "war-horn"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "war-horn",
+          "type": "buff",
+          "cooldown": 14,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 8,
+          "targetPolicy": "allies",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 8,
+            "cue": "war-horn"
+          },
+          "effects": [
+            {
+              "type": "buff-allies",
+              "stat": "attack",
+              "amount": 3,
+              "duration": 7
+            },
+            {
+              "type": "buff-allies",
+              "stat": "speed",
+              "amount": 0.2,
+              "duration": 7
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "chieftain-cleave",
+          "type": "cone-damage",
+          "cooldown": 9,
+          "windup": 1.1,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "chieftain-cleave"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 12,
+              "radius": 3
+            },
+            {
+              "type": "fear",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "champion",
+        "commander"
+      ]
+    },
+    "skeleton-guard": {
+      "role": "skeleton-guard",
+      "name": "Skeleton Guard",
+      "factionId": "undead-host",
+      "parentSpecies": "skeleton",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 28,
+        "attack": 6,
+        "courage": 20,
+        "speed": 0.86,
+        "armor": 3
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core",
+          "emergent"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "bones": 3
+        },
+        "parentSpecies": "skeleton"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "skeleton",
+        "scale": 0.92,
+        "animationProfile": "biped",
+        "kit": [
+          "rusted-helm",
+          "round-shield",
+          "spear",
+          "bone-mail"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "brace-spears",
+          "type": "guard",
+          "cooldown": 7,
+          "windup": 0.7,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "brace-spears"
+          },
+          "effects": [
+            {
+              "type": "self-armor",
+              "amount": 3,
+              "duration": 5
+            },
+            {
+              "type": "counter-charge",
+              "amount": 7
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "vanguard",
+        "undead"
+      ]
+    },
+    "skeleton-archer": {
+      "role": "skeleton-archer",
+      "name": "Skeleton Archer",
+      "factionId": "undead-host",
+      "parentSpecies": "skeleton",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 22,
+        "attack": 6,
+        "courage": 20,
+        "speed": 0.92
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core",
+          "emergent"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "bones": 2,
+          "weapons": 1
+        },
+        "parentSpecies": "skeleton"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "skeleton",
+        "scale": 0.9,
+        "animationProfile": "biped",
+        "kit": [
+          "bone-bow",
+          "grave-quiver",
+          "hood-rags"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "grave-volley",
+          "type": "area-damage",
+          "cooldown": 10,
+          "windup": 1.3,
+          "recovery": 0.6,
+          "range": 8,
+          "targetPolicy": "hostile-cluster",
+          "telegraph": {
+            "shape": "circle",
+            "radius": 2.2,
+            "cue": "bow-creak"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 7,
+              "radius": 2.2
+            },
+            {
+              "type": "slow",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "artillery",
+        "undead"
+      ]
+    },
+    "skeleton-knight": {
+      "role": "skeleton-knight",
+      "name": "Skeleton Knight",
+      "factionId": "undead-host",
+      "parentSpecies": "skeleton",
+      "tier": "elite",
+      "size": "medium",
+      "stats": {
+        "hp": 46,
+        "attack": 9,
+        "courage": 20,
+        "speed": 0.8,
+        "armor": 5
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "bones": 5,
+          "weapons": 3,
+          "deathEnergy": 1
+        },
+        "parentSpecies": "skeleton"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "skeleton",
+        "scale": 1,
+        "animationProfile": "biped",
+        "kit": [
+          "full-plate",
+          "greatsword",
+          "tattered-surcoat",
+          "plume"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "grave-cleave",
+          "type": "cone-damage",
+          "cooldown": 8,
+          "windup": 1.1,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "grave-cleave"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 10,
+              "radius": 3
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "deathless-stand",
+          "type": "guard",
+          "cooldown": 16,
+          "windup": 0.6,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "deathless-stand"
+          },
+          "effects": [
+            {
+              "type": "prevent-death",
+              "duration": 4
+            },
+            {
+              "type": "self-armor",
+              "amount": 5,
+              "duration": 4
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "vanguard",
+        "undead"
+      ]
+    },
+    "ghoul": {
+      "role": "ghoul",
+      "name": "Ghoul",
+      "factionId": "undead-host",
+      "parentSpecies": "zombie",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 32,
+        "attack": 8,
+        "courage": 15,
+        "speed": 1.18
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core",
+          "emergent"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "corpses": 2
+        },
+        "parentSpecies": "zombie"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "ghoul",
+        "scale": 0.92,
+        "animationProfile": "biped",
+        "kit": [
+          "long-claws",
+          "hunched-spine",
+          "torn-shroud"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "ghoul-pounce",
+          "type": "charge",
+          "cooldown": 8,
+          "windup": 0.8,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "ghoul-pounce"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 8
+            },
+            {
+              "type": "knockdown",
+              "duration": 1.4
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "corpse-feast",
+          "type": "corpse-consume",
+          "cooldown": 10,
+          "windup": 1.5,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "corpse",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "corpse-feast"
+          },
+          "effects": [
+            {
+              "type": "consume-corpse-heal",
+              "amount": 12
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "skirmisher",
+        "corpse-user",
+        "undead"
+      ]
+    },
+    "ghast": {
+      "role": "ghast",
+      "name": "Ghast",
+      "factionId": "undead-host",
+      "parentSpecies": "zombie",
+      "tier": "elite",
+      "size": "medium",
+      "stats": {
+        "hp": 45,
+        "attack": 10,
+        "courage": 18,
+        "speed": 1.05
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "corpses": 4,
+          "deathEnergy": 2
+        },
+        "parentSpecies": "zombie"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "ghoul",
+        "scale": 1.05,
+        "animationProfile": "biped",
+        "kit": [
+          "long-claws",
+          "hunched-spine",
+          "rotting-mane",
+          "stink-cloud"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "ghast-stench",
+          "type": "aura",
+          "cooldown": 12,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "room-hostiles",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "ghast-stench"
+          },
+          "effects": [
+            {
+              "type": "fear",
+              "duration": 2.5
+            },
+            {
+              "type": "weaken",
+              "amount": 2,
+              "duration": 5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "rending-flurry",
+          "type": "multi-hit",
+          "cooldown": 8,
+          "windup": 0.9,
+          "recovery": 0.6,
+          "range": 2,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 2,
+            "cue": "rending-flurry"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 5,
+              "hits": 3
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "controller",
+        "undead"
+      ]
+    },
+    "wight": {
+      "role": "wight",
+      "name": "Barrow Wight",
+      "factionId": "undead-host",
+      "parentSpecies": "wraith",
+      "tier": "elite",
+      "size": "medium",
+      "stats": {
+        "hp": 48,
+        "attack": 10,
+        "courage": 20,
+        "speed": 0.95,
+        "armor": 3
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "deathEnergy": 4,
+          "bones": 2
+        },
+        "parentSpecies": "wraith"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "wight",
+        "scale": 1,
+        "animationProfile": "biped",
+        "kit": [
+          "barrow-mail",
+          "black-blade",
+          "grave-crown",
+          "spectral-eyes"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "life-drain-blade",
+          "type": "drain",
+          "cooldown": 9,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 2.4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 2.4,
+            "cue": "life-drain-blade"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 9
+            },
+            {
+              "type": "heal-self",
+              "amount": 7
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "command-dead",
+          "type": "buff",
+          "cooldown": 13,
+          "windup": 1.1,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "allies",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "command-dead"
+          },
+          "effects": [
+            {
+              "type": "buff-allies",
+              "stat": "attack",
+              "amount": 2,
+              "duration": 6
+            },
+            {
+              "type": "retarget-allies"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "commander",
+        "undead"
+      ]
+    },
+    "wraith-lord": {
+      "role": "wraith-lord",
+      "name": "Wraith Lord",
+      "factionId": "undead-host",
+      "parentSpecies": "wraith",
+      "tier": "elite",
+      "size": "large",
+      "stats": {
+        "hp": 52,
+        "attack": 11,
+        "courage": 20,
+        "speed": 1.05,
+        "ethereal": true
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "outpost"
+        ],
+        "siteTier": 2,
+        "populationCost": 4,
+        "globalCap": 2,
+        "localCap": 1,
+        "costs": {
+          "deathEnergy": 7
+        },
+        "parentSpecies": "wraith"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "spectral",
+        "scale": 1.2,
+        "animationProfile": "spectral",
+        "kit": [
+          "spectral-crown",
+          "great-scythe",
+          "torn-mantle",
+          "soul-lanterns"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "soul-sweep",
+          "type": "cone-damage",
+          "cooldown": 9,
+          "windup": 1.3,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "soul-sweep"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 11,
+              "radius": 4
+            },
+            {
+              "type": "drain-all",
+              "amount": 4
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "phase-step",
+          "type": "dash",
+          "cooldown": 10,
+          "windup": 0.4,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "phase-step"
+          },
+          "effects": [
+            {
+              "type": "teleport-behind-target"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "spectral",
+        "undead"
+      ]
+    },
+    "death-knight": {
+      "role": "death-knight",
+      "name": "Death Knight",
+      "factionId": "undead-host",
+      "parentSpecies": "skeleton",
+      "tier": "champion",
+      "size": "large",
+      "stats": {
+        "hp": 88,
+        "attack": 13,
+        "courage": 20,
+        "speed": 0.88,
+        "armor": 6
+      },
+      "ecology": {
+        "siteTypes": [
+          "core"
+        ],
+        "siteTier": 3,
+        "populationCost": 6,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "bones": 8,
+          "weapons": 5,
+          "deathEnergy": 10
+        },
+        "parentSpecies": "skeleton"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "skeleton-heavy",
+        "scale": 1.15,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "black-plate",
+          "rune-greatsword",
+          "horned-helm",
+          "grave-cloak"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "deathly-challenge",
+          "type": "taunt",
+          "cooldown": 12,
+          "windup": 0.8,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "strongest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "deathly-challenge"
+          },
+          "effects": [
+            {
+              "type": "taunt",
+              "duration": 5
+            },
+            {
+              "type": "self-armor",
+              "amount": 4,
+              "duration": 5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "black-rune-cleave",
+          "type": "area-damage",
+          "cooldown": 10,
+          "windup": 1.5,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "black-rune-cleave"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 15,
+              "radius": 4
+            },
+            {
+              "type": "death-hazard",
+              "duration": 6
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "champion",
+        "vanguard",
+        "undead"
+      ]
+    },
+    "bone-golem": {
+      "role": "bone-golem",
+      "name": "Bone Golem",
+      "factionId": "undead-host",
+      "parentSpecies": "skeleton",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 96,
+        "attack": 12,
+        "courage": 20,
+        "speed": 0.62,
+        "armor": 5
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "outpost"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 2,
+        "localCap": 1,
+        "costs": {
+          "bones": 12,
+          "deathEnergy": 3
+        },
+        "parentSpecies": "skeleton"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "bone-golem",
+        "scale": 1.2,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "bone-cage-torso",
+          "skull-shoulders",
+          "femur-club",
+          "rib-shield"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "bone-slam",
+          "type": "area-damage",
+          "cooldown": 10,
+          "windup": 1.5,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "bone-slam"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 13,
+              "radius": 3
+            },
+            {
+              "type": "knockdown",
+              "duration": 1.5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "rebuild-from-bones",
+          "type": "heal",
+          "cooldown": 18,
+          "windup": 2.2,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "corpse",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "rebuild-from-bones"
+          },
+          "effects": [
+            {
+              "type": "consume-bones-heal",
+              "amount": 18
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "construct",
+        "undead"
+      ]
+    },
+    "crypt-horror": {
+      "role": "crypt-horror",
+      "name": "Crypt Horror",
+      "factionId": "undead-host",
+      "parentSpecies": "ghoul",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 84,
+        "attack": 14,
+        "courage": 18,
+        "speed": 0.82
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "outpost"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 2,
+        "localCap": 1,
+        "costs": {
+          "corpses": 8,
+          "deathEnergy": 3
+        },
+        "parentSpecies": "ghoul"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "ghoul-large",
+        "scale": 1.22,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "massive-claws",
+          "hunched-spine",
+          "grave-stones-back",
+          "jaw-tusks"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "crypt-leap",
+          "type": "charge",
+          "cooldown": 12,
+          "windup": 1.3,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "crypt-leap"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 13,
+              "radius": 2.5
+            },
+            {
+              "type": "knockdown",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "devour-fallen",
+          "type": "corpse-consume",
+          "cooldown": 9,
+          "windup": 1.6,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "corpse-or-downed",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "devour-fallen"
+          },
+          "effects": [
+            {
+              "type": "consume-corpse-heal",
+              "amount": 20
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "predator",
+        "undead"
+      ]
+    },
+    "corpse-colossus": {
+      "role": "corpse-colossus",
+      "name": "Corpse Colossus",
+      "factionId": "undead-host",
+      "parentSpecies": "zombie",
+      "tier": "abomination",
+      "size": "huge",
+      "stats": {
+        "hp": 128,
+        "attack": 15,
+        "courage": 20,
+        "speed": 0.48,
+        "armor": 3
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "event"
+        ],
+        "siteTier": 3,
+        "populationCost": 7,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "corpses": 14,
+          "deathEnergy": 6
+        },
+        "parentSpecies": "zombie"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "corpse-colossus",
+        "scale": 1.35,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "stitched-torsos",
+          "multiple-arms",
+          "coffin-plate",
+          "corpse-sacks"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "many-arm-sweep",
+          "type": "area-damage",
+          "cooldown": 10,
+          "windup": 1.7,
+          "recovery": 0.6,
+          "range": 4.5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4.5,
+            "cue": "many-arm-sweep"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 16,
+              "radius": 4.5
+            },
+            {
+              "type": "push",
+              "distance": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "shed-zombies",
+          "type": "summon",
+          "cooldown": 18,
+          "windup": 2.4,
+          "recovery": 0.6,
+          "range": 2,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 2,
+            "cue": "shed-zombies"
+          },
+          "effects": [
+            {
+              "type": "summon",
+              "role": "zombie",
+              "count": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "abomination",
+        "huge",
+        "undead"
+      ]
+    },
+    "bell-tower-revenant": {
+      "role": "bell-tower-revenant",
+      "name": "Bell-Tower Revenant",
+      "factionId": "undead-host",
+      "parentSpecies": "wight",
+      "tier": "abomination",
+      "size": "huge",
+      "stats": {
+        "hp": 112,
+        "attack": 12,
+        "courage": 20,
+        "speed": 0.5,
+        "armor": 4
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "event"
+        ],
+        "siteTier": 3,
+        "populationCost": 7,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "bones": 10,
+          "deathEnergy": 12
+        },
+        "parentSpecies": "wight"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "bell-revenant",
+        "scale": 1.35,
+        "animationProfile": "construct",
+        "kit": [
+          "rib-bell-body",
+          "spine-clapper",
+          "bone-tripod",
+          "funeral-cloths"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "funeral-toll",
+          "type": "area-control",
+          "cooldown": 14,
+          "windup": 2.4,
+          "recovery": 0.6,
+          "range": 8,
+          "targetPolicy": "room-hostiles",
+          "telegraph": {
+            "shape": "ring",
+            "radius": 8,
+            "cue": "bell-swing"
+          },
+          "effects": [
+            {
+              "type": "interrupt"
+            },
+            {
+              "type": "fear",
+              "duration": 3
+            },
+            {
+              "type": "summon-from-corpses",
+              "role": "skeleton",
+              "count": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "abomination",
+        "huge",
+        "controller",
+        "undead"
+      ]
+    },
+    "myconid-shepherd": {
+      "role": "myconid-shepherd",
+      "name": "Bluecap Shepherd",
+      "factionId": "bluecap-colony",
+      "parentSpecies": "myconid",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 30,
+        "attack": 5,
+        "courage": 10,
+        "speed": 0.84
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "spore": 2,
+          "biomass": 2
+        },
+        "parentSpecies": "myconid"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "fungal",
+        "scale": 0.98,
+        "animationProfile": "fungal",
+        "kit": [
+          "wide-blue-cap",
+          "root-tentacles",
+          "spore-pouches",
+          "seedlings-back"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "plant-spore-bed",
+          "type": "spawn-site",
+          "cooldown": 22,
+          "windup": 2.4,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "room",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "plant-spore-bed"
+          },
+          "effects": [
+            {
+              "type": "establish-field-camp",
+              "species": "myconid"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "soothing-spores",
+          "type": "heal",
+          "cooldown": 11,
+          "windup": 1.2,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "allies",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "soothing-spores"
+          },
+          "effects": [
+            {
+              "type": "heal-allies",
+              "amount": 6,
+              "radius": 4
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "support",
+        "builder"
+      ]
+    },
+    "myconid-spore-thrower": {
+      "role": "myconid-spore-thrower",
+      "name": "Spore Thrower",
+      "factionId": "bluecap-colony",
+      "parentSpecies": "myconid",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 26,
+        "attack": 6,
+        "courage": 9,
+        "speed": 0.78
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "spore": 3,
+          "biomass": 1
+        },
+        "parentSpecies": "myconid"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "fungal",
+        "scale": 1,
+        "animationProfile": "fungal",
+        "kit": [
+          "bell-cap",
+          "spore-sacs",
+          "long-stem-arms"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "sleep-spore-shell",
+          "type": "area-control",
+          "cooldown": 10,
+          "windup": 1.4,
+          "recovery": 0.6,
+          "range": 8,
+          "targetPolicy": "hostile-cluster",
+          "telegraph": {
+            "shape": "circle",
+            "radius": 2.5,
+            "cue": "spore-sac-inflate"
+          },
+          "effects": [
+            {
+              "type": "sleep-area",
+              "duration": 3,
+              "radius": 2.5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "artillery",
+        "controller"
+      ]
+    },
+    "myconid-pillar-walker": {
+      "role": "myconid-pillar-walker",
+      "name": "Pillar Walker",
+      "factionId": "bluecap-colony",
+      "parentSpecies": "myconid",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 86,
+        "attack": 10,
+        "courage": 15,
+        "speed": 0.5,
+        "armor": 4
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "outpost"
+        ],
+        "siteTier": 2,
+        "populationCost": 4,
+        "globalCap": 2,
+        "localCap": 1,
+        "costs": {
+          "spore": 6,
+          "biomass": 7
+        },
+        "parentSpecies": "myconid"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "fungal-pillar",
+        "scale": 1.25,
+        "animationProfile": "fungal",
+        "kit": [
+          "three-root-legs",
+          "pillar-cap",
+          "branch-arms",
+          "glow-gills"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "rooted-bulwark",
+          "type": "guard",
+          "cooldown": 12,
+          "windup": 1.5,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "rooted-bulwark"
+          },
+          "effects": [
+            {
+              "type": "self-armor",
+              "amount": 7,
+              "duration": 8
+            },
+            {
+              "type": "spawn-cover",
+              "duration": 8
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "root-stomp",
+          "type": "area-damage",
+          "cooldown": 10,
+          "windup": 1.3,
+          "recovery": 0.6,
+          "range": 3.5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3.5,
+            "cue": "root-stomp"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 11,
+              "radius": 3.5
+            },
+            {
+              "type": "root",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "vanguard"
+      ]
+    },
+    "myconid-corpse-orchard": {
+      "role": "myconid-corpse-orchard",
+      "name": "Walking Corpse Orchard",
+      "factionId": "bluecap-colony",
+      "parentSpecies": "myconid",
+      "tier": "abomination",
+      "size": "large",
+      "stats": {
+        "hp": 94,
+        "attack": 8,
+        "courage": 16,
+        "speed": 0.48
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "emergent"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "biomass": 8,
+          "corpses": 3,
+          "spore": 5
+        },
+        "parentSpecies": "myconid"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "corpse-orchard",
+        "scale": 1.2,
+        "animationProfile": "fungal",
+        "kit": [
+          "corpse-stems",
+          "multiple-caps",
+          "central-spore-sac",
+          "root-legs"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "orchard-bloom",
+          "type": "summon",
+          "cooldown": 16,
+          "windup": 2.1,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "orchard-bloom"
+          },
+          "effects": [
+            {
+              "type": "summon",
+              "role": "myconid",
+              "count": 2
+            },
+            {
+              "type": "hazard",
+              "hazard": "spores",
+              "duration": 7
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "root-feed",
+          "type": "corpse-consume",
+          "cooldown": 10,
+          "windup": 1.8,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "corpse",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "root-feed"
+          },
+          "effects": [
+            {
+              "type": "consume-corpse-heal",
+              "amount": 16
+            },
+            {
+              "type": "add-site-resource",
+              "resource": "biomass",
+              "amount": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "abomination",
+        "producer"
+      ]
+    },
+    "spider-cocoon-bearer": {
+      "role": "spider-cocoon-bearer",
+      "name": "Cocoon Bearer",
+      "factionId": "red-wing-brood",
+      "parentSpecies": "spider",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 34,
+        "attack": 7,
+        "courage": 11,
+        "speed": 0.9
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "silk": 2,
+          "hosts": 1
+        },
+        "parentSpecies": "spider"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "arachnid",
+        "scale": 0.95,
+        "animationProfile": "arachnid",
+        "kit": [
+          "broad-abdomen",
+          "cocoon-back",
+          "grasping-front-legs",
+          "silk-sacs"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "cocoon-grab",
+          "type": "capture",
+          "cooldown": 10,
+          "windup": 1.1,
+          "recovery": 0.6,
+          "range": 2,
+          "targetPolicy": "downed-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 2,
+            "cue": "cocoon-grab"
+          },
+          "effects": [
+            {
+              "type": "capture-downed"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "drop-cocoon-cover",
+          "type": "spawn-cover",
+          "cooldown": 14,
+          "windup": 0.8,
+          "recovery": 0.6,
+          "range": 2,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 2,
+            "cue": "drop-cocoon-cover"
+          },
+          "effects": [
+            {
+              "type": "spawn-cover",
+              "duration": 10
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "carrier",
+        "capture"
+      ]
+    },
+    "spider-silk-mason": {
+      "role": "spider-silk-mason",
+      "name": "Silk Mason",
+      "factionId": "red-wing-brood",
+      "parentSpecies": "spider",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 28,
+        "attack": 5,
+        "courage": 9,
+        "speed": 0.86
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "silk": 4
+        },
+        "parentSpecies": "spider"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "arachnid",
+        "scale": 0.9,
+        "animationProfile": "arachnid",
+        "kit": [
+          "spindle-abdomen",
+          "four-spinnerets",
+          "hooked-forelegs",
+          "folded-silk-membrane"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "web-barricade",
+          "type": "barricade",
+          "cooldown": 12,
+          "windup": 1.8,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "room",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "web-barricade"
+          },
+          "effects": [
+            {
+              "type": "web-zone",
+              "duration": 10
+            },
+            {
+              "type": "slow-zone",
+              "duration": 10
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "silk-snare",
+          "type": "root",
+          "cooldown": 8,
+          "windup": 0.8,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "silk-snare"
+          },
+          "effects": [
+            {
+              "type": "root",
+              "duration": 2.5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "builder",
+        "controller"
+      ]
+    },
+    "spider-well-strider": {
+      "role": "spider-well-strider",
+      "name": "Well Strider",
+      "factionId": "red-wing-brood",
+      "parentSpecies": "spider",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 72,
+        "attack": 11,
+        "courage": 14,
+        "speed": 1.05
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 4,
+        "globalCap": 2,
+        "localCap": 1,
+        "costs": {
+          "silk": 6,
+          "hosts": 2
+        },
+        "parentSpecies": "spider"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "arachnid-long",
+        "scale": 1.2,
+        "animationProfile": "arachnid",
+        "kit": [
+          "long-legs",
+          "narrow-body",
+          "wall-hooks",
+          "fangs"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "vertical-ambush",
+          "type": "teleport-strike",
+          "cooldown": 12,
+          "windup": 1.4,
+          "recovery": 0.6,
+          "range": 7,
+          "targetPolicy": "isolated-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 7,
+            "cue": "vertical-ambush"
+          },
+          "effects": [
+            {
+              "type": "teleport-behind-target"
+            },
+            {
+              "type": "damage",
+              "amount": 13
+            },
+            {
+              "type": "web",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "leg-sweep",
+          "type": "area-damage",
+          "cooldown": 9,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 3.5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3.5,
+            "cue": "leg-sweep"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 9,
+              "radius": 3.5
+            },
+            {
+              "type": "push",
+              "distance": 1.5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "ambusher"
+      ]
+    },
+    "spider-brood-matriarch": {
+      "role": "spider-brood-matriarch",
+      "name": "Brood Matriarch",
+      "factionId": "red-wing-brood",
+      "parentSpecies": "spider",
+      "tier": "champion",
+      "size": "large",
+      "stats": {
+        "hp": 90,
+        "attack": 11,
+        "courage": 17,
+        "speed": 0.78,
+        "armor": 2
+      },
+      "ecology": {
+        "siteTypes": [
+          "core"
+        ],
+        "siteTier": 3,
+        "populationCost": 6,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "silk": 10,
+          "hosts": 5,
+          "blood": 5
+        },
+        "parentSpecies": "spider"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "arachnid",
+        "scale": 1.3,
+        "animationProfile": "arachnid",
+        "kit": [
+          "brood-sacs",
+          "crown-spines",
+          "egg-clusters",
+          "massive-fangs"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "lay-egg-clutch",
+          "type": "summon",
+          "cooldown": 17,
+          "windup": 2.2,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "lay-egg-clutch"
+          },
+          "effects": [
+            {
+              "type": "summon",
+              "role": "spider",
+              "count": 3
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "brood-command",
+          "type": "buff",
+          "cooldown": 13,
+          "windup": 0.9,
+          "recovery": 0.6,
+          "range": 7,
+          "targetPolicy": "allies",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 7,
+            "cue": "brood-command"
+          },
+          "effects": [
+            {
+              "type": "buff-allies",
+              "stat": "speed",
+              "amount": 0.25,
+              "duration": 6
+            },
+            {
+              "type": "retarget-allies"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "champion",
+        "producer"
+      ]
+    },
+    "parasite-pale-steward": {
+      "role": "parasite-pale-steward",
+      "name": "Pale Steward",
+      "factionId": "pale-brood",
+      "parentSpecies": "parasite",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 28,
+        "attack": 6,
+        "courage": 10,
+        "speed": 0.95
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core",
+          "emergent"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "hosts": 1,
+          "reagents": 1
+        },
+        "parentSpecies": "parasite"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "humanoid",
+        "scale": 0.92,
+        "animationProfile": "biped",
+        "kit": [
+          "steward-clothes",
+          "neck-parasite",
+          "split-jaw",
+          "clouded-eye"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "false-aid",
+          "type": "infect",
+          "cooldown": 11,
+          "windup": 1.1,
+          "recovery": 0.6,
+          "range": 2,
+          "targetPolicy": "injured-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 2,
+            "cue": "false-aid"
+          },
+          "effects": [
+            {
+              "type": "infect",
+              "duration": 12
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "reveal-host",
+          "type": "transform",
+          "cooldown": 18,
+          "windup": 0.5,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "reveal-host"
+          },
+          "effects": [
+            {
+              "type": "buff-self",
+              "stat": "attack",
+              "amount": 4,
+              "duration": 8
+            },
+            {
+              "type": "fear",
+              "duration": 1.5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "infiltrator",
+        "infectious"
+      ]
+    },
+    "parasite-vacant-host": {
+      "role": "parasite-vacant-host",
+      "name": "Vacant Host",
+      "factionId": "pale-brood",
+      "parentSpecies": "parasite",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 38,
+        "attack": 8,
+        "courage": 14,
+        "speed": 0.9
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core",
+          "emergent"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "hosts": 2
+        },
+        "parentSpecies": "parasite"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "vacant-host",
+        "scale": 1,
+        "animationProfile": "biped",
+        "kit": [
+          "hollow-torso",
+          "rib-doors",
+          "internal-larvae",
+          "long-arms"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "larval-burst",
+          "type": "summon",
+          "cooldown": 13,
+          "windup": 1.4,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "larval-burst"
+          },
+          "effects": [
+            {
+              "type": "summon",
+              "role": "parasite",
+              "count": 2
+            },
+            {
+              "type": "damage-area",
+              "amount": 5,
+              "radius": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "summoner",
+        "infectious"
+      ]
+    },
+    "parasite-needle-choir": {
+      "role": "parasite-needle-choir",
+      "name": "Needle Choir",
+      "factionId": "pale-brood",
+      "parentSpecies": "parasite",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 30,
+        "attack": 7,
+        "courage": 14,
+        "speed": 1.08
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "hosts": 2,
+          "reagents": 2
+        },
+        "parentSpecies": "parasite"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "swarm",
+        "scale": 0.95,
+        "animationProfile": "swarm",
+        "kit": [
+          "needle-larvae",
+          "nerve-cords",
+          "central-ganglion"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "needle-surge",
+          "type": "multi-hit",
+          "cooldown": 8,
+          "windup": 0.9,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "needle-surge"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 3,
+              "hits": 4
+            },
+            {
+              "type": "weaken",
+              "amount": 2,
+              "duration": 4
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "chorus-react",
+          "type": "counter",
+          "cooldown": 10,
+          "windup": 0.2,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "chorus-react"
+          },
+          "effects": [
+            {
+              "type": "counter-damage",
+              "amount": 4
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "swarm",
+        "skirmisher"
+      ]
+    },
+    "parasite-walking-vat": {
+      "role": "parasite-walking-vat",
+      "name": "Walking Vat",
+      "factionId": "pale-brood",
+      "parentSpecies": "parasite",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 88,
+        "attack": 7,
+        "courage": 18,
+        "speed": 0.52,
+        "armor": 4
+      },
+      "ecology": {
+        "siteTypes": [
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "hosts": 4,
+          "reagents": 7,
+          "scrap": 5
+        },
+        "parentSpecies": "parasite"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "walking-vat",
+        "scale": 1.2,
+        "animationProfile": "construct",
+        "kit": [
+          "glass-tank",
+          "four-mechanical-legs",
+          "fluid-core",
+          "reagent-canisters",
+          "control-panel"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "release-specimens",
+          "type": "summon",
+          "cooldown": 16,
+          "windup": 2,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "release-specimens"
+          },
+          "effects": [
+            {
+              "type": "summon",
+              "role": "parasite",
+              "count": 3
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "reagent-spray",
+          "type": "cone-damage",
+          "cooldown": 10,
+          "windup": 1.2,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "reagent-spray"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 7,
+              "radius": 4
+            },
+            {
+              "type": "infect",
+              "duration": 8
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "construct",
+        "producer"
+      ]
+    },
+    "slime-rust-bloom": {
+      "role": "slime-rust-bloom",
+      "name": "Rust Bloom Slime",
+      "factionId": "slime-bloom",
+      "parentSpecies": "slime",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 34,
+        "attack": 6,
+        "courage": 12,
+        "speed": 0.72
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core",
+          "emergent"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "biomass": 2,
+          "metal": 2
+        },
+        "parentSpecies": "slime"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "slime",
+        "scale": 1.05,
+        "animationProfile": "biped",
+        "kit": [
+          "rust-scrap-inside",
+          "acid-bubbles",
+          "iron-core"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "corrosive-splash",
+          "type": "area-damage",
+          "cooldown": 9,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "corrosive-splash"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 6,
+              "radius": 2.5
+            },
+            {
+              "type": "corrode",
+              "amount": 2,
+              "duration": 7
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "controller",
+        "corrosive"
+      ]
+    },
+    "slime-mirror-gel": {
+      "role": "slime-mirror-gel",
+      "name": "Mirror Gel",
+      "factionId": "slime-bloom",
+      "parentSpecies": "slime",
+      "tier": "elite",
+      "size": "medium",
+      "stats": {
+        "hp": 42,
+        "attack": 6,
+        "courage": 14,
+        "speed": 0.68
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "biomass": 4,
+          "glass": 2
+        },
+        "parentSpecies": "slime"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "slime",
+        "scale": 1.08,
+        "animationProfile": "biped",
+        "kit": [
+          "mirror-core",
+          "clear-shell",
+          "silver-shards"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "reflective-skin",
+          "type": "reflect",
+          "cooldown": 12,
+          "windup": 0.6,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "reflective-skin"
+          },
+          "effects": [
+            {
+              "type": "reflect-next-projectile",
+              "duration": 5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "prism-flash",
+          "type": "area-control",
+          "cooldown": 10,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "prism-flash"
+          },
+          "effects": [
+            {
+              "type": "blind",
+              "duration": 2.5,
+              "radius": 4
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "defender",
+        "reflective"
+      ]
+    },
+    "slime-cistern-mother": {
+      "role": "slime-cistern-mother",
+      "name": "Cistern Mother",
+      "factionId": "slime-bloom",
+      "parentSpecies": "slime",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 96,
+        "attack": 10,
+        "courage": 16,
+        "speed": 0.4
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "outpost"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "biomass": 10,
+          "water": 6
+        },
+        "parentSpecies": "slime"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "slime",
+        "scale": 1.45,
+        "animationProfile": "biped",
+        "kit": [
+          "three-cores",
+          "pseudopods",
+          "submerged-debris",
+          "surface-bubbles"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "flood-with-slime",
+          "type": "hazard",
+          "cooldown": 15,
+          "windup": 2,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "room",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "flood-with-slime"
+          },
+          "effects": [
+            {
+              "type": "hazard",
+              "hazard": "slime-water",
+              "duration": 10
+            },
+            {
+              "type": "slow-hostiles",
+              "duration": 6
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "bud-slimes",
+          "type": "summon",
+          "cooldown": 16,
+          "windup": 1.8,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "bud-slimes"
+          },
+          "effects": [
+            {
+              "type": "summon",
+              "role": "slime",
+              "count": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "producer"
+      ]
+    },
+    "rat-bell-tail": {
+      "role": "rat-bell-tail",
+      "name": "Bell-Tail Plague Rat",
+      "factionId": "warren-vermin",
+      "parentSpecies": "rat",
+      "tier": "specialist",
+      "size": "small",
+      "stats": {
+        "hp": 12,
+        "attack": 3,
+        "courage": 5,
+        "speed": 1.35
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "grain": 1
+        },
+        "parentSpecies": "rat"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "rat",
+        "scale": 0.8,
+        "animationProfile": "swarm",
+        "kit": [
+          "tail-bell",
+          "rag-collar"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "alarm-bell",
+          "type": "call-reinforcement",
+          "cooldown": 15,
+          "windup": 0.7,
+          "recovery": 0.6,
+          "range": 7,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 7,
+            "cue": "alarm-bell"
+          },
+          "effects": [
+            {
+              "type": "call-reinforcement",
+              "role": "rat",
+              "count": 2
+            },
+            {
+              "type": "reduce-site-cooldown",
+              "amount": 5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "scout",
+        "support"
+      ]
+    },
+    "rat-packback": {
+      "role": "rat-packback",
+      "name": "Packback Rat",
+      "factionId": "warren-vermin",
+      "parentSpecies": "rat",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 28,
+        "attack": 5,
+        "courage": 8,
+        "speed": 1.05
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "grain": 2,
+          "refuse": 1
+        },
+        "parentSpecies": "rat"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "rat-swarm",
+        "scale": 1,
+        "animationProfile": "swarm",
+        "kit": [
+          "pack-frame",
+          "sacks",
+          "multiple-rats"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "steal-supplies",
+          "type": "resource-steal",
+          "cooldown": 10,
+          "windup": 1.2,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "cargo-or-settlement",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "steal-supplies"
+          },
+          "effects": [
+            {
+              "type": "steal-resource",
+              "amount": 2
+            },
+            {
+              "type": "retreat-to-site"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "carrier",
+        "thief"
+      ]
+    },
+    "rat-quiet-teeth-king": {
+      "role": "rat-quiet-teeth-king",
+      "name": "Quiet Teeth Rat King",
+      "factionId": "warren-vermin",
+      "parentSpecies": "rat",
+      "tier": "champion",
+      "size": "medium",
+      "stats": {
+        "hp": 52,
+        "attack": 8,
+        "courage": 13,
+        "speed": 0.98
+      },
+      "ecology": {
+        "siteTypes": [
+          "core"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "grain": 8,
+          "refuse": 5
+        },
+        "parentSpecies": "rat"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "swarm",
+        "scale": 1.08,
+        "animationProfile": "swarm",
+        "kit": [
+          "tail-knot",
+          "twelve-rats",
+          "stolen-crown"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "swarm-order",
+          "type": "buff",
+          "cooldown": 11,
+          "windup": 0.8,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "allies",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "swarm-order"
+          },
+          "effects": [
+            {
+              "type": "buff-allies",
+              "stat": "speed",
+              "amount": 0.3,
+              "duration": 6
+            },
+            {
+              "type": "retarget-allies"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "scatter-and-bite",
+          "type": "area-damage",
+          "cooldown": 9,
+          "windup": 0.9,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "scatter-and-bite"
+          },
+          "effects": [
+            {
+              "type": "damage-area",
+              "amount": 8,
+              "radius": 4
+            },
+            {
+              "type": "bleed",
+              "duration": 5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "champion",
+        "swarm",
+        "commander"
+      ]
+    },
+    "carrion-marrow-plough": {
+      "role": "carrion-marrow-plough",
+      "name": "Marrow Plough",
+      "factionId": "carrion-brood",
+      "parentSpecies": "carrion",
+      "tier": "veteran",
+      "size": "medium",
+      "stats": {
+        "hp": 38,
+        "attack": 8,
+        "courage": 10,
+        "speed": 0.9
+      },
+      "ecology": {
+        "siteTypes": [
+          "field-camp",
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "carrion": 2
+        },
+        "parentSpecies": "carrion"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "crawler",
+        "scale": 1,
+        "animationProfile": "crawler",
+        "kit": [
+          "bone-rake-head",
+          "segmented-body",
+          "ten-legs"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "marrow-charge",
+          "type": "charge",
+          "cooldown": 9,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 5,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 5,
+            "cue": "marrow-charge"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 9
+            },
+            {
+              "type": "push",
+              "distance": 1.5
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "vanguard",
+        "scavenger"
+      ]
+    },
+    "carrion-corpse-lantern": {
+      "role": "carrion-corpse-lantern",
+      "name": "Corpse Lantern Crawler",
+      "factionId": "carrion-brood",
+      "parentSpecies": "carrion",
+      "tier": "specialist",
+      "size": "medium",
+      "stats": {
+        "hp": 30,
+        "attack": 5,
+        "courage": 9,
+        "speed": 0.82
+      },
+      "ecology": {
+        "siteTypes": [
+          "outpost",
+          "core"
+        ],
+        "siteTier": 1,
+        "populationCost": 2,
+        "globalCap": 4,
+        "localCap": 1,
+        "costs": {
+          "carrion": 3
+        },
+        "parentSpecies": "carrion"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "crawler",
+        "scale": 0.96,
+        "animationProfile": "crawler",
+        "kit": [
+          "glow-gut",
+          "corpse-hooks",
+          "feelers"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "carrion-beacon",
+          "type": "mark",
+          "cooldown": 12,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 7,
+          "targetPolicy": "corpse-or-downed",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 7,
+            "cue": "carrion-beacon"
+          },
+          "effects": [
+            {
+              "type": "mark-target",
+              "duration": 8
+            },
+            {
+              "type": "retarget-allies"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "support",
+        "scavenger"
+      ]
+    },
+    "carrion-larder-mother": {
+      "role": "carrion-larder-mother",
+      "name": "Larder Mother",
+      "factionId": "carrion-brood",
+      "parentSpecies": "carrion",
+      "tier": "large",
+      "size": "large",
+      "stats": {
+        "hp": 90,
+        "attack": 10,
+        "courage": 15,
+        "speed": 0.48
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "outpost"
+        ],
+        "siteTier": 2,
+        "populationCost": 5,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "carrion": 8,
+          "corpses": 3
+        },
+        "parentSpecies": "carrion"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "crawler-large",
+        "scale": 1.25,
+        "animationProfile": "crawler",
+        "kit": [
+          "corpse-sacs",
+          "bone-rake",
+          "ten-legs",
+          "larval-pouches"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "birth-crawlers",
+          "type": "summon",
+          "cooldown": 18,
+          "windup": 2.2,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "birth-crawlers"
+          },
+          "effects": [
+            {
+              "type": "summon",
+              "role": "carrion",
+              "count": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "drop-carrion-bait",
+          "type": "hazard",
+          "cooldown": 13,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 4,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 4,
+            "cue": "drop-carrion-bait"
+          },
+          "effects": [
+            {
+              "type": "hazard",
+              "hazard": "carrion-bait",
+              "duration": 8
+            },
+            {
+              "type": "retreat-to-site"
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "producer",
+        "scavenger"
+      ]
+    },
+    "ogre-doorframe-sleeper": {
+      "role": "ogre-doorframe-sleeper",
+      "name": "Doorframe Sleeper",
+      "factionId": "ogre-solitary",
+      "parentSpecies": "ogre",
+      "tier": "elite",
+      "size": "large",
+      "stats": {
+        "hp": 86,
+        "attack": 13,
+        "courage": 12,
+        "speed": 0.65,
+        "armor": 3
+      },
+      "ecology": {
+        "siteTypes": [
+          "emergent",
+          "outpost"
+        ],
+        "siteTier": 1,
+        "populationCost": 4,
+        "globalCap": 2,
+        "localCap": 1,
+        "costs": {
+          "food": 5
+        },
+        "parentSpecies": "ogre"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "ogre",
+        "scale": 1.18,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "doorframe-armor",
+          "rubble-cloak",
+          "stone-club"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "doorway-ambush",
+          "type": "ambush",
+          "cooldown": 15,
+          "windup": 0.5,
+          "recovery": 0.6,
+          "range": 3,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 3,
+            "cue": "doorway-ambush"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 15
+            },
+            {
+              "type": "knockdown",
+              "duration": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "block-passage",
+          "type": "barricade",
+          "cooldown": 12,
+          "windup": 1,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "room",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "block-passage"
+          },
+          "effects": [
+            {
+              "type": "slow-zone",
+              "duration": 8
+            },
+            {
+              "type": "self-armor",
+              "amount": 4,
+              "duration": 8
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "large",
+        "ambusher"
+      ]
+    },
+    "ogre-bonehook-butcher": {
+      "role": "ogre-bonehook-butcher",
+      "name": "Bonehook Butcher",
+      "factionId": "ogre-solitary",
+      "parentSpecies": "ogre",
+      "tier": "champion",
+      "size": "large",
+      "stats": {
+        "hp": 104,
+        "attack": 15,
+        "courage": 15,
+        "speed": 0.68,
+        "armor": 2
+      },
+      "ecology": {
+        "siteTypes": [
+          "core",
+          "event"
+        ],
+        "siteTier": 2,
+        "populationCost": 6,
+        "globalCap": 1,
+        "localCap": 1,
+        "costs": {
+          "food": 8,
+          "corpses": 3
+        },
+        "parentSpecies": "ogre"
+      },
+      "visual": {
+        "articulated": true,
+        "bodyPlan": "ogre",
+        "scale": 1.25,
+        "animationProfile": "heavy-biped",
+        "kit": [
+          "bone-hooks",
+          "butcher-apron",
+          "meat-rack",
+          "cleaver-club"
+        ]
+      },
+      "abilities": [
+        {
+          "id": "hook-drag",
+          "type": "pull",
+          "cooldown": 9,
+          "windup": 1.2,
+          "recovery": 0.6,
+          "range": 6,
+          "targetPolicy": "nearest-hostile",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 6,
+            "cue": "hook-drag"
+          },
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 9
+            },
+            {
+              "type": "pull",
+              "distance": 3
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        },
+        {
+          "id": "butcher-fallen",
+          "type": "corpse-consume",
+          "cooldown": 11,
+          "windup": 1.7,
+          "recovery": 0.6,
+          "range": 1.8,
+          "targetPolicy": "corpse-or-downed",
+          "telegraph": {
+            "shape": "cone",
+            "radius": 1.8,
+            "cue": "butcher-fallen"
+          },
+          "effects": [
+            {
+              "type": "consume-corpse-heal",
+              "amount": 22
+            },
+            {
+              "type": "add-site-resource",
+              "resource": "food",
+              "amount": 2
+            }
+          ],
+          "priority": 1,
+          "requires": null
+        }
+      ],
+      "tags": [
+        "champion",
+        "large",
+        "predator"
+      ]
+    }
+  }
+}

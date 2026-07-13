@@ -117,6 +117,14 @@ function buildAuthoredConnection(route, a, b, index) {
     state: route.state ?? route.defaultState ?? 'open',
     active: route.active !== false,
     condition: route.condition ?? null,
+    routeType: route.routeType ?? 'campaign-transition',
+    modules: (route.modules ?? []).map(module => ({
+      ...module,
+      position: module?.position ? { x: Number(module.position.x), z: Number(module.position.z) } : null
+    })),
+    vertical: Boolean(route.vertical),
+    fromFloor: Number.isFinite(route.fromFloor) ? route.fromFloor : (a.floor ?? 0),
+    toFloor: Number.isFinite(route.toFloor) ? route.toFloor : (b.floor ?? 0),
     authored: true
   };
 }

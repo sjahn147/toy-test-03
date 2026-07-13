@@ -1,0 +1,58 @@
+.strategy-chronicle-languages {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+  padding: 2px;
+  border: 1px solid rgba(201, 188, 154, 0.18);
+  border-radius: 7px;
+  background: rgba(7, 9, 12, 0.5);
+}
+
+.strategy-chronicle-languages button {
+  border: 0;
+  border-radius: 5px;
+  padding: 4px 7px;
+  color: rgba(224, 218, 199, 0.58);
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.strategy-chronicle-languages button.is-active {
+  color: #f3ecd8;
+  background: rgba(184, 150, 87, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(211, 179, 113, 0.22);
+}
+
+.strategy-event-primary {
+  display: block;
+}
+
+.strategy-event-secondary {
+  display: block;
+  margin-top: 4px;
+  color: rgba(205, 198, 181, 0.56);
+  font-size: 0.88em;
+  line-height: 1.35;
+  letter-spacing: 0.005em;
+}
+
+.strategy-observer[data-chronicle-locale="ko"] .strategy-timeline-list,
+.strategy-observer[data-chronicle-locale="bilingual"] .strategy-timeline-list,
+.strategy-observer[data-chronicle-locale="ko"] .strategy-pinned-events,
+.strategy-observer[data-chronicle-locale="bilingual"] .strategy-pinned-events {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .strategy-chronicle-languages {
+    margin-left: 0;
+  }
+  .strategy-event-secondary {
+    font-size: 0.82em;
+  }
+}

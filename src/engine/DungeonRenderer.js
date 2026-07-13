@@ -1,5 +1,9 @@
 import { THREE } from './ThreeScene.js';
 import { AssetRegistry } from './AssetRegistry.js';
+import { animateEliteMiniature } from '../miniatures/MiniatureAnimator.js';
+import { animateHeroMiniature } from './heroes/HeroAnimator.js';
+import { animateHeroEffect } from './heroes/HeroTelegraphRenderer.js';
+import { HeroWorldActorRenderer } from './heroes/HeroWorldActorRenderer.js';
 import { buildDungeonTopology, sampleConnection, roomSurfaceY } from './DungeonTopology.js';
 import { AuthoredRouteRenderer } from './AuthoredRouteRenderer.js';
 
@@ -21,6 +25,7 @@ export class DungeonRenderer {
     this.pointer = new THREE.Vector2();
     this.group = new THREE.Group();
     three.scene.add(this.group);
+    this.heroWorldActorRenderer = new HeroWorldActorRenderer(this.group, this.agentMeshes);
     this.routeRenderer = null;
     this.buildRooms();
     if (this.topology.authored) {
@@ -142,6 +147,14 @@ export class DungeonRenderer {
     this.routeRenderer?.sync(snapshot.routes ?? []);
     this.renderProps(snapshot.props, snapshot.rooms);
     this.renderAgents(snapshot.agents, snapshot.rooms, snapshot.time);
+    this.heroWorldActorRenderer.render({
+      deployables: [...(snapshot.heroDeployables?.deployables ?? []), ...(snapshot.heroBrood?.clutches ?? []), ...(snapshot.heroBrood?.husks ?? []), ...(snapshot.heroMimicry?.husks ?? []), ...(snapshot.heroHoard?.shells ?? [])],
+      projectiles: [...(snapshot.heroDeployables?.projectiles ?? []), ...(snapshot.heroHoard?.projectiles ?? [])],
+      fields: [...(snapshot.heroEnvironment?.fields ?? []), ...(snapshot.heroAdaptation?.bubbles ?? []), ...(snapshot.heroBrood?.domains ?? []), ...(snapshot.heroGarden?.patches ?? [])],
+      tethers: snapshot.heroPhysics?.tethers ?? [],
+      formations: snapshot.heroFormations?.formations ?? [],
+      barriers: [...(snapshot.heroBarriers?.barriers ?? []), ...(snapshot.heroBrood?.guards ?? [])]
+    }, snapshot.rooms, snapshot.time);
     this.renderEffects(snapshot.effects ?? [], snapshot.rooms, snapshot.time);
   }
 
@@ -206,13 +219,15 @@ export class DungeonRenderer {
       if (!target) continue;
 
       const bob = agent.role === 'slime' ? Math.sin(time * 5 + agent.index) * 0.05 : Math.sin(time * 4 + agent.index) * 0.025;
-      const targetPosition = new THREE.Vector3(target.x, target.y + bob, target.z);
+      const physicsOffset = agent.heroPhysicsOffset ?? { x: 0, z: 0 };
+      const targetPosition = new THREE.Vector3(target.x + physicsOffset.x, target.y + bob, target.z + physicsOffset.z);
       if (created) mesh.position.copy(targetPosition);
       else {
         const interpolation = agent.travel?.phase === 'entering' ? 0.42 : agent.travel ? 0.3 : 0.2;
         mesh.position.lerp(targetPosition, interpolation);
       }
       if (target.rotation !== undefined) mesh.rotation.y = target.rotation;
+      if (!animateHeroMiniature(mesh, agent, time)) animateEliteMiniature(mesh, agent, time);
       mesh.visible = true;
 
       const hp = mesh.getObjectByName('hp');
@@ -229,7 +244,7 @@ export class DungeonRenderer {
   roomPosition(agent, rooms, roomMembers) {
     const room = rooms.find(candidate => candidate.id === agent.roomId);
     if (!room) return null;
-    const height = agent.role === 'ogre' ? 0.58 : AGENT_HEIGHT;
+    const height = agentRenderHeight(agent);
 
     if (agent.roomCell) {
       return {
@@ -252,7 +267,7 @@ export class DungeonRenderer {
   travelPosition(agent) {
     const travel = agent.travel;
     const destinationRoom = this.topology.roomById.get(travel.toRoomId);
-    const height = agent.role === 'ogre' ? 0.58 : AGENT_HEIGHT;
+    const height = agentRenderHeight(agent);
 
     if (travel.phase === 'entering') {
       const start = travel.entryPort;
@@ -316,6 +331,7 @@ export class DungeonRenderer {
 
       const age = Math.max(0, time - effect.createdAt);
       const progress = Math.min(1, age / effect.duration);
+      if (animateHeroEffect(mesh, effect, age, progress)) continue;
       const rise = effect.type === 'gold' ? progress * 1.1 : progress * 0.35;
       mesh.position.y += rise;
       mesh.rotation.y += effect.type === 'gold' ? 0.18 : 0.08;
@@ -344,10 +360,18 @@ export class DungeonRenderer {
   }
 
   destroy() {
+    this.heroWorldActorRenderer?.destroy?.();
     this.routeRenderer?.destroy();
     this.routeRenderer = null;
     this.three.scene.remove(this.group);
   }
+}
+
+function agentRenderHeight(agent) {
+  if (agent?.size === 'huge') return 0.88;
+  if (agent?.size === 'large' || agent?.role === 'ogre') return 0.62;
+  if (agent?.size === 'tiny') return 0.3;
+  return AGENT_HEIGHT;
 }
 
 function smoothstep(value) {

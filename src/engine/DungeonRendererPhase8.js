@@ -1,6 +1,8 @@
 import { DungeonRendererPhase7 } from './DungeonRendererPhase7.js';
 import { PHASE8D_STRUCTURE_TYPES } from './AssetRegistryPhase8.js';
 import { MiniatureAnimator } from './MiniatureAnimator.js';
+import { StrategicOverlayRenderer } from './StrategicOverlayRenderer.js';
+import { SpawnSiteOverlayRenderer } from './SpawnSiteOverlayRenderer.js';
 
 export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   constructor(three, scenario, assets) {
@@ -17,6 +19,10 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.landmarkSignatures = new Map();
     this.activityMeshes = new Map();
     this.lastRenderTime = null;
+    this.overlayMode = 'world';
+    this.overlayContext = {};
+    this.strategicOverlay = new StrategicOverlayRenderer({ parent: this.group, roomY: room => this.roomY(room) });
+    this.spawnSiteOverlay = new SpawnSiteOverlayRenderer({ parent: this.group, roomY: room => this.roomY(room) });
   }
 
   renderState(snapshot) {
@@ -40,6 +46,11 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.renderActivityProps(visualAgents, settlements, snapshot.props, snapshot.rooms, snapshot.time);
     this.renderSettlements(settlements.filter(settlement => settlement.type !== 'field-camp'), snapshot.rooms, snapshot.time);
     this.renderCargo(snapshot.logistics?.cargo ?? [], snapshot.agents, snapshot.rooms, snapshot.time);
+    for (const mesh of this.controlMeshes?.values?.() ?? []) mesh.visible = false;
+    this.strategicOverlay.setMode(this.overlayMode);
+    this.strategicOverlay.setContext(this.overlayContext);
+    this.strategicOverlay.render(snapshot, snapshot.time);
+    this.spawnSiteOverlay.render(snapshot.spawnNetwork, snapshot.rooms, snapshot.time);
   }
 
   prepareVisualAgents(agents, time) {
@@ -298,7 +309,23 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     mesh.scale.setScalar(baseScale * (collapsing ? 0.94 + Math.sin(time * 8) * 0.055 : threatened ? 0.98 + Math.sin(time * 5) * 0.025 : 1));
   }
 
+  setOverlayMode(mode = 'world') {
+    this.overlayMode = this.strategicOverlay.setMode(mode);
+    return this.overlayMode;
+  }
+
+  setOverlayContext(context = {}) {
+    this.overlayContext = context ?? {};
+    this.strategicOverlay.setContext(this.overlayContext);
+  }
+
+  getOverlaySummary() {
+    return this.strategicOverlay.getSummary();
+  }
+
   destroy() {
+    this.spawnSiteOverlay?.destroy();
+    this.strategicOverlay?.destroy();
     for (const [key, mesh] of [...this.landmarkMeshes]) this.removeLandmark(key, mesh);
     for (const mesh of this.activityMeshes.values()) disposeTree(mesh);
     this.settlementMeshes.clear();

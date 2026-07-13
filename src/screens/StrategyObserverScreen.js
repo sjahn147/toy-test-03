@@ -1,4 +1,4 @@
-import { ObserveScreen as Phase8ObserveScreen } from './ObserveScreenPhase8.js';
+import { ObserveScreen as Phase8ObserveScreen } from './ObserveScreenCameraPhase10.js';
 import { StrategyDungeonRenderer } from '../engine/StrategyDungeonRenderer.js';
 import { StrategyAssetRegistry } from '../engine/StrategyAssetRegistry.js';
 
@@ -10,6 +10,7 @@ export class StrategyObserverScreen extends Phase8ObserveScreen {
     this.assets.loadManifest();
     this.renderer = new StrategyDungeonRenderer(this.three, this.scenario, this.assets);
     this.renderer.renderState(this.sim.snapshot());
+    this.rebindProductionCamera?.();
   }
 }
 

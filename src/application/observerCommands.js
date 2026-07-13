@@ -34,15 +34,21 @@ export const OBSERVER_COMMANDS = {
   },
   'world.perform-action': (context, command) => {
     const sim = requireSim(context);
-    if (!sim.environmentTaskSystem) throw new Error('environment task system is unavailable');
-    const response = sim.environmentTaskSystem.enqueue(command, sim);
+    const actionId = String(command?.actionId ?? '');
+    const settlementAction = actionId.startsWith('settlement.') || actionId.startsWith('inn.');
+    const zoneAction = ['sluice.', 'workshop.', 'ossuary.', 'fungal.', 'spider.', 'market.', 'arena.', 'laboratory.', 'sanctum.'].some(prefix => actionId.startsWith(prefix));
+    const system = zoneAction ? sim.zoneInteractionSystem : settlementAction ? sim.settlementOperationsSystem : sim.environmentTaskSystem;
+    if (!system) throw new Error(zoneAction ? 'zone interaction system is unavailable' : settlementAction ? 'settlement operations system is unavailable' : 'environment task system is unavailable');
+    const response = system.enqueue(command, sim);
     if (!response.ok) throw new Error(response.error);
     return response.result;
   },
   'world.cancel-task': (context, command) => {
     const sim = requireSim(context);
-    if (!sim.environmentTaskSystem) throw new Error('environment task system is unavailable');
-    const response = sim.environmentTaskSystem.cancel(command?.taskId, sim);
+    const taskId = String(command?.taskId ?? '');
+    const system = taskId.startsWith('zone-interaction-') ? sim.zoneInteractionSystem : taskId.startsWith('settlement-order-') ? sim.settlementOperationsSystem : sim.environmentTaskSystem;
+    if (!system) throw new Error('task system is unavailable');
+    const response = system.cancel(taskId, sim);
     if (!response.ok) throw new Error(response.error);
     return response.result;
   },

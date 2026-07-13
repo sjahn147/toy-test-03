@@ -1,0 +1,34 @@
+name: WP9-B Korean Chronicle
+
+on:
+  pull_request:
+    paths:
+      - 'src/localization/**'
+      - 'src/application/ChroniclePreferences.js'
+      - 'src/presentation/selectors/selectTimelineEvents.js'
+      - 'src/screens/ObserveScreenPhase8.js'
+      - 'src/ui/StrategyObserverShell.js'
+      - 'src/chronicle-ko.css'
+      - 'tests/wp9b-*.mjs'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'src/localization/**'
+      - 'src/application/ChroniclePreferences.js'
+      - 'src/presentation/selectors/selectTimelineEvents.js'
+      - 'src/screens/ObserveScreenPhase8.js'
+      - 'src/ui/StrategyObserverShell.js'
+      - 'src/chronicle-ko.css'
+      - 'tests/wp9b-*.mjs'
+      - 'package.json'
+
+jobs:
+  korean-chronicle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:wp9b

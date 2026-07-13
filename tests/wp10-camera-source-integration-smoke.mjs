@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+const screen = await readFile(new URL('../src/screens/ObserveScreenCameraPhase10.js', import.meta.url), 'utf8');
+const shell = await readFile(new URL('../src/ui/StrategyObserverShellCameraPhase10.js', import.meta.url), 'utf8');
+const controller = await readFile(new URL('../src/camera/StrategyCameraController.js', import.meta.url), 'utf8');
+const three = await readFile(new URL('../src/engine/ThreeScene.js', import.meta.url), 'utf8');
+const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+
+assert.match(screen, /this\.cameraMode = 'free'/);
+assert.match(screen, /ArrowRight|cycleCameraTarget/);
+assert.match(screen, /cameraController\?\.update\(dt\)/);
+assert.match(screen, /rebindProductionCamera/);
+assert.doesNotMatch(screen, /cameraMode === 'fixed'/);
+assert.match(shell, /data-shell-camera="free"/);
+assert.match(shell, /data-shell-camera="focus"/);
+assert.doesNotMatch(shell, /data-shell-camera="fixed"/);
+assert.doesNotMatch(shell, />Overview</);
+assert.match(controller, /event\.button === 0 \? 'orbit'/);
+assert.match(controller, /event\.button === 1 \? 'dolly' : 'pan'/);
+assert.match(controller, /screenToGround/);
+assert.match(controller, /KeyW/);
+assert.match(controller, /ArrowLeft/);
+assert.match(controller, /lastFreePose/);
+assert.match(three, /screenToGround\(clientX, clientY/);
+assert.match(html, /strategy-camera-v10\.css/);
+console.log('WP10 camera source integration smoke passed');

@@ -2,6 +2,9 @@ import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
 
 export { THREE };
 
+const AUTO_ORBIT_IDLE_SECONDS = 6;
+const AUTO_ORBIT_SPEED = 0.06;
+
 export class ThreeScene {
   constructor(container) {
     this.container = container;
@@ -21,6 +24,14 @@ export class ThreeScene {
     this.dragStart = null;
     this.pinchStart = null;
     this.interactionMode = 'orbit';
+    this.groundRaycaster = new THREE.Raycaster();
+    this.groundNormal = new THREE.Vector3(0, 1, 0);
+    this.groundPlane = new THREE.Plane(this.groundNormal, 0);
+    this.groundPoint = new THREE.Vector3();
+    this.groundNdc = new THREE.Vector2();
+    this.idleSeconds = 0;
+    this.autoOrbitEnabled = false;
+    this.autoOrbitActive = false;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
@@ -65,6 +76,7 @@ export class ThreeScene {
 
     this.onWheel = (e) => {
       e.preventDefault();
+      this.noteInteraction();
       this.distance = clamp(this.distance + e.deltaY * 0.045, this.minDistance, this.maxDistance);
       this.desiredDistance = this.distance;
     };
@@ -72,6 +84,7 @@ export class ThreeScene {
     this.onPointerDown = (e) => {
       el.setPointerCapture(e.pointerId);
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      this.noteInteraction();
       if (this.pointers.size === 1) {
         const mode = this.interactionMode === 'pan' || e.button === 1 || e.button === 2 || e.shiftKey ? 'pan' : 'orbit';
         this.dragStart = {
@@ -81,7 +94,8 @@ export class ThreeScene {
           azimuth: this.azimuth,
           elevation: this.elevation,
           targetX: this.desiredTarget.x,
-          targetZ: this.desiredTarget.z
+          targetZ: this.desiredTarget.z,
+          invert: e.pointerType === 'touch' ? -1 : 1
         };
       } else if (this.pointers.size === 2) {
         const [a, b] = [...this.pointers.values()];
@@ -94,8 +108,9 @@ export class ThreeScene {
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
       if (this.pointers.size === 1 && this.dragStart) {
-        const dx = e.clientX - this.dragStart.x;
-        const dy = e.clientY - this.dragStart.y;
+        const invert = this.dragStart.invert ?? 1;
+        const dx = (e.clientX - this.dragStart.x) * invert;
+        const dy = (e.clientY - this.dragStart.y) * invert;
         if (this.dragStart.mode === 'pan') {
           const scale = Math.max(0.08, this.distance * 0.0125);
           const rightX = Math.cos(this.azimuth + Math.PI / 2);
@@ -149,6 +164,19 @@ export class ThreeScene {
     this.renderer.setSize(w, h);
   }
 
+  screenToGround(clientX, clientY, planeY = this.target.y) {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    this.groundNdc.set(
+      ((clientX - rect.left) / rect.width) * 2 - 1,
+      -((clientY - rect.top) / rect.height) * 2 + 1
+    );
+    this.groundRaycaster.setFromCamera(this.groundNdc, this.camera);
+    this.groundPlane.set(this.groundNormal, -planeY);
+    const hit = this.groundRaycaster.ray.intersectPlane(this.groundPlane, this.groundPoint);
+    return hit ? { x: hit.x, y: hit.y, z: hit.z } : null;
+  }
+
   setCameraTarget(x, y, z, distance = null, immediate = false) {
     this.desiredTarget.set(x, y, z);
     if (distance !== null) this.desiredDistance = clamp(distance, this.minDistance, this.maxDistance);
@@ -163,6 +191,7 @@ export class ThreeScene {
   }
 
   panTarget(dx, dz, immediate = false) {
+    this.noteInteraction();
     this.desiredTarget.x += dx;
     this.desiredTarget.z += dz;
     if (immediate) {
@@ -171,7 +200,31 @@ export class ThreeScene {
     }
   }
 
-  updateCamera() {
+  orbitBy(dAzimuth = 0, dElevation = 0) {
+    this.noteInteraction();
+    this.azimuth += dAzimuth;
+    this.elevation = clamp(this.elevation + dElevation, 0.28, 1.26);
+  }
+
+  noteInteraction() {
+    this.idleSeconds = 0;
+    this.autoOrbitActive = false;
+  }
+
+  setAutoOrbitEnabled(enabled) {
+    this.autoOrbitEnabled = Boolean(enabled);
+    if (!this.autoOrbitEnabled) {
+      this.autoOrbitActive = false;
+      this.idleSeconds = 0;
+    }
+  }
+
+  updateCamera(dt = 0) {
+    if (this.autoOrbitEnabled) {
+      this.idleSeconds += Math.max(0, dt);
+      if (!this.autoOrbitActive && this.idleSeconds >= AUTO_ORBIT_IDLE_SECONDS) this.autoOrbitActive = true;
+      if (this.autoOrbitActive) this.azimuth += Math.max(0, dt) * AUTO_ORBIT_SPEED;
+    }
     this.target.lerp(this.desiredTarget, 0.11);
     this.distance += (this.desiredDistance - this.distance) * 0.11;
     const horizontal = Math.cos(this.elevation) * this.distance;
