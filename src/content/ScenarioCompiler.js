@@ -15,6 +15,7 @@
 // 완전 결정론: RNG/Date 금지 — 같은 manifest면 deep-equal 산출물.
 
 import { layoutZones } from './layout/zoneLayout.js';
+import { getAuthoredCampaignLayout } from './layout/AuthoredCampaignLayout.js';
 import {
   SIZE_SCALE,
   POSITION_SCALE,
@@ -64,7 +65,8 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     ...room,
     size: { w: room.size[0], d: room.size[1] }
   }));
-  const centers = layoutZones({ zones, rooms: roomsForLayout, layout: manifest.layout });
+  const authoredLayout = getAuthoredCampaignLayout(manifest);
+  const centers = authoredLayout?.centers ?? layoutZones({ zones, rooms: roomsForLayout, layout: manifest.layout });
 
   // 연결 shape: connections는 [a,b] pair, secretConnections/conditionalConnections는 객체.
   const secretConnections = manifest.secretConnections ?? [];
@@ -75,19 +77,21 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
   // --- rooms ---
   const rooms = manifest.rooms.map(source => {
     const center = centers.get(source.id);
+    const authoredPlacement = authoredLayout?.roomPlacements.get(source.id) ?? null;
     if (!center) warnings.push(`room "${source.id}" has no layout position (unknown zone "${source.zoneId}"), defaulting to origin`);
     const zone = zoneById.get(source.zoneId);
     const [w, d] = source.size;
     const tags = [...(source.tags ?? [])];
     if (zone) tags.push(zoneTag(zone.id));
     tags.push('phase8_spacious');
-    if (secretRooms.has(source.id)) tags.push('secret_route');
-    if (conditionalRooms.has(source.id)) tags.push('conditional_route');
+    if (secretRooms.has(source.id)) tags.push('secret_route', 'secret-route');
+    if (conditionalRooms.has(source.id)) tags.push('conditional_route', 'conditional-route');
     return {
       id: source.id,
       name: source.name,
       kind: mapRoomKind(source.kind, source.id, entryRoomId),
-      floor: 0,
+      floor: authoredPlacement?.floor ?? 0,
+      rotation: authoredPlacement?.rotation ?? 0,
       x: center?.x ?? 0,
       z: center?.z ?? 0,
       w,
@@ -101,13 +105,21 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
   });
   const roomById = new Map(rooms.map(room => [room.id, room]));
 
-  // --- links ---
-  // 비밀·조건부 통로 모두 링크에 포함 (레거시 런타임엔 발견/조건 게이트가 없음, plan 결정 2).
-  // 실제 발견/조건 상태는 scenario.secretLinks / scenario.meta.conditionalLinks로 별도 보존.
+  // --- authored routes / active initial graph ---
   const baseLinks = (manifest.connections ?? []).map(([a, b]) => [a, b]);
-  const conditionalLinks = conditionalConnections.map(c => [c.from, c.to]);
-  const secretLinks = secretConnections.map(c => [c.from, c.to]);
-  const links = [...baseLinks, ...conditionalLinks, ...secretLinks];
+  const conditionalLinks = conditionalConnections.map(connection => [connection.from, connection.to]);
+  const secretLinks = secretConnections.map(connection => [connection.from, connection.to]);
+  const fallbackRouteDefinitions = [
+    ...baseLinks.map(([from, to], index) => ({ id: `route-${index}-${from}-${to}`, from, to, kind: 'ordinary', defaultState: 'open', state: 'open', active: true })),
+    ...conditionalConnections.map(connection => ({ ...connection, kind: 'conditional', state: connection.defaultState ?? 'locked', active: false })),
+    ...secretConnections.map(connection => ({ ...connection, kind: 'secret', defaultState: 'hidden', state: 'hidden', active: false }))
+  ];
+  const routeDefinitions = authoredLayout?.routes ?? fallbackRouteDefinitions;
+  // Only ordinary open routes enter the initial legacy graph. Conditional and secret
+  // routes remain first-class definitions and can be activated through ActiveCampaignGraph.
+  const links = authoredLayout
+    ? routeDefinitions.filter(route => route.kind === 'ordinary' && (route.defaultState ?? route.state ?? 'open') === 'open').map(route => [route.from, route.to])
+    : [...baseLinks, ...conditionalLinks, ...secretLinks];
 
   // --- props / agents ---
   const props = [];
@@ -279,6 +291,7 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     description: typeof manifest.title === 'object' ? (manifest.title?.ko ?? '') : '',
     rooms,
     links,
+    routes: routeDefinitions,
     secretLinks,
     agents,
     props,
@@ -298,6 +311,10 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
       contentVersion: manifest.contentVersion,
       status: manifest.status,
       conditionalLinks,
+      authoredPhysicalLayout: Boolean(authoredLayout),
+      authoredLayoutSource: authoredLayout ? 'content/campaigns/sleeping-citadel/authored-layout.json' : null,
+      cameraLandmarks: authoredLayout?.cameraLandmarks ?? {},
+      zoneTransitions: authoredLayout?.zoneTransitions ?? [],
       propBundlesByRoom
     }
   };

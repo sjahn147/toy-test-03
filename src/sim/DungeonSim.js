@@ -1,6 +1,7 @@
 import { buildGraph } from './Pathfinding.js';
 import { hydrateAgent, decideAction } from './AgentAI.js';
 import { buildDungeonTopology, findConnection } from '../engine/DungeonTopology.js';
+import { ActiveCampaignGraph } from '../domain/ActiveCampaignGraph.js';
 
 const PARTY_NAMES = ['Rana', 'Milo', 'Sister Pell', 'Orwin', 'Tamsin', 'Berric', 'Nell', 'Grubbs'];
 const PARTY_ROLES = ['fighter', 'rogue', 'cleric', 'wizard'];
@@ -12,8 +13,10 @@ export class DungeonSim {
     this.rooms = cloneData(scenario.rooms);
     this.props = cloneData(scenario.props);
     this.agents = scenario.agents.map(hydrateAgent);
-    this.graph = buildGraph(scenario.links);
-    this.topology = buildDungeonTopology(this.rooms, scenario.links);
+    this.routeGraph = Array.isArray(scenario.routes) ? new ActiveCampaignGraph(scenario.routes) : null;
+    this.graph = buildGraph(this.routeGraph ? this.routeGraph.activeLinks() : scenario.links);
+    this.topology = buildDungeonTopology(this.rooms, this.routeGraph ? this.routeGraph.activeRoutes() : scenario.links);
+    this.routeGraphUnsubscribe = this.routeGraph?.subscribe(event => this.rebuildActiveRouteGraph(event)) ?? null;
     this.visited = new Set(['entry']);
     this.onEvent = onEvent ?? (() => {});
     this.time = 0;
@@ -63,6 +66,33 @@ export class DungeonSim {
 
   isActive(agent) {
     return agent.alive && !agent.departed;
+  }
+
+  rebuildActiveRouteGraph(event = null) {
+    if (!this.routeGraph) return;
+    const activeRoutes = this.routeGraph.activeRoutes();
+    this.graph = buildGraph(this.routeGraph.activeLinks());
+    this.topology = buildDungeonTopology(this.rooms, activeRoutes);
+    const activeRouteIds = new Set(activeRoutes.map(route => route.id));
+    for (const agent of this.agents) {
+      if (!agent.travel || activeRouteIds.has(agent.travel.connectionId)) continue;
+      const origin = agent.travel.fromRoomId;
+      agent.travel = null;
+      if (origin) agent.roomId = origin;
+      agent.mood = 'route-blocked';
+    }
+    if (event?.routeId) this.event(`Route ${event.routeId} changed from ${event.previousState} to ${event.state}.`, {
+      type: 'route-state', routeId: event.routeId, previousState: event.previousState, state: event.state
+    });
+  }
+
+  setRouteState(routeId, state, metadata = {}) {
+    if (!this.routeGraph) return { ok: false, error: 'scenario has no active campaign route graph' };
+    return this.routeGraph.setRouteState(routeId, state, metadata);
+  }
+
+  routeState(routeId) {
+    return this.routeGraph?.getRoute(routeId) ?? null;
   }
 
   resolve(agent, action) {
@@ -438,10 +468,17 @@ export class DungeonSim {
     this.onEvent({ text, time: this.time, turn: this.turn, ...meta });
   }
 
+  destroy() {
+    this.routeGraphUnsubscribe?.();
+    this.routeGraphUnsubscribe = null;
+  }
+
   snapshot() {
     return {
       rooms: this.rooms,
-      links: this.scenario.links,
+      links: this.routeGraph ? this.routeGraph.activeLinks() : this.scenario.links,
+      routes: this.routeGraph ? this.routeGraph.snapshot() : [],
+      routeGraphVersion: this.routeGraph?.version ?? 0,
       props: this.props,
       agents: this.agents,
       effects: this.effects,

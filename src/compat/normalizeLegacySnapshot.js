@@ -75,10 +75,12 @@ function tableOf(source, prefix) {
   return table;
 }
 
-function connectionTable(links) {
+function connectionTable(routes, links) {
   const table = {};
-  if (!Array.isArray(links)) return table;
-  for (const link of links) {
+  const source = Array.isArray(routes) && routes.length ? routes : links;
+  if (!Array.isArray(source)) return table;
+  for (let index = 0; index < source.length; index += 1) {
+    const link = source[index];
     let from;
     let to;
     if (Array.isArray(link)) [from, to] = link;
@@ -87,8 +89,20 @@ function connectionTable(links) {
       to = link.to ?? link.b;
     }
     if (typeof from !== 'string' || typeof to !== 'string' || !from || !to) continue;
-    const id = `${from}--${to}`;
-    table[id] = { id, from, to };
+    const id = String(link?.id ?? `${from}--${to}`);
+    table[id] = {
+      id,
+      from,
+      to,
+      kind: link?.kind ?? 'ordinary',
+      state: link?.state ?? (link?.active === false ? 'blocked' : 'open'),
+      active: link?.active !== false,
+      condition: link?.condition ?? null,
+      width: finiteNumber(link?.width, 1.5),
+      elevation: finiteNumber(link?.elevation, 0),
+      points: toSerializable(link?.points ?? []),
+      ports: toSerializable(link?.ports ?? {})
+    };
   }
   return table;
 }
@@ -133,7 +147,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const rooms = tableOf(raw.rooms, 'room');
   const props = tableOf(raw.props, 'prop');
   const effects = tableOf(raw.effects, 'effect');
-  const connections = connectionTable(raw.links);
+  const connections = connectionTable(raw.routes, raw.links);
   const settlements = tableOf(raw.settlement?.settlements, 'settlement');
   const parties = enrichLegacyParties(tableOf(raw.expedition?.parties, 'party'), agents);
   const cargo = tableOf(raw.logistics?.cargo, 'cargo');
