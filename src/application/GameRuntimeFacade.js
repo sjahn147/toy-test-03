@@ -14,7 +14,8 @@ import {
   selectRoomList,
   selectFollowRoster,
   selectObserverFactionSummary,
-  selectFactionInspector
+  selectFactionInspector,
+  selectWorldInteractionInspector
 } from '../presentation/selectors/index.js';
 
 const RUNTIME_METHODS = ['update', 'getSnapshot', 'dispatch', 'subscribe', 'destroy'];
@@ -26,6 +27,10 @@ function selectSelection(state, context) {
   if (context.roomId) return { type: 'room', id: context.roomId, inspector: selectRoomInspector(state, context.roomId) };
   if (context.settlementId) return { type: 'settlement', id: context.settlementId, inspector: selectSettlementInspector(state, context.settlementId) };
   if (context.factionId) return { type: 'faction', id: context.factionId, inspector: selectFactionInspector(state, context.factionId) };
+  if (context.worldTarget) {
+    const inspector = selectWorldInteractionInspector(state, context.worldTarget);
+    return inspector ? { type: context.worldTarget.type, id: context.worldTarget.id, inspector } : null;
+  }
   return null;
 }
 

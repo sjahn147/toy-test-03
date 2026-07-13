@@ -16,3 +16,4 @@ export {
   selectObserverFactionSummary,
   selectFactionInspector
 } from './selectNavigatorCollections.js';
+export { selectWorldInteractionInspector } from './selectWorldInteractionInspector.js';
