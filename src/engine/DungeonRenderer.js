@@ -1,5 +1,6 @@
 import { THREE } from './ThreeScene.js';
 import { AssetRegistry } from './AssetRegistry.js';
+import { animateEliteMiniature } from '../miniatures/MiniatureAnimator.js';
 import { buildDungeonTopology, sampleConnection, roomSurfaceY } from './DungeonTopology.js';
 import { AuthoredRouteRenderer } from './AuthoredRouteRenderer.js';
 
@@ -213,6 +214,7 @@ export class DungeonRenderer {
         mesh.position.lerp(targetPosition, interpolation);
       }
       if (target.rotation !== undefined) mesh.rotation.y = target.rotation;
+      animateEliteMiniature(mesh, agent, time);
       mesh.visible = true;
 
       const hp = mesh.getObjectByName('hp');
@@ -229,7 +231,7 @@ export class DungeonRenderer {
   roomPosition(agent, rooms, roomMembers) {
     const room = rooms.find(candidate => candidate.id === agent.roomId);
     if (!room) return null;
-    const height = agent.role === 'ogre' ? 0.58 : AGENT_HEIGHT;
+    const height = agentRenderHeight(agent);
 
     if (agent.roomCell) {
       return {
@@ -252,7 +254,7 @@ export class DungeonRenderer {
   travelPosition(agent) {
     const travel = agent.travel;
     const destinationRoom = this.topology.roomById.get(travel.toRoomId);
-    const height = agent.role === 'ogre' ? 0.58 : AGENT_HEIGHT;
+    const height = agentRenderHeight(agent);
 
     if (travel.phase === 'entering') {
       const start = travel.entryPort;
@@ -348,6 +350,13 @@ export class DungeonRenderer {
     this.routeRenderer = null;
     this.three.scene.remove(this.group);
   }
+}
+
+function agentRenderHeight(agent) {
+  if (agent?.size === 'huge') return 0.88;
+  if (agent?.size === 'large' || agent?.role === 'ogre') return 0.62;
+  if (agent?.size === 'tiny') return 0.3;
+  return AGENT_HEIGHT;
 }
 
 function smoothstep(value) {

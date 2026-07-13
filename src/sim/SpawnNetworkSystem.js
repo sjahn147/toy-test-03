@@ -98,7 +98,7 @@ export class SpawnNetworkSystem {
         agent.homeRoomId = site.roomId;
       }
       const network = this.networks.get(agent.ecologyFaction ?? site?.factionId);
-      if (network) network.globalPopulation = (network.globalPopulation ?? 0) + 1;
+      if (network) network.globalPopulation = (network.globalPopulation ?? 0) + (agent.populationCost ?? 1);
     }
   }
 
@@ -136,6 +136,8 @@ export class SpawnNetworkSystem {
       const selected = candidates[0]?.site;
       if (!selected) continue;
       if (selected.telegraphRemaining == null) {
+        const eliteSelection = sim.eliteEcologySystem?.selectSpawnRole?.(selected, network, sim) ?? null;
+        selected.pendingRole = eliteSelection?.role ?? this.selectSpecies(selected, sim);
         selected.telegraphRemaining = this.config.defaultTelegraphSeconds ?? 2;
         this.emitTelegraph(selected, sim);
         continue;
@@ -170,15 +172,19 @@ export class SpawnNetworkSystem {
   }
 
   spawnFromSite(site, sim, network) {
-    const species = this.selectSpecies(site, sim);
+    const species = site.pendingRole ?? this.selectSpecies(site, sim);
+    const elite = sim.eliteEcologySystem?.hasRole?.(species) === true;
     let agent = null;
-    if (BASIC_SPECIES.has(species) && typeof sim.spawnEcologyMonster === 'function') {
+    if (elite) {
+      agent = sim.eliteEcologySystem.spawn(species, site, network, sim);
+    } else if (BASIC_SPECIES.has(species) && typeof sim.spawnEcologyMonster === 'function') {
       agent = sim.spawnEcologyMonster(species, site.roomId);
     } else if (typeof sim.spawnAdvancedMonster === 'function') {
       agent = sim.spawnAdvancedMonster(species, site.roomId);
     }
     if (!agent) {
       site.telegraphRemaining = Math.max(1, (this.config.defaultTelegraphSeconds ?? 2) * 0.6);
+      if (elite) site.pendingRole = null;
       return null;
     }
 
@@ -194,8 +200,9 @@ export class SpawnNetworkSystem {
     site.cooldownRemaining = site.cooldown;
     site.telegraphRemaining = null;
     if (Number.isFinite(site.spawnCharges)) site.spawnCharges = Math.max(0, site.spawnCharges - 1);
-    this.consumeSpawnResource(site, species);
-    network.globalPopulation = (network.globalPopulation ?? 0) + 1;
+    if (!elite) this.consumeSpawnResource(site, species);
+    site.pendingRole = null;
+    network.globalPopulation = (network.globalPopulation ?? 0) + (agent.populationCost ?? 1);
     this.emit(`${agent.name} emerged from ${site.id}.`, { type: 'spawn-site-birth', siteId: site.id, roomId: site.roomId, agentId: agent.id, species });
     return agent;
   }
@@ -231,7 +238,7 @@ export class SpawnNetworkSystem {
 
   emitTelegraph(site, sim) {
     const socket = this.socket(site);
-    const family = site.species[0] ?? 'creature';
+    const family = site.pendingRole ?? site.species[0] ?? 'creature';
     const cue = telegraphCue(family);
     this.emit(`${cue} in ${roomName(sim, site.roomId)}.`, {
       type: 'spawn-site-telegraph', siteId: site.id, socketId: site.socketId, roomId: site.roomId, species: family
@@ -385,6 +392,7 @@ function normalizeSite(source) {
     cooldown: Math.max(1, Number(source.cooldown) || 18),
     cooldownRemaining: 0,
     telegraphRemaining: null,
+    pendingRole: source.pendingRole ?? null,
     isolationSeconds: 0,
     localPopulation: 0,
     spawned: 0,

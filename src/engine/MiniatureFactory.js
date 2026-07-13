@@ -1,6 +1,7 @@
 import { THREE } from './ThreeScene.js';
 import { getMiniatureRecipe } from '../miniatures/recipes.js';
 import { MINIATURE_SOCKETS, PART_SLOT_ORDER, getPartDefinition } from '../miniatures/partCatalog.js';
+import { createEliteMiniature } from '../miniatures/EliteMiniatureFactory.js';
 
 const SOCKET_LAYOUTS = {
   humanoid: MINIATURE_SOCKETS,
@@ -34,6 +35,8 @@ export class MiniatureFactory {
   }
 
   create(agent) {
+    const elite = createEliteMiniature(agent);
+    if (elite) return elite;
     const recipe = getMiniatureRecipe(agent.role);
     const root = new THREE.Group();
     root.name = `miniature:${recipe.id}`;

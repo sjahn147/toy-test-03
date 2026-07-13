@@ -4,6 +4,9 @@ import { EnvironmentTaskSystem } from './EnvironmentTaskSystem.js';
 import { SettlementOperationsSystem } from './SettlementOperationsSystem.js';
 import { ZoneInteractionSystem } from './ZoneInteractionSystem.js';
 import { SpawnNetworkSystem } from './SpawnNetworkSystem.js';
+import { EliteEcologySystem } from './EliteEcologySystem.js';
+import { EliteAbilitySystem } from './EliteAbilitySystem.js';
+import { EliteBehaviorSystem } from './EliteBehaviorSystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -35,10 +38,18 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       scenario: this.scenario,
       onEvent: (text, meta = {}) => this.event(text, meta)
     });
+    this.eliteEcologySystem = new EliteEcologySystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.eliteAbilitySystem = new EliteAbilitySystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.eliteBehaviorSystem = new EliteBehaviorSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.spawnNetworkSystem.initialize(this);
+    this.eliteEcologySystem.initialize(this);
+    this.eliteAbilitySystem.initialize(this);
   }
 
   update(dt) {
+    this.eliteEcologySystem.update(dt, this);
+    this.eliteAbilitySystem.update(dt, this);
+    this.eliteBehaviorSystem.update(dt, this);
     this.spawnNetworkSystem.update(dt, this);
     this.zoneInteractionSystem.update(dt, this);
     this.settlementOperationsSystem.update(dt, this);
@@ -49,6 +60,11 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
 
   resolve(agent, action) {
     if (this.isActive(agent) && !agent.travel && !agent.combat) {
+      const eliteAbility = this.eliteAbilitySystem.decide(agent, this);
+      if (eliteAbility && this.eliteAbilitySystem.resolve(agent, eliteAbility, this)) return;
+      const eliteBehavior = this.eliteBehaviorSystem.decide(agent, this);
+      if (eliteBehavior && this.eliteBehaviorSystem.resolve(agent, eliteBehavior, this)) return;
+
       const zoneAction = this.zoneInteractionSystem.decide(agent, this);
       if (zoneAction && this.zoneInteractionSystem.resolve(agent, zoneAction, this)) return;
 
@@ -78,6 +94,15 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
   }
 
   finalizeDeath(source, target) {
+    if (target?.eliteStatuses?.deathless?.remaining > 0) {
+      target.hp = 1;
+      target.downed = false;
+      target.bleedout = 0;
+      delete target.eliteStatuses.deathless;
+      this.event(`${target.name} remains standing under a deathless ward.`, { type: 'elite-death-prevented', agentId: target.id });
+      return;
+    }
+    this.eliteEcologySystem.onAgentDeath(target, this);
     this.zoneInteractionSystem.clearAgent(target, 'agent-lost');
     this.settlementOperationsSystem.clearAgent(target, 'agent-lost');
     this.environmentTaskSystem.clearAgent(target, 'agent-lost');
@@ -118,7 +143,10 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       environmentTasks: this.environmentTaskSystem.snapshot(),
       settlementOperations: this.settlementOperationsSystem.snapshot(),
       zoneInteractions: this.zoneInteractionSystem.snapshot(),
-      spawnNetwork: this.spawnNetworkSystem.snapshot()
+      spawnNetwork: this.spawnNetworkSystem.snapshot(),
+      eliteEcology: this.eliteEcologySystem.snapshot(),
+      eliteAbilities: this.eliteAbilitySystem.snapshot(),
+      eliteBehavior: this.eliteBehaviorSystem.snapshot()
     };
   }
 
@@ -129,7 +157,10 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...this.environmentTaskSystem.metrics(),
       ...this.settlementOperationsSystem.metrics(),
       ...this.zoneInteractionSystem.metrics(),
-      ...this.spawnNetworkSystem.metrics()
+      ...this.spawnNetworkSystem.metrics(),
+      ...this.eliteEcologySystem.metrics(),
+      ...this.eliteAbilitySystem.metrics(),
+      ...this.eliteBehaviorSystem.metrics()
     };
   }
 }
