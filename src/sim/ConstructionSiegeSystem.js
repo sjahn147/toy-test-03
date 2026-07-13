@@ -417,6 +417,8 @@ export class ConstructionSiegeSystem {
     risk += Math.min(0.36, hostileCount * 0.12);
     if (this.props.some(prop => prop.type === 'ambush_post' && prop.roomId === roomId && prop.structureFaction !== factionId && !prop.underConstruction)) risk += 0.28;
     if ([...this.sieges.values()].some(siege => siege.active && siege.roomId === roomId)) risk += 0.22;
+    const room = this.rooms.find(candidate => candidate.id === roomId);
+    risk -= clamp(room?.zoneInteractionSafetyBonus ?? 0, 0, 0.45);
     return clamp(risk, 0, 1);
   }
 

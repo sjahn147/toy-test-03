@@ -2,6 +2,7 @@ import { DungeonSim as LegacyDungeonSimulation } from './DungeonSimPhase8.js';
 import { OperationsActivitySystem } from './OperationsActivitySystem.js';
 import { EnvironmentTaskSystem } from './EnvironmentTaskSystem.js';
 import { SettlementOperationsSystem } from './SettlementOperationsSystem.js';
+import { ZoneInteractionSystem } from './ZoneInteractionSystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -24,9 +25,15 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       props: this.props,
       onEvent: (text, meta = {}) => this.event(text, meta)
     });
+    this.zoneInteractionSystem = new ZoneInteractionSystem({
+      rooms: this.rooms,
+      props: this.props,
+      onEvent: (text, meta = {}) => this.event(text, meta)
+    });
   }
 
   update(dt) {
+    this.zoneInteractionSystem.update(dt, this);
     this.settlementOperationsSystem.update(dt, this);
     this.environmentTaskSystem.update(dt, this);
     this.operationsActivitySystem.update(dt, this);
@@ -35,6 +42,9 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
 
   resolve(agent, action) {
     if (this.isActive(agent) && !agent.travel && !agent.combat) {
+      const zoneAction = this.zoneInteractionSystem.decide(agent, this);
+      if (zoneAction && this.zoneInteractionSystem.resolve(agent, zoneAction, this)) return;
+
       const settlementAction = this.settlementOperationsSystem.decide(agent, this);
       if (settlementAction && this.settlementOperationsSystem.resolve(agent, settlementAction, this)) return;
 
@@ -61,6 +71,7 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
   }
 
   finalizeDeath(source, target) {
+    this.zoneInteractionSystem.clearAgent(target, 'agent-lost');
     this.settlementOperationsSystem.clearAgent(target, 'agent-lost');
     this.environmentTaskSystem.clearAgent(target, 'agent-lost');
     this.operationsActivitySystem.clear(target, 'carrier-lost');
@@ -68,6 +79,7 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
   }
 
   consumeByPredator(predator, prey) {
+    this.zoneInteractionSystem.clearAgent(prey, 'agent-lost');
     this.settlementOperationsSystem.clearAgent(prey, 'agent-lost');
     this.environmentTaskSystem.clearAgent(prey, 'agent-lost');
     this.operationsActivitySystem.clear(prey, 'carrier-lost');
@@ -75,6 +87,7 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
   }
 
   consumeHostedAdventurer(target, roomId) {
+    this.zoneInteractionSystem.clearAgent(target, 'agent-lost');
     this.settlementOperationsSystem.clearAgent(target, 'agent-lost');
     this.environmentTaskSystem.clearAgent(target, 'agent-lost');
     this.operationsActivitySystem.clear(target, 'carrier-lost');
@@ -83,6 +96,7 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
 
   returnParty() {
     for (const agent of this.agents) {
+      this.zoneInteractionSystem.clearAgent(agent, 'party-returned');
       this.settlementOperationsSystem.clearAgent(agent, 'party-returned');
       this.environmentTaskSystem.clearAgent(agent, 'party-returned');
       this.operationsActivitySystem.clear(agent, 'party-returned');
@@ -95,7 +109,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...super.snapshot(),
       operations: this.operationsActivitySystem.snapshot(this.agents),
       environmentTasks: this.environmentTaskSystem.snapshot(),
-      settlementOperations: this.settlementOperationsSystem.snapshot()
+      settlementOperations: this.settlementOperationsSystem.snapshot(),
+      zoneInteractions: this.zoneInteractionSystem.snapshot()
     };
   }
 
@@ -104,7 +119,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...super.metrics(),
       ...this.operationsActivitySystem.metrics(this.agents),
       ...this.environmentTaskSystem.metrics(),
-      ...this.settlementOperationsSystem.metrics()
+      ...this.settlementOperationsSystem.metrics(),
+      ...this.zoneInteractionSystem.metrics()
     };
   }
 }

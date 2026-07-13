@@ -154,6 +154,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const structures = tableOf(raw.construction?.structures, 'structure');
   const environmentTasks = tableOf(raw.environmentTasks?.tasks, 'environment-task');
   const settlementOrders = tableOf(raw.settlementOperations?.orders, 'settlement-order');
+  const zoneInteractions = tableOf(raw.zoneInteractions?.tasks, 'zone-interaction');
   const factions = factionTable(agents, settlements);
 
   const visited = new Set(Array.isArray(raw.visited) ? raw.visited : []);
@@ -165,7 +166,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       turn: finiteNumber(turn ?? raw.turn),
       ended: raw.ended === true
     },
-    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, effects },
+    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, effects },
     indexes: {
       agentsByRoom: groupIndex(agents, agent =>
         agent.alive !== false && agent.departed !== true ? agent.roomId : null
@@ -175,7 +176,9 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       environmentTasksByRoom: groupIndex(environmentTasks, task => task.targetRoomId),
       environmentTasksByTarget: groupIndex(environmentTasks, task => task.targetId),
       settlementOrdersByRoom: groupIndex(settlementOrders, order => order.targetRoomId),
-      settlementOrdersBySettlement: groupIndex(settlementOrders, order => order.settlementId)
+      settlementOrdersBySettlement: groupIndex(settlementOrders, order => order.settlementId),
+      zoneInteractionsByRoom: groupIndex(zoneInteractions, task => task.targetRoomId),
+      zoneInteractionsByAction: groupIndex(zoneInteractions, task => task.actionId)
     },
     events: Array.isArray(events)
       ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object')
