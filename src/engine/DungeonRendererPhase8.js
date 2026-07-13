@@ -2,6 +2,7 @@ import { DungeonRendererPhase7 } from './DungeonRendererPhase7.js';
 import { PHASE8D_STRUCTURE_TYPES } from './AssetRegistryPhase8.js';
 import { MiniatureAnimator } from './MiniatureAnimator.js';
 import { StrategicOverlayRenderer } from './StrategicOverlayRenderer.js';
+import { SpawnSiteOverlayRenderer } from './SpawnSiteOverlayRenderer.js';
 
 export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   constructor(three, scenario, assets) {
@@ -21,6 +22,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.overlayMode = 'world';
     this.overlayContext = {};
     this.strategicOverlay = new StrategicOverlayRenderer({ parent: this.group, roomY: room => this.roomY(room) });
+    this.spawnSiteOverlay = new SpawnSiteOverlayRenderer({ parent: this.group, roomY: room => this.roomY(room) });
   }
 
   renderState(snapshot) {
@@ -48,6 +50,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     this.strategicOverlay.setMode(this.overlayMode);
     this.strategicOverlay.setContext(this.overlayContext);
     this.strategicOverlay.render(snapshot, snapshot.time);
+    this.spawnSiteOverlay.render(snapshot.spawnNetwork, snapshot.rooms, snapshot.time);
   }
 
   prepareVisualAgents(agents, time) {
@@ -321,6 +324,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
   }
 
   destroy() {
+    this.spawnSiteOverlay?.destroy();
     this.strategicOverlay?.destroy();
     for (const [key, mesh] of [...this.landmarkMeshes]) this.removeLandmark(key, mesh);
     for (const mesh of this.activityMeshes.values()) disposeTree(mesh);

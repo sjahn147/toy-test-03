@@ -3,6 +3,7 @@ import { OperationsActivitySystem } from './OperationsActivitySystem.js';
 import { EnvironmentTaskSystem } from './EnvironmentTaskSystem.js';
 import { SettlementOperationsSystem } from './SettlementOperationsSystem.js';
 import { ZoneInteractionSystem } from './ZoneInteractionSystem.js';
+import { SpawnNetworkSystem } from './SpawnNetworkSystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -30,9 +31,15 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       props: this.props,
       onEvent: (text, meta = {}) => this.event(text, meta)
     });
+    this.spawnNetworkSystem = new SpawnNetworkSystem({
+      scenario: this.scenario,
+      onEvent: (text, meta = {}) => this.event(text, meta)
+    });
+    this.spawnNetworkSystem.initialize(this);
   }
 
   update(dt) {
+    this.spawnNetworkSystem.update(dt, this);
     this.zoneInteractionSystem.update(dt, this);
     this.settlementOperationsSystem.update(dt, this);
     this.environmentTaskSystem.update(dt, this);
@@ -110,7 +117,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       operations: this.operationsActivitySystem.snapshot(this.agents),
       environmentTasks: this.environmentTaskSystem.snapshot(),
       settlementOperations: this.settlementOperationsSystem.snapshot(),
-      zoneInteractions: this.zoneInteractionSystem.snapshot()
+      zoneInteractions: this.zoneInteractionSystem.snapshot(),
+      spawnNetwork: this.spawnNetworkSystem.snapshot()
     };
   }
 
@@ -120,7 +128,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       ...this.operationsActivitySystem.metrics(this.agents),
       ...this.environmentTaskSystem.metrics(),
       ...this.settlementOperationsSystem.metrics(),
-      ...this.zoneInteractionSystem.metrics()
+      ...this.zoneInteractionSystem.metrics(),
+      ...this.spawnNetworkSystem.metrics()
     };
   }
 }

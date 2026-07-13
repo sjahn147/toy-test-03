@@ -281,11 +281,13 @@ export function validateCompiledScenario(scenario, options = {}) {
   const rooms = scenario?.rooms ?? [];
   const epsilon = 1e-6;
 
-  // 방 AABB 겹침 없음 + 최소 간격 gutter 유지
+  // 방 AABB 겹침 없음 + 최소 간격 gutter 유지 (같은 층인 경우에만; 서로 다른 층은
+  // 수직으로 쌓일 수 있으므로 XZ 평면 겹침이 정상임 - WP7의 4층 authored layout)
   for (let i = 0; i < rooms.length; i += 1) {
     for (let j = i + 1; j < rooms.length; j += 1) {
       const a = rooms[i];
       const b = rooms[j];
+      if ((a.floor ?? 0) !== (b.floor ?? 0)) continue;
       const separatedX = Math.abs(a.x - b.x) + epsilon >= (a.w + b.w) / 2 + gutter;
       const separatedZ = Math.abs(a.z - b.z) + epsilon >= (a.d + b.d) / 2 + gutter;
       if (!separatedX && !separatedZ) {

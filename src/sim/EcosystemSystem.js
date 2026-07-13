@@ -61,10 +61,12 @@ export class EcosystemSystem {
     this.updateCorpses(dt);
     this.updateLairResources(dt);
 
-    this.reproductionClock -= dt;
-    if (this.reproductionClock <= 0) {
-      this.reproductionClock = 1;
-      this.tryReproduction(sim);
+    if (!sim.spawnNetworkSystem?.enabled) {
+      this.reproductionClock -= dt;
+      if (this.reproductionClock <= 0) {
+        this.reproductionClock = 1;
+        this.tryReproduction(sim);
+      }
     }
   }
 

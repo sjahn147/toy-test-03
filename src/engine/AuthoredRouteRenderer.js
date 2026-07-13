@@ -65,7 +65,10 @@ export class AuthoredRouteRenderer {
     const lockedCover = connection.kind === 'conditional' && ['locked', 'opening'].includes(connection.state);
     const collapsed = connection.state === 'collapsed';
 
-    if (revealCorridor) this.addCorridor(group, connection);
+    if (revealCorridor) {
+      this.addCorridor(group, connection);
+      this.addCorridorModules(group, connection);
+    }
     if (revealFrame) {
       this.addDoorFrame(group, connection, connection.aPort);
       this.addDoorFrame(group, connection, connection.bPort);
@@ -111,6 +114,50 @@ export class AuthoredRouteRenderer {
       segment.rotation.y = -Math.atan2(dz, dx);
       segment.userData.routeSegmentIndex = i;
       group.add(segment);
+    }
+  }
+
+  addCorridorModules(group, connection) {
+    const aRoom = this.topology.roomById.get(connection.aId);
+    const bRoom = this.topology.roomById.get(connection.bId);
+    const baseY = (this.roomY(aRoom) + this.roomY(bRoom)) / 2 + connection.elevation;
+    const tone = routeTone(connection.routeType);
+    for (let index = 0; index < (connection.modules ?? []).length; index += 1) {
+      const module = connection.modules[index];
+      const point = module?.position;
+      if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.z)) continue;
+      const marker = new THREE.Group();
+      marker.name = `corridor-module:${connection.id}:${index}`;
+      marker.userData.routeId = connection.id;
+      marker.userData.routeModuleIndex = index;
+
+      const material = new THREE.MeshStandardMaterial({ color: tone, roughness: 0.88, metalness: connection.routeType?.includes('industrial') ? 0.18 : 0.04 });
+      const left = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.25, 0.18), material.clone());
+      const right = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.25, 0.18), material.clone());
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(Math.max(1.4, connection.width + 0.65), 0.16, 0.18), material.clone());
+      left.position.set(-Math.max(0.8, connection.width * 0.55), 0.62, 0);
+      right.position.set(Math.max(0.8, connection.width * 0.55), 0.62, 0);
+      beam.position.y = 1.22;
+      marker.add(left, right, beam);
+
+      if (connection.routeType?.includes('fungal')) {
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), new THREE.MeshBasicMaterial({ color: 0x7fb6a3, transparent: true, opacity: 0.62 }));
+        cap.scale.set(1.4, 0.45, 1.4);
+        cap.position.set(0, 1.05, 0.16);
+        marker.add(cap);
+      } else if (connection.routeType?.includes('ossuary') || connection.routeType?.includes('funeral')) {
+        const niche = new THREE.Mesh(new THREE.RingGeometry(0.16, 0.24, 10), new THREE.MeshBasicMaterial({ color: 0xa697bb, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
+        niche.position.set(0, 0.72, 0.12);
+        marker.add(niche);
+      } else {
+        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), new THREE.MeshBasicMaterial({ color: 0xe0b86c, transparent: true, opacity: 0.72 }));
+        lamp.position.set(0, 1.08, 0.12);
+        marker.add(lamp);
+      }
+
+      marker.position.set(point.x, baseY + 0.02, point.z);
+      marker.rotation.y = corridorHeading(connection.points, point);
+      group.add(marker);
     }
   }
 
@@ -194,7 +241,37 @@ export class AuthoredRouteRenderer {
 }
 
 function routeSignature(connection) {
-  return `${connection.kind}:${connection.state}:${connection.active}:${connection.elevation}`;
+  return `${connection.kind}:${connection.state}:${connection.active}:${connection.elevation}:${connection.routeType}:${connection.modules?.length ?? 0}`;
+}
+
+function routeTone(routeType = '') {
+  if (routeType.includes('industrial')) return 0x6f6253;
+  if (routeType.includes('market') || routeType.includes('inn')) return 0x806a4f;
+  if (routeType.includes('fungal')) return 0x58746a;
+  if (routeType.includes('silk')) return 0x745969;
+  if (routeType.includes('ossuary') || routeType.includes('funeral')) return 0x6c6477;
+  if (routeType.includes('royal') || routeType.includes('sanctum')) return 0x73665f;
+  return 0x70675c;
+}
+
+function corridorHeading(points, point) {
+  let best = null;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const a = points[index];
+    const b = points[index + 1];
+    const distance = pointToSegmentDistance(point.x, point.z, a.x, a.z, b.x, b.z);
+    if (!best || distance < best.distance) best = { distance, heading: -Math.atan2(b.z - a.z, b.x - a.x) };
+  }
+  return best?.heading ?? 0;
+}
+
+function pointToSegmentDistance(px, pz, ax, az, bx, bz) {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const lengthSq = dx * dx + dz * dz;
+  if (lengthSq <= 0.0001) return Math.hypot(px - ax, pz - az);
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / lengthSq));
+  return Math.hypot(px - (ax + dx * t), pz - (az + dz * t));
 }
 
 function disposeTree(root) {
