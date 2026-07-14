@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "campaignId": "sleeping-citadel",
+  "generatedAt": "install-time",
+  "before": {
+    "rooms": 63,
+    "routes": 90
+  },
+  "after": {
+    "rooms": 63,
+    "routes": 90,
+    "connectors": 9
+  },
+  "entries": [
+    {
+      "routeId": "route-A05-B06",
+      "from": "A05",
+      "to": "B06",
+      "fromFloor": "F0",
+      "toFloor": "B1",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-01"
+    },
+    {
+      "routeId": "route-F30-I44",
+      "from": "F30",
+      "to": "I44",
+      "fromFloor": "B2",
+      "toFloor": "B1",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-05"
+    },
+    {
+      "routeId": "route-G31-I41",
+      "from": "G31",
+      "to": "I41",
+      "fromFloor": "B2",
+      "toFloor": "B1",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-04"
+    },
+    {
+      "routeId": "route-H37-H39",
+      "from": "H37",
+      "to": "H39",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-06"
+    },
+    {
+      "routeId": "route-H38-H40",
+      "from": "H38",
+      "to": "H40",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-06"
+    },
+    {
+      "routeId": "route-I42-I45",
+      "from": "I42",
+      "to": "I45",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "removed-or-rerouted",
+      "connectorId": null
+    },
+    {
+      "routeId": "route-I43-I45",
+      "from": "I43",
+      "to": "I45",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "removed-or-rerouted",
+      "connectorId": null
+    },
+    {
+      "routeId": "route-I44-I45",
+      "from": "I44",
+      "to": "I45",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "removed-or-rerouted",
+      "connectorId": null
+    },
+    {
+      "routeId": "route-J50-L56",
+      "from": "J50",
+      "to": "L56",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-07"
+    },
+    {
+      "routeId": "route-L59-M61",
+      "from": "L59",
+      "to": "M61",
+      "fromFloor": "B2",
+      "toFloor": "B3",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-08"
+    },
+    {
+      "routeId": "conn-C15-F26",
+      "from": "C15",
+      "to": "F26",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-02"
+    },
+    {
+      "routeId": "conn-K55-M61",
+      "from": "K55",
+      "to": "M61",
+      "fromFloor": "B2",
+      "toFloor": "B3",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-09"
+    },
+    {
+      "routeId": "secret-B08-H39",
+      "from": "B08",
+      "to": "H39",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-06"
+    },
+    {
+      "routeId": "secret-C14-F27",
+      "from": "C14",
+      "to": "F27",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "removed-or-rerouted",
+      "connectorId": null
+    },
+    {
+      "routeId": "secret-D19-I45",
+      "from": "D19",
+      "to": "I45",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "removed-or-rerouted",
+      "connectorId": null
+    },
+    {
+      "routeId": "secret-K55-M61",
+      "from": "K55",
+      "to": "M61",
+      "fromFloor": "B2",
+      "toFloor": "B3",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-09"
+    },
+    {
+      "routeId": "secret-B10-E21",
+      "from": "B10",
+      "to": "E21",
+      "fromFloor": "B1",
+      "toFloor": "B2",
+      "disposition": "replaced-by-connector",
+      "connectorId": "VC-03"
+    },
+    {
+      "routeId": "route-E25-F27",
+      "from": "E25",
+      "to": "F27",
+      "disposition": "added-horizontal-replacement",
+      "reason": "ossuary-fungal-seep"
+    },
+    {
+      "routeId": "route-F30-I45",
+      "from": "F30",
+      "to": "I45",
+      "disposition": "added-horizontal-replacement",
+      "reason": "mycelial-smuggler-way"
+    },
+    {
+      "routeId": "route-G31-I45",
+      "from": "G31",
+      "to": "I45",
+      "disposition": "added-horizontal-replacement",
+      "reason": "red-silk-logistics"
+    },
+    {
+      "routeId": "route-H39-I45",
+      "from": "H39",
+      "to": "I45",
+      "disposition": "added-horizontal-replacement",
+      "reason": "inn-cellar-smuggler-way"
+    },
+    {
+      "routeId": "route-B10-H38",
+      "from": "B10",
+      "to": "H38",
+      "disposition": "added-horizontal-replacement",
+      "reason": "chapel-inn-service-way"
+    },
+    {
+      "routeId": "route-C13-D17",
+      "from": "C13",
+      "to": "D17",
+      "disposition": "added-horizontal-replacement",
+      "reason": "storehouse-scrap-cartway"
+    },
+    {
+      "routeId": "route-D20-I43",
+      "from": "D20",
+      "to": "I43",
+      "disposition": "added-horizontal-replacement",
+      "reason": "powder-auction-security-way"
+    },
+    {
+      "routeId": "route-I42-J47",
+      "from": "I42",
+      "to": "J47",
+      "disposition": "added-horizontal-replacement",
+      "reason": "customs-armory-inspection-way"
+    },
+    {
+      "routeId": "route-F29-H39",
+      "from": "F29",
+      "to": "H39",
+      "disposition": "added-horizontal-replacement",
+      "reason": "fungal-cellar-seep-way"
+    },
+    {
+      "routeId": "route-G35-L58",
+      "from": "G35",
+      "to": "L58",
+      "disposition": "added-horizontal-replacement",
+      "reason": "silk-banquet-gallery"
+    },
+    {
+      "routeId": "secret-B08-H37",
+      "from": "B08",
+      "to": "H37",
+      "disposition": "added-secret-replacement"
+    },
+    {
+      "routeId": "secret-C14-D18",
+      "from": "C14",
+      "to": "D18",
+      "disposition": "added-secret-replacement"
+    },
+    {
+      "routeId": "secret-D19-H38",
+      "from": "D19",
+      "to": "H38",
+      "disposition": "added-secret-replacement"
+    },
+    {
+      "routeId": "secret-K54-L60",
+      "from": "K54",
+      "to": "L60",
+      "disposition": "added-secret-replacement"
+    },
+    {
+      "routeId": "secret-E24-K52",
+      "from": "E24",
+      "to": "K52",
+      "disposition": "added-secret-replacement"
+    }
+  ]
+}

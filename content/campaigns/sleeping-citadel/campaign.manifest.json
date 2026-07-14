@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/campaign.schema.json",
-  "schemaVersion": 1,
-  "contentVersion": "0.1.0",
+  "schemaVersion": 2,
+  "contentVersion": "0.2.0",
   "id": "sleeping-citadel",
   "title": {
     "en": "The Sixty-Three Rooms Beneath the Sleeping Citadel",
@@ -26,225 +26,3386 @@
     "equipment-loot",
     "ecology-species-15-plus",
     "secret-connections",
-    "room-state-variants"
+    "room-state-variants",
+    "explicit-floor-map",
+    "vertical-connectors",
+    "active-floor-rendering"
   ],
   "zones": [
     {
       "id": "A",
-      "name": { "en": "Surface Gate and Expedition Waystation", "ko": "지상 관문과 원정 안전지대" },
+      "name": {
+        "en": "Surface Gate and Expedition Waystation",
+        "ko": "지상 관문과 원정 안전지대"
+      },
       "zoneKit": "zone.gate-waystation",
-      "roomIds": ["A01", "A02", "A03", "A04", "A05"]
+      "roomIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05"
+      ]
     },
     {
       "id": "B",
-      "name": { "en": "Abandoned Residential Quarter", "ko": "버려진 주거구" },
+      "name": {
+        "en": "Abandoned Residential Quarter",
+        "ko": "버려진 주거구"
+      },
       "zoneKit": "zone.residential-ruins",
-      "roomIds": ["B06", "B07", "B08", "B09", "B10"]
+      "roomIds": [
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10"
+      ]
     },
     {
       "id": "C",
-      "name": { "en": "Flooded Storehouses", "ko": "침수된 저장 구역" },
+      "name": {
+        "en": "Flooded Storehouses",
+        "ko": "침수된 저장 구역"
+      },
       "zoneKit": "zone.flooded-storehouse",
-      "roomIds": ["C11", "C12", "C13", "C14", "C15"]
+      "roomIds": [
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15"
+      ]
     },
     {
       "id": "D",
-      "name": { "en": "Industrial Corridor", "ko": "고블린·코볼트 산업 회랑" },
+      "name": {
+        "en": "Industrial Corridor",
+        "ko": "고블린·코볼트 산업 회랑"
+      },
       "zoneKit": "zone.industrial-trapworks",
-      "roomIds": ["D16", "D17", "D18", "D19", "D20"]
+      "roomIds": [
+        "D16",
+        "D17",
+        "D18",
+        "D19",
+        "D20"
+      ]
     },
     {
       "id": "E",
-      "name": { "en": "Ossuary Cathedral", "ko": "납골 성당" },
+      "name": {
+        "en": "Ossuary Cathedral",
+        "ko": "납골 성당"
+      },
       "zoneKit": "zone.ossuary-cathedral",
-      "roomIds": ["E21", "E22", "E23", "E24", "E25"]
+      "roomIds": [
+        "E21",
+        "E22",
+        "E23",
+        "E24",
+        "E25"
+      ]
     },
     {
       "id": "F",
-      "name": { "en": "Fungal Garden", "ko": "균류 정원" },
+      "name": {
+        "en": "Fungal Garden",
+        "ko": "균류 정원"
+      },
       "zoneKit": "zone.fungal-garden",
-      "roomIds": ["F26", "F27", "F28", "F29", "F30"]
+      "roomIds": [
+        "F26",
+        "F27",
+        "F28",
+        "F29",
+        "F30"
+      ]
     },
     {
       "id": "G",
-      "name": { "en": "Red-Silk Colony", "ko": "거미 수직 군락" },
+      "name": {
+        "en": "Red-Silk Colony",
+        "ko": "거미 수직 군락"
+      },
       "zoneKit": "zone.spider-colony",
-      "roomIds": ["G31", "G32", "G33", "G34", "G35"]
+      "roomIds": [
+        "G31",
+        "G32",
+        "G33",
+        "G34",
+        "G35"
+      ]
     },
     {
       "id": "H",
-      "name": { "en": "Old Lantern Inn Ruins", "ko": "오래된 여관 폐허" },
+      "name": {
+        "en": "Old Lantern Inn Ruins",
+        "ko": "오래된 여관 폐허"
+      },
       "zoneKit": "zone.old-lantern-inn",
-      "roomIds": ["H36", "H37", "H38", "H39", "H40"]
+      "roomIds": [
+        "H36",
+        "H37",
+        "H38",
+        "H39",
+        "H40"
+      ]
     },
     {
       "id": "I",
-      "name": { "en": "Central Cross-Market", "ko": "중앙 교차시장" },
+      "name": {
+        "en": "Central Cross-Market",
+        "ko": "중앙 교차시장"
+      },
       "zoneKit": "zone.central-market",
-      "roomIds": ["I41", "I42", "I43", "I44", "I45"]
+      "roomIds": [
+        "I41",
+        "I42",
+        "I43",
+        "I44",
+        "I45"
+      ]
     },
     {
       "id": "J",
-      "name": { "en": "Red-Tusk Barracks", "ko": "오크 병영과 투기장" },
+      "name": {
+        "en": "Red-Tusk Barracks",
+        "ko": "오크 병영과 투기장"
+      },
       "zoneKit": "zone.orc-barracks",
-      "roomIds": ["J46", "J47", "J48", "J49", "J50"]
+      "roomIds": [
+        "J46",
+        "J47",
+        "J48",
+        "J49",
+        "J50"
+      ]
     },
     {
       "id": "K",
-      "name": { "en": "Sealed Royal Laboratory", "ko": "봉인 연구소" },
+      "name": {
+        "en": "Sealed Royal Laboratory",
+        "ko": "봉인 연구소"
+      },
       "zoneKit": "zone.royal-laboratory",
-      "roomIds": ["K51", "K52", "K53", "K54", "K55"]
+      "roomIds": [
+        "K51",
+        "K52",
+        "K53",
+        "K54",
+        "K55"
+      ]
     },
     {
       "id": "L",
-      "name": { "en": "Deep Royal Quarter", "ko": "심층 왕실 구역" },
+      "name": {
+        "en": "Deep Royal Quarter",
+        "ko": "심층 왕실 구역"
+      },
       "zoneKit": "zone.royal-deep",
-      "roomIds": ["L56", "L57", "L58", "L59", "L60"]
+      "roomIds": [
+        "L56",
+        "L57",
+        "L58",
+        "L59",
+        "L60"
+      ]
     },
     {
       "id": "M",
-      "name": { "en": "The Heart Sanctum", "ko": "최종 성소" },
+      "name": {
+        "en": "The Heart Sanctum",
+        "ko": "최종 성소"
+      },
       "zoneKit": "zone.heart-sanctum",
-      "roomIds": ["M61", "M62", "M63"]
+      "roomIds": [
+        "M61",
+        "M62",
+        "M63"
+      ]
     }
   ],
   "rooms": [
-    { "id": "A01", "zoneId": "A", "name": "Lantern Plaza", "kind": "safe-plaza", "size": [20, 16], "tags": ["entrance", "safe-zone", "resurrection", "water", "party-assembly"], "landmarkBundle": "waystation.plaza.core", "stateVariants": ["operational", "refugee-crowded", "expedition-suspended"] },
-    { "id": "A02", "zoneId": "A", "name": "Expedition Registry", "kind": "registry", "size": [13, 10], "tags": ["party-generation", "contracts", "rumors", "class-unlock"], "landmarkBundle": "waystation.registry.office", "stateVariants": ["operational", "memorial", "inn-recruitment-office"] },
-    { "id": "A03", "zoneId": "A", "name": "The Sealed Gate", "kind": "gate", "size": [18, 11], "tags": ["campaign-entry", "capacity-bottleneck", "siege-pressure"], "landmarkBundle": "gate.citadel.outer", "stateVariants": ["managed", "pressured", "supply-gateway"] },
-    { "id": "A04", "zoneId": "A", "name": "Baggage Vault", "kind": "storehouse", "size": [14, 11], "tags": ["starting-equipment", "provisions", "repair", "rat-event"], "landmarkBundle": "waystation.baggage.store", "stateVariants": ["ordered", "overfilled", "raided"] },
-    { "id": "A05", "zoneId": "A", "name": "Descent of Forty Lamps", "kind": "descent", "size": [12, 18], "tags": ["safe-boundary", "formation", "camera-landmark", "defense-line"], "landmarkBundle": "stairs.citadel.descent", "stateVariants": ["lit", "darkened", "fortified"] },
-
-    { "id": "B06", "zoneId": "B", "name": "Broken Dormitory", "kind": "dormitory", "size": [17, 13], "tags": ["settlement-candidate", "beds", "rat-habitat", "salvage"], "landmarkBundle": "residential.dormitory.broken", "stateVariants": ["abandoned", "field-camp", "burned"] },
-    { "id": "B07", "zoneId": "B", "name": "Communal Kitchen", "kind": "kitchen", "size": [15, 12], "tags": ["food", "cooking", "slime-risk", "settlement-support"], "landmarkBundle": "residential.kitchen.communal", "stateVariants": ["cold", "working", "infested"] },
-    { "id": "B08", "zoneId": "B", "name": "Laundry Cistern", "kind": "water-room", "size": [16, 12], "tags": ["water", "camp-site", "secret-route", "contamination"], "landmarkBundle": "residential.laundry.cistern", "stateVariants": ["clear", "camped", "fungal-contaminated"] },
-    { "id": "B09", "zoneId": "B", "name": "Tenement Court", "kind": "courtyard", "size": [19, 15], "tags": ["settlement-candidate", "market-candidate", "territory", "ambush"], "landmarkBundle": "residential.tenement.court", "stateVariants": ["empty", "occupied", "barricaded"] },
-    { "id": "B10", "zoneId": "B", "name": "Household Chapel", "kind": "chapel", "size": [13, 11], "tags": ["sanctuary", "minor-healing", "undead-border", "story"], "landmarkBundle": "residential.chapel.household", "stateVariants": ["dormant", "reconsecrated", "defiled"] },
-
-    { "id": "C11", "zoneId": "C", "name": "Shallow Reservoir", "kind": "reservoir", "size": [18, 14], "tags": ["water", "slime", "slow-movement", "sluice-control"], "landmarkBundle": "flooded.reservoir.shallow", "stateVariants": ["shallow", "drained", "overflowing"] },
-    { "id": "C12", "zoneId": "C", "name": "Granary of Quiet Teeth", "kind": "granary", "size": [16, 13], "tags": ["food", "rat-warren", "cargo-source", "fire-risk"], "landmarkBundle": "flooded.granary.quiet-teeth", "stateVariants": ["sealed", "rat-dominated", "restored"] },
-    { "id": "C13", "zoneId": "C", "name": "Flooded Wine Cellar", "kind": "cellar", "size": [17, 12], "tags": ["drink", "fungal-growth", "loot", "settlement-supply"], "landmarkBundle": "flooded.wine-cellar", "stateVariants": ["flooded", "drained", "fermenting-colony"] },
-    { "id": "C14", "zoneId": "C", "name": "Drainage Engine Hall", "kind": "machinery", "size": [18, 14], "tags": ["water-control", "scrap", "kobold-interest", "route-state"], "landmarkBundle": "flooded.drainage.engine", "stateVariants": ["stalled", "operational", "sabotaged"] },
-    { "id": "C15", "zoneId": "C", "name": "Sluice Passage", "kind": "passage", "size": [12, 20], "tags": ["route-control", "flood-hazard", "cargo-route", "secret-access"], "landmarkBundle": "flooded.sluice.passage", "stateVariants": ["open", "flooded", "fortified"] },
-
-    { "id": "D16", "zoneId": "D", "name": "Abandoned Workshop", "kind": "workshop", "size": [17, 13], "tags": ["materials", "construction", "repair", "settlement-candidate"], "landmarkBundle": "industry.workshop.abandoned", "stateVariants": ["ruined", "reactivated", "exploded"] },
-    { "id": "D17", "zoneId": "D", "name": "Iron Scrap Room", "kind": "scrap-yard", "size": [15, 12], "tags": ["scrap", "cargo-source", "kobold", "hazard"], "landmarkBundle": "industry.scrap.iron", "stateVariants": ["stocked", "stripped", "weaponized"] },
-    { "id": "D18", "zoneId": "D", "name": "Copper-Tail Trapworks", "kind": "kobold-workshop", "size": [18, 14], "tags": ["kobold-settlement", "traps", "construction", "diplomacy"], "landmarkBundle": "industry.kobold.trapworks", "stateVariants": ["active", "allied", "destroyed"] },
-    { "id": "D19", "zoneId": "D", "name": "Brass Button Market", "kind": "goblin-market", "size": [21, 16], "tags": ["goblin-settlement", "trade", "theft", "territory-hub"], "landmarkBundle": "industry.goblin.market", "stateVariants": ["goblin-market", "neutral-market", "orc-taxed", "burned"] },
-    { "id": "D20", "zoneId": "D", "name": "Powder Magazine", "kind": "magazine", "size": [14, 12], "tags": ["explosive", "siege-resource", "route-change", "fire-risk"], "landmarkBundle": "industry.powder.magazine", "stateVariants": ["sealed", "looted", "detonated"] },
-
-    { "id": "E21", "zoneId": "E", "name": "Bone Cloister", "kind": "cloister", "size": [18, 14], "tags": ["bones", "undead-patrol", "defensible", "story"], "landmarkBundle": "ossuary.cloister.bone", "stateVariants": ["silent", "undead-held", "reconsecrated"] },
-    { "id": "E22", "zoneId": "E", "name": "Funeral Chapel", "kind": "funeral-chapel", "size": [17, 13], "tags": ["death-energy", "undead-settlement", "holy-conflict", "resurrection-research"], "landmarkBundle": "ossuary.chapel.funeral", "stateVariants": ["dormant", "choir-active", "purified"] },
-    { "id": "E23", "zoneId": "E", "name": "Ossuary Shelves", "kind": "ossuary", "size": [19, 14], "tags": ["skeleton-spawn", "bones", "capacity", "cargo-source"], "landmarkBundle": "ossuary.shelves.working", "stateVariants": ["ordered", "spawning", "collapsed"] },
-    { "id": "E24", "zoneId": "E", "name": "Nameless Tomb", "kind": "tomb", "size": [15, 13], "tags": ["rare-loot", "wraith", "story", "sealed"], "landmarkBundle": "ossuary.tomb.nameless", "stateVariants": ["sealed", "opened", "haunted"] },
-    { "id": "E25", "zoneId": "E", "name": "Well of Last Names", "kind": "death-well", "size": [16, 16], "tags": ["death-energy", "wraith-spawn", "boss-hook", "deep-route"], "landmarkBundle": "ossuary.well.last-names", "stateVariants": ["quiet", "overflowing", "sealed"] },
-
-    { "id": "F26", "zoneId": "F", "name": "Blue Spore Field", "kind": "spore-field", "size": [20, 16], "tags": ["myconid", "sleep-spores", "food", "visibility"], "landmarkBundle": "fungal.spore-field.blue", "stateVariants": ["blooming", "harvested", "burned"] },
-    { "id": "F27", "zoneId": "F", "name": "Rotten Glasshouse", "kind": "glasshouse", "size": [18, 14], "tags": ["humidity", "settlement-candidate", "secret-route", "fragile"], "landmarkBundle": "fungal.glasshouse.rotten", "stateVariants": ["overgrown", "cultivated", "shattered"] },
-    { "id": "F28", "zoneId": "F", "name": "Mushroom Pillar Forest", "kind": "fungal-forest", "size": [22, 17], "tags": ["myconid-settlement", "biomass", "cover", "navigation"], "landmarkBundle": "fungal.pillars.forest", "stateVariants": ["wild", "communion", "blighted"] },
-    { "id": "F29", "zoneId": "F", "name": "Sleeping Gardener's Chamber", "kind": "gardener-room", "size": [15, 12], "tags": ["story", "rare-npc", "medicine", "rest"], "landmarkBundle": "fungal.gardener.chamber", "stateVariants": ["sleeping", "awakened", "consumed"] },
-    { "id": "F30", "zoneId": "F", "name": "Mycelial Heart", "kind": "fungal-core", "size": [18, 16], "tags": ["myconid-core", "biomass", "zone-control", "major-event"], "landmarkBundle": "fungal.heart.mycelial", "stateVariants": ["stable", "expanding", "burned-out"] },
-
-    { "id": "G31", "zoneId": "G", "name": "Silk Ramp", "kind": "silk-passage", "size": [15, 20], "tags": ["web", "slow-movement", "ambush", "market-route"], "landmarkBundle": "spider.ramp.silk", "stateVariants": ["webbed", "cleared", "burning"] },
-    { "id": "G32", "zoneId": "G", "name": "Host Vault", "kind": "host-storage", "size": [17, 13], "tags": ["living-host", "rescue", "spider-food", "horror"], "landmarkBundle": "spider.vault.hosts", "stateVariants": ["occupied", "rescued", "empty-cocoons"] },
-    { "id": "G33", "zoneId": "G", "name": "Spawning Gallery", "kind": "spider-nursery", "size": [18, 14], "tags": ["spider-spawn", "nursery", "capacity", "fire-target"], "landmarkBundle": "spider.gallery.spawning", "stateVariants": ["brooding", "overpopulated", "destroyed"] },
-    { "id": "G34", "zoneId": "G", "name": "Vertical Well", "kind": "vertical-well", "size": [16, 18], "tags": ["secret-route", "large-height", "fall-risk", "royal-access"], "landmarkBundle": "spider.well.vertical", "stateVariants": ["web-bridge", "cleared", "collapsed"] },
-    { "id": "G35", "zoneId": "G", "name": "Empty Queen's Nest", "kind": "boss-nest", "size": [22, 18], "tags": ["boss-hook", "spider-core", "settlement", "major-loot"], "landmarkBundle": "spider.nest.queen-empty", "stateVariants": ["empty", "queen-awakened", "captured"] },
-
-    { "id": "H36", "zoneId": "H", "name": "Old Lantern Common Room", "kind": "inn-common-room", "size": [22, 17], "tags": ["inn-core", "settlement-candidate", "trade", "party-regroup"], "landmarkBundle": "inn.old-lantern.common-room", "stateVariants": ["ruined", "bivouac", "repaired", "prosperous", "besieged", "burned"] },
-    { "id": "H37", "zoneId": "H", "name": "Blackened Kitchen", "kind": "inn-kitchen", "size": [17, 13], "tags": ["food", "cooking", "inn-upgrade", "rat-slime-conflict"], "landmarkBundle": "inn.old-lantern.kitchen", "stateVariants": ["blackened", "camp-kitchen", "working", "infested"] },
-    { "id": "H38", "zoneId": "H", "name": "Guestroom Corridor", "kind": "inn-guest-wing", "size": [14, 22], "tags": ["beds", "capacity", "spider-infiltration", "resident-professions"], "landmarkBundle": "inn.old-lantern.guest-wing", "stateVariants": ["collapsed", "partitioned-camp", "guestrooms", "webbed"] },
-    { "id": "H39", "zoneId": "H", "name": "Underbarrel Cellar", "kind": "inn-cellar", "size": [18, 14], "tags": ["storage", "drink", "fungal-risk", "secret-route"], "landmarkBundle": "inn.old-lantern.cellar", "stateVariants": ["flooded", "stocked", "fungal-brewery", "raided"] },
-    { "id": "H40", "zoneId": "H", "name": "Innkeeper's Secret Room", "kind": "secret-office", "size": [11, 10], "tags": ["secret", "ledger", "rumor", "market-route"], "landmarkBundle": "inn.old-lantern.secret-office", "stateVariants": ["sealed", "discovered", "operations-room"] },
-
-    { "id": "I41", "zoneId": "I", "name": "Grand Crossroads", "kind": "market-plaza", "size": [24, 19], "tags": ["territory-hub", "trade", "siege", "multi-faction"], "landmarkBundle": "market.crossroads.grand", "stateVariants": ["neutral-ruin", "goblin-market", "adventurer-market", "orc-checkpoint", "battlefield"] },
-    { "id": "I42", "zoneId": "I", "name": "Dead Customs House", "kind": "customs-house", "size": [16, 13], "tags": ["toll", "cargo-inspection", "ambush-post", "documents"], "landmarkBundle": "market.customs.dead", "stateVariants": ["abandoned", "tax-office", "smuggler-held"] },
-    { "id": "I43", "zoneId": "I", "name": "Ruined Auction Hall", "kind": "auction-hall", "size": [20, 15], "tags": ["equipment-market", "rare-loot", "faction-event", "large-room"], "landmarkBundle": "market.auction.ruined", "stateVariants": ["ruined", "auction-active", "orc-spoils-hall"] },
-    { "id": "I44", "zoneId": "I", "name": "Neutral Well", "kind": "neutral-water", "size": [16, 14], "tags": ["water", "neutrality", "diplomacy", "contamination"], "landmarkBundle": "market.well.neutral", "stateVariants": ["neutral", "claimed", "poisoned"] },
-    { "id": "I45", "zoneId": "I", "name": "Smuggler's Way", "kind": "secret-junction", "size": [13, 17], "tags": ["secret-route", "cargo", "ambush", "inn-link"], "landmarkBundle": "market.smuggler.way", "stateVariants": ["hidden", "active", "collapsed"] },
-
-    { "id": "J46", "zoneId": "J", "name": "Drill Yard", "kind": "training-yard", "size": [22, 17], "tags": ["orc-territory", "training", "large-combat", "siege-staging"], "landmarkBundle": "orc.drill-yard", "stateVariants": ["training", "war-muster", "captured"] },
-    { "id": "J47", "zoneId": "J", "name": "War Armory", "kind": "armory", "size": [18, 14], "tags": ["equipment", "siege-materials", "orc-settlement", "construction"], "landmarkBundle": "orc.armory.war", "stateVariants": ["stocked", "looted", "exploded"] },
-    { "id": "J48", "zoneId": "J", "name": "Meat Store", "kind": "meat-store", "size": [16, 13], "tags": ["food", "ogre-interest", "orc-supply", "parasite-risk"], "landmarkBundle": "orc.store.meat", "stateVariants": ["stocked", "starved", "infested"] },
-    { "id": "J49", "zoneId": "J", "name": "The Red Pit Arena", "kind": "arena", "size": [24, 19], "tags": ["boss-event", "morale", "large-combat", "spectacle"], "landmarkBundle": "orc.arena.red-pit", "stateVariants": ["matches", "chieftain-challenge", "liberated"] },
-    { "id": "J50", "zoneId": "J", "name": "Chieftain Hall", "kind": "war-hall", "size": [20, 16], "tags": ["orc-core", "chieftain", "diplomacy", "royal-route"], "landmarkBundle": "orc.hall.chieftain", "stateVariants": ["tribal-court", "war-council", "leaderless"] },
-
-    { "id": "K51", "zoneId": "K", "name": "Alchemical Laboratory", "kind": "laboratory", "size": [18, 14], "tags": ["alchemy", "rare-materials", "equipment-upgrade", "hazard"], "landmarkBundle": "laboratory.alchemical.main", "stateVariants": ["sealed", "reactivated", "chemical-fire"] },
-    { "id": "K52", "zoneId": "K", "name": "Parasite Vats", "kind": "parasite-vats", "size": [18, 14], "tags": ["parasite-spawn", "infection", "host", "research"], "landmarkBundle": "laboratory.parasite.vats", "stateVariants": ["dormant", "active", "ruptured"] },
-    { "id": "K53", "zoneId": "K", "name": "Sealed Observatory", "kind": "observatory", "size": [17, 15], "tags": ["map-intel", "secret-discovery", "magic", "camera-landmark"], "landmarkBundle": "laboratory.observatory.sealed", "stateVariants": ["sealed", "calibrated", "void-exposed"] },
-    { "id": "K54", "zoneId": "K", "name": "Failed Summoning Room", "kind": "summoning-room", "size": [20, 17], "tags": ["wraith", "boss-hook", "death-energy", "unstable"], "landmarkBundle": "laboratory.summoning.failed", "stateVariants": ["dormant", "breached", "stabilized"] },
-    { "id": "K55", "zoneId": "K", "name": "Emergency Way", "kind": "emergency-route", "size": [12, 20], "tags": ["secret-route", "final-access", "escape", "collapse"], "landmarkBundle": "laboratory.emergency.way", "stateVariants": ["sealed", "opened", "collapsed"] },
-
-    { "id": "L56", "zoneId": "L", "name": "Royal Antechamber", "kind": "antechamber", "size": [20, 16], "tags": ["royal-entry", "large-settlement", "multi-route", "guardians"], "landmarkBundle": "royal.antechamber", "stateVariants": ["sealed", "occupied", "fortified"] },
-    { "id": "L57", "zoneId": "L", "name": "Crown Vault", "kind": "treasure-vault", "size": [18, 14], "tags": ["rare-equipment", "wealth", "trap", "laboratory-link"], "landmarkBundle": "royal.vault.crown", "stateVariants": ["sealed", "opened", "stripped"] },
-    { "id": "L58", "zoneId": "L", "name": "Shattered Banquet Hall", "kind": "banquet-hall", "size": [24, 18], "tags": ["food-history", "settlement-candidate", "large-combat", "ghost-event"], "landmarkBundle": "royal.banquet.shattered", "stateVariants": ["haunted", "occupied", "restored-feast"] },
-    { "id": "L59", "zoneId": "L", "name": "The Black Throne", "kind": "throne-room", "size": [23, 18], "tags": ["royal-core", "boss-gate", "faction-capital", "major-event"], "landmarkBundle": "royal.throne.black", "stateVariants": ["empty", "claimed", "awakened"] },
-    { "id": "L60", "zoneId": "L", "name": "Royal Bedchamber", "kind": "royal-bedchamber", "size": [17, 14], "tags": ["story", "rest", "secret", "relic"], "landmarkBundle": "royal.bedchamber", "stateVariants": ["sealed", "searched", "sanctuary"] },
-
-    { "id": "M61", "zoneId": "M", "name": "The Seal Gate", "kind": "final-gate", "size": [18, 13], "tags": ["campaign-gate", "siege", "ritual-lock", "boss-access"], "landmarkBundle": "sanctum.gate.seal", "stateVariants": ["sealed", "under-assault", "opened"] },
-    { "id": "M62", "zoneId": "M", "name": "Circular Sanctum", "kind": "sanctum", "size": [24, 20], "tags": ["ritual", "multi-faction-event", "boss-staging", "major-landmark"], "landmarkBundle": "sanctum.circular", "stateVariants": ["dormant", "ritual-active", "fractured"] },
-    { "id": "M63", "zoneId": "M", "name": "Heart Chamber", "kind": "final-boss-room", "size": [28, 22], "tags": ["boss", "campaign-resolution", "ecosystem-reset", "hero-diorama"], "landmarkBundle": "sanctum.heart.chamber", "stateVariants": ["sleeping", "awakened", "claimed", "collapsed"] }
+    {
+      "id": "A01",
+      "zoneId": "A",
+      "name": "Lantern Plaza",
+      "kind": "safe-plaza",
+      "size": [
+        20,
+        16
+      ],
+      "tags": [
+        "entrance",
+        "safe-zone",
+        "resurrection",
+        "water",
+        "party-assembly"
+      ],
+      "landmarkBundle": "waystation.plaza.core",
+      "stateVariants": [
+        "operational",
+        "refugee-crowded",
+        "expedition-suspended"
+      ],
+      "floorId": "F0",
+      "floor": 0
+    },
+    {
+      "id": "A02",
+      "zoneId": "A",
+      "name": "Expedition Registry",
+      "kind": "registry",
+      "size": [
+        13,
+        10
+      ],
+      "tags": [
+        "party-generation",
+        "contracts",
+        "rumors",
+        "class-unlock"
+      ],
+      "landmarkBundle": "waystation.registry.office",
+      "stateVariants": [
+        "operational",
+        "memorial",
+        "inn-recruitment-office"
+      ],
+      "floorId": "F0",
+      "floor": 0
+    },
+    {
+      "id": "A03",
+      "zoneId": "A",
+      "name": "The Sealed Gate",
+      "kind": "gate",
+      "size": [
+        18,
+        11
+      ],
+      "tags": [
+        "campaign-entry",
+        "capacity-bottleneck",
+        "siege-pressure"
+      ],
+      "landmarkBundle": "gate.citadel.outer",
+      "stateVariants": [
+        "managed",
+        "pressured",
+        "supply-gateway"
+      ],
+      "floorId": "F0",
+      "floor": 0
+    },
+    {
+      "id": "A04",
+      "zoneId": "A",
+      "name": "Baggage Vault",
+      "kind": "storehouse",
+      "size": [
+        14,
+        11
+      ],
+      "tags": [
+        "starting-equipment",
+        "provisions",
+        "repair",
+        "rat-event"
+      ],
+      "landmarkBundle": "waystation.baggage.store",
+      "stateVariants": [
+        "ordered",
+        "overfilled",
+        "raided"
+      ],
+      "floorId": "F0",
+      "floor": 0
+    },
+    {
+      "id": "A05",
+      "zoneId": "A",
+      "name": "Descent of Forty Lamps",
+      "kind": "descent",
+      "size": [
+        12,
+        18
+      ],
+      "tags": [
+        "safe-boundary",
+        "formation",
+        "camera-landmark",
+        "defense-line"
+      ],
+      "landmarkBundle": "stairs.citadel.descent",
+      "stateVariants": [
+        "lit",
+        "darkened",
+        "fortified"
+      ],
+      "floorId": "F0",
+      "floor": 0
+    },
+    {
+      "id": "B06",
+      "zoneId": "B",
+      "name": "Broken Dormitory",
+      "kind": "dormitory",
+      "size": [
+        17,
+        13
+      ],
+      "tags": [
+        "settlement-candidate",
+        "beds",
+        "rat-habitat",
+        "salvage"
+      ],
+      "landmarkBundle": "residential.dormitory.broken",
+      "stateVariants": [
+        "abandoned",
+        "field-camp",
+        "burned"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "B07",
+      "zoneId": "B",
+      "name": "Communal Kitchen",
+      "kind": "kitchen",
+      "size": [
+        15,
+        12
+      ],
+      "tags": [
+        "food",
+        "cooking",
+        "slime-risk",
+        "settlement-support"
+      ],
+      "landmarkBundle": "residential.kitchen.communal",
+      "stateVariants": [
+        "cold",
+        "working",
+        "infested"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "B08",
+      "zoneId": "B",
+      "name": "Laundry Cistern",
+      "kind": "water-room",
+      "size": [
+        16,
+        12
+      ],
+      "tags": [
+        "water",
+        "camp-site",
+        "secret-route",
+        "contamination"
+      ],
+      "landmarkBundle": "residential.laundry.cistern",
+      "stateVariants": [
+        "clear",
+        "camped",
+        "fungal-contaminated"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "B09",
+      "zoneId": "B",
+      "name": "Tenement Court",
+      "kind": "courtyard",
+      "size": [
+        19,
+        15
+      ],
+      "tags": [
+        "settlement-candidate",
+        "market-candidate",
+        "territory",
+        "ambush"
+      ],
+      "landmarkBundle": "residential.tenement.court",
+      "stateVariants": [
+        "empty",
+        "occupied",
+        "barricaded"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "B10",
+      "zoneId": "B",
+      "name": "Household Chapel",
+      "kind": "chapel",
+      "size": [
+        13,
+        11
+      ],
+      "tags": [
+        "sanctuary",
+        "minor-healing",
+        "undead-border",
+        "story"
+      ],
+      "landmarkBundle": "residential.chapel.household",
+      "stateVariants": [
+        "dormant",
+        "reconsecrated",
+        "defiled"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "C11",
+      "zoneId": "C",
+      "name": "Shallow Reservoir",
+      "kind": "reservoir",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "water",
+        "slime",
+        "slow-movement",
+        "sluice-control"
+      ],
+      "landmarkBundle": "flooded.reservoir.shallow",
+      "stateVariants": [
+        "shallow",
+        "drained",
+        "overflowing"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "C12",
+      "zoneId": "C",
+      "name": "Granary of Quiet Teeth",
+      "kind": "granary",
+      "size": [
+        16,
+        13
+      ],
+      "tags": [
+        "food",
+        "rat-warren",
+        "cargo-source",
+        "fire-risk"
+      ],
+      "landmarkBundle": "flooded.granary.quiet-teeth",
+      "stateVariants": [
+        "sealed",
+        "rat-dominated",
+        "restored"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "C13",
+      "zoneId": "C",
+      "name": "Flooded Wine Cellar",
+      "kind": "cellar",
+      "size": [
+        17,
+        12
+      ],
+      "tags": [
+        "drink",
+        "fungal-growth",
+        "loot",
+        "settlement-supply"
+      ],
+      "landmarkBundle": "flooded.wine-cellar",
+      "stateVariants": [
+        "flooded",
+        "drained",
+        "fermenting-colony"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "C14",
+      "zoneId": "C",
+      "name": "Drainage Engine Hall",
+      "kind": "machinery",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "water-control",
+        "scrap",
+        "kobold-interest",
+        "route-state"
+      ],
+      "landmarkBundle": "flooded.drainage.engine",
+      "stateVariants": [
+        "stalled",
+        "operational",
+        "sabotaged"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "C15",
+      "zoneId": "C",
+      "name": "Sluice Passage",
+      "kind": "passage",
+      "size": [
+        12,
+        20
+      ],
+      "tags": [
+        "route-control",
+        "flood-hazard",
+        "cargo-route",
+        "secret-access"
+      ],
+      "landmarkBundle": "flooded.sluice.passage",
+      "stateVariants": [
+        "open",
+        "flooded",
+        "fortified"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "D16",
+      "zoneId": "D",
+      "name": "Abandoned Workshop",
+      "kind": "workshop",
+      "size": [
+        17,
+        13
+      ],
+      "tags": [
+        "materials",
+        "construction",
+        "repair",
+        "settlement-candidate"
+      ],
+      "landmarkBundle": "industry.workshop.abandoned",
+      "stateVariants": [
+        "ruined",
+        "reactivated",
+        "exploded"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "D17",
+      "zoneId": "D",
+      "name": "Iron Scrap Room",
+      "kind": "scrap-yard",
+      "size": [
+        15,
+        12
+      ],
+      "tags": [
+        "scrap",
+        "cargo-source",
+        "kobold",
+        "hazard"
+      ],
+      "landmarkBundle": "industry.scrap.iron",
+      "stateVariants": [
+        "stocked",
+        "stripped",
+        "weaponized"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "D18",
+      "zoneId": "D",
+      "name": "Copper-Tail Trapworks",
+      "kind": "kobold-workshop",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "kobold-settlement",
+        "traps",
+        "construction",
+        "diplomacy"
+      ],
+      "landmarkBundle": "industry.kobold.trapworks",
+      "stateVariants": [
+        "active",
+        "allied",
+        "destroyed"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "D19",
+      "zoneId": "D",
+      "name": "Brass Button Market",
+      "kind": "goblin-market",
+      "size": [
+        21,
+        16
+      ],
+      "tags": [
+        "goblin-settlement",
+        "trade",
+        "theft",
+        "territory-hub"
+      ],
+      "landmarkBundle": "industry.goblin.market",
+      "stateVariants": [
+        "goblin-market",
+        "neutral-market",
+        "orc-taxed",
+        "burned"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "D20",
+      "zoneId": "D",
+      "name": "Powder Magazine",
+      "kind": "magazine",
+      "size": [
+        14,
+        12
+      ],
+      "tags": [
+        "explosive",
+        "siege-resource",
+        "route-change",
+        "fire-risk"
+      ],
+      "landmarkBundle": "industry.powder.magazine",
+      "stateVariants": [
+        "sealed",
+        "looted",
+        "detonated"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "E21",
+      "zoneId": "E",
+      "name": "Bone Cloister",
+      "kind": "cloister",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "bones",
+        "undead-patrol",
+        "defensible",
+        "story"
+      ],
+      "landmarkBundle": "ossuary.cloister.bone",
+      "stateVariants": [
+        "silent",
+        "undead-held",
+        "reconsecrated"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "E22",
+      "zoneId": "E",
+      "name": "Funeral Chapel",
+      "kind": "funeral-chapel",
+      "size": [
+        17,
+        13
+      ],
+      "tags": [
+        "death-energy",
+        "undead-settlement",
+        "holy-conflict",
+        "resurrection-research"
+      ],
+      "landmarkBundle": "ossuary.chapel.funeral",
+      "stateVariants": [
+        "dormant",
+        "choir-active",
+        "purified"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "E23",
+      "zoneId": "E",
+      "name": "Ossuary Shelves",
+      "kind": "ossuary",
+      "size": [
+        19,
+        14
+      ],
+      "tags": [
+        "skeleton-spawn",
+        "bones",
+        "capacity",
+        "cargo-source"
+      ],
+      "landmarkBundle": "ossuary.shelves.working",
+      "stateVariants": [
+        "ordered",
+        "spawning",
+        "collapsed"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "E24",
+      "zoneId": "E",
+      "name": "Nameless Tomb",
+      "kind": "tomb",
+      "size": [
+        15,
+        13
+      ],
+      "tags": [
+        "rare-loot",
+        "wraith",
+        "story",
+        "sealed"
+      ],
+      "landmarkBundle": "ossuary.tomb.nameless",
+      "stateVariants": [
+        "sealed",
+        "opened",
+        "haunted"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "E25",
+      "zoneId": "E",
+      "name": "Well of Last Names",
+      "kind": "death-well",
+      "size": [
+        16,
+        16
+      ],
+      "tags": [
+        "death-energy",
+        "wraith-spawn",
+        "boss-hook",
+        "deep-route"
+      ],
+      "landmarkBundle": "ossuary.well.last-names",
+      "stateVariants": [
+        "quiet",
+        "overflowing",
+        "sealed"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "F26",
+      "zoneId": "F",
+      "name": "Blue Spore Field",
+      "kind": "spore-field",
+      "size": [
+        20,
+        16
+      ],
+      "tags": [
+        "myconid",
+        "sleep-spores",
+        "food",
+        "visibility"
+      ],
+      "landmarkBundle": "fungal.spore-field.blue",
+      "stateVariants": [
+        "blooming",
+        "harvested",
+        "burned"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "F27",
+      "zoneId": "F",
+      "name": "Rotten Glasshouse",
+      "kind": "glasshouse",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "humidity",
+        "settlement-candidate",
+        "secret-route",
+        "fragile"
+      ],
+      "landmarkBundle": "fungal.glasshouse.rotten",
+      "stateVariants": [
+        "overgrown",
+        "cultivated",
+        "shattered"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "F28",
+      "zoneId": "F",
+      "name": "Mushroom Pillar Forest",
+      "kind": "fungal-forest",
+      "size": [
+        22,
+        17
+      ],
+      "tags": [
+        "myconid-settlement",
+        "biomass",
+        "cover",
+        "navigation"
+      ],
+      "landmarkBundle": "fungal.pillars.forest",
+      "stateVariants": [
+        "wild",
+        "communion",
+        "blighted"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "F29",
+      "zoneId": "F",
+      "name": "Sleeping Gardener's Chamber",
+      "kind": "gardener-room",
+      "size": [
+        15,
+        12
+      ],
+      "tags": [
+        "story",
+        "rare-npc",
+        "medicine",
+        "rest"
+      ],
+      "landmarkBundle": "fungal.gardener.chamber",
+      "stateVariants": [
+        "sleeping",
+        "awakened",
+        "consumed"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "F30",
+      "zoneId": "F",
+      "name": "Mycelial Heart",
+      "kind": "fungal-core",
+      "size": [
+        18,
+        16
+      ],
+      "tags": [
+        "myconid-core",
+        "biomass",
+        "zone-control",
+        "major-event"
+      ],
+      "landmarkBundle": "fungal.heart.mycelial",
+      "stateVariants": [
+        "stable",
+        "expanding",
+        "burned-out"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "G31",
+      "zoneId": "G",
+      "name": "Silk Ramp",
+      "kind": "silk-passage",
+      "size": [
+        15,
+        20
+      ],
+      "tags": [
+        "web",
+        "slow-movement",
+        "ambush",
+        "market-route"
+      ],
+      "landmarkBundle": "spider.ramp.silk",
+      "stateVariants": [
+        "webbed",
+        "cleared",
+        "burning"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "G32",
+      "zoneId": "G",
+      "name": "Host Vault",
+      "kind": "host-storage",
+      "size": [
+        17,
+        13
+      ],
+      "tags": [
+        "living-host",
+        "rescue",
+        "spider-food",
+        "horror"
+      ],
+      "landmarkBundle": "spider.vault.hosts",
+      "stateVariants": [
+        "occupied",
+        "rescued",
+        "empty-cocoons"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "G33",
+      "zoneId": "G",
+      "name": "Spawning Gallery",
+      "kind": "spider-nursery",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "spider-spawn",
+        "nursery",
+        "capacity",
+        "fire-target"
+      ],
+      "landmarkBundle": "spider.gallery.spawning",
+      "stateVariants": [
+        "brooding",
+        "overpopulated",
+        "destroyed"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "G34",
+      "zoneId": "G",
+      "name": "Vertical Well",
+      "kind": "vertical-well",
+      "size": [
+        16,
+        18
+      ],
+      "tags": [
+        "secret-route",
+        "large-height",
+        "fall-risk",
+        "royal-access"
+      ],
+      "landmarkBundle": "spider.well.vertical",
+      "stateVariants": [
+        "web-bridge",
+        "cleared",
+        "collapsed"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "G35",
+      "zoneId": "G",
+      "name": "Empty Queen's Nest",
+      "kind": "boss-nest",
+      "size": [
+        22,
+        18
+      ],
+      "tags": [
+        "boss-hook",
+        "spider-core",
+        "settlement",
+        "major-loot"
+      ],
+      "landmarkBundle": "spider.nest.queen-empty",
+      "stateVariants": [
+        "empty",
+        "queen-awakened",
+        "captured"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "H36",
+      "zoneId": "H",
+      "name": "Old Lantern Common Room",
+      "kind": "inn-common-room",
+      "size": [
+        22,
+        17
+      ],
+      "tags": [
+        "inn-core",
+        "settlement-candidate",
+        "trade",
+        "party-regroup"
+      ],
+      "landmarkBundle": "inn.old-lantern.common-room",
+      "stateVariants": [
+        "ruined",
+        "bivouac",
+        "repaired",
+        "prosperous",
+        "besieged",
+        "burned"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "H37",
+      "zoneId": "H",
+      "name": "Blackened Kitchen",
+      "kind": "inn-kitchen",
+      "size": [
+        17,
+        13
+      ],
+      "tags": [
+        "food",
+        "cooking",
+        "inn-upgrade",
+        "rat-slime-conflict"
+      ],
+      "landmarkBundle": "inn.old-lantern.kitchen",
+      "stateVariants": [
+        "blackened",
+        "camp-kitchen",
+        "working",
+        "infested"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "H38",
+      "zoneId": "H",
+      "name": "Guestroom Corridor",
+      "kind": "inn-guest-wing",
+      "size": [
+        14,
+        22
+      ],
+      "tags": [
+        "beds",
+        "capacity",
+        "spider-infiltration",
+        "resident-professions"
+      ],
+      "landmarkBundle": "inn.old-lantern.guest-wing",
+      "stateVariants": [
+        "collapsed",
+        "partitioned-camp",
+        "guestrooms",
+        "webbed"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "H39",
+      "zoneId": "H",
+      "name": "Underbarrel Cellar",
+      "kind": "inn-cellar",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "storage",
+        "drink",
+        "fungal-risk",
+        "secret-route"
+      ],
+      "landmarkBundle": "inn.old-lantern.cellar",
+      "stateVariants": [
+        "flooded",
+        "stocked",
+        "fungal-brewery",
+        "raided"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "H40",
+      "zoneId": "H",
+      "name": "Innkeeper's Secret Room",
+      "kind": "secret-office",
+      "size": [
+        11,
+        10
+      ],
+      "tags": [
+        "secret",
+        "ledger",
+        "rumor",
+        "market-route"
+      ],
+      "landmarkBundle": "inn.old-lantern.secret-office",
+      "stateVariants": [
+        "sealed",
+        "discovered",
+        "operations-room"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "I41",
+      "zoneId": "I",
+      "name": "Grand Crossroads",
+      "kind": "market-plaza",
+      "size": [
+        24,
+        19
+      ],
+      "tags": [
+        "territory-hub",
+        "trade",
+        "siege",
+        "multi-faction"
+      ],
+      "landmarkBundle": "market.crossroads.grand",
+      "stateVariants": [
+        "neutral-ruin",
+        "goblin-market",
+        "adventurer-market",
+        "orc-checkpoint",
+        "battlefield"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "I42",
+      "zoneId": "I",
+      "name": "Dead Customs House",
+      "kind": "customs-house",
+      "size": [
+        16,
+        13
+      ],
+      "tags": [
+        "toll",
+        "cargo-inspection",
+        "ambush-post",
+        "documents"
+      ],
+      "landmarkBundle": "market.customs.dead",
+      "stateVariants": [
+        "abandoned",
+        "tax-office",
+        "smuggler-held"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "I43",
+      "zoneId": "I",
+      "name": "Ruined Auction Hall",
+      "kind": "auction-hall",
+      "size": [
+        20,
+        15
+      ],
+      "tags": [
+        "equipment-market",
+        "rare-loot",
+        "faction-event",
+        "large-room"
+      ],
+      "landmarkBundle": "market.auction.ruined",
+      "stateVariants": [
+        "ruined",
+        "auction-active",
+        "orc-spoils-hall"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "I44",
+      "zoneId": "I",
+      "name": "Neutral Well",
+      "kind": "neutral-water",
+      "size": [
+        16,
+        14
+      ],
+      "tags": [
+        "water",
+        "neutrality",
+        "diplomacy",
+        "contamination"
+      ],
+      "landmarkBundle": "market.well.neutral",
+      "stateVariants": [
+        "neutral",
+        "claimed",
+        "poisoned"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "I45",
+      "zoneId": "I",
+      "name": "Smuggler's Way",
+      "kind": "secret-junction",
+      "size": [
+        13,
+        17
+      ],
+      "tags": [
+        "secret-route",
+        "cargo",
+        "ambush",
+        "inn-link"
+      ],
+      "landmarkBundle": "market.smuggler.way",
+      "stateVariants": [
+        "hidden",
+        "active",
+        "collapsed"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "J46",
+      "zoneId": "J",
+      "name": "Drill Yard",
+      "kind": "training-yard",
+      "size": [
+        22,
+        17
+      ],
+      "tags": [
+        "orc-territory",
+        "training",
+        "large-combat",
+        "siege-staging"
+      ],
+      "landmarkBundle": "orc.drill-yard",
+      "stateVariants": [
+        "training",
+        "war-muster",
+        "captured"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "J47",
+      "zoneId": "J",
+      "name": "War Armory",
+      "kind": "armory",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "equipment",
+        "siege-materials",
+        "orc-settlement",
+        "construction"
+      ],
+      "landmarkBundle": "orc.armory.war",
+      "stateVariants": [
+        "stocked",
+        "looted",
+        "exploded"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "J48",
+      "zoneId": "J",
+      "name": "Meat Store",
+      "kind": "meat-store",
+      "size": [
+        16,
+        13
+      ],
+      "tags": [
+        "food",
+        "ogre-interest",
+        "orc-supply",
+        "parasite-risk"
+      ],
+      "landmarkBundle": "orc.store.meat",
+      "stateVariants": [
+        "stocked",
+        "starved",
+        "infested"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "J49",
+      "zoneId": "J",
+      "name": "The Red Pit Arena",
+      "kind": "arena",
+      "size": [
+        24,
+        19
+      ],
+      "tags": [
+        "boss-event",
+        "morale",
+        "large-combat",
+        "spectacle"
+      ],
+      "landmarkBundle": "orc.arena.red-pit",
+      "stateVariants": [
+        "matches",
+        "chieftain-challenge",
+        "liberated"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "J50",
+      "zoneId": "J",
+      "name": "Chieftain Hall",
+      "kind": "war-hall",
+      "size": [
+        20,
+        16
+      ],
+      "tags": [
+        "orc-core",
+        "chieftain",
+        "diplomacy",
+        "royal-route"
+      ],
+      "landmarkBundle": "orc.hall.chieftain",
+      "stateVariants": [
+        "tribal-court",
+        "war-council",
+        "leaderless"
+      ],
+      "floorId": "B1",
+      "floor": -1
+    },
+    {
+      "id": "K51",
+      "zoneId": "K",
+      "name": "Alchemical Laboratory",
+      "kind": "laboratory",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "alchemy",
+        "rare-materials",
+        "equipment-upgrade",
+        "hazard"
+      ],
+      "landmarkBundle": "laboratory.alchemical.main",
+      "stateVariants": [
+        "sealed",
+        "reactivated",
+        "chemical-fire"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "K52",
+      "zoneId": "K",
+      "name": "Parasite Vats",
+      "kind": "parasite-vats",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "parasite-spawn",
+        "infection",
+        "host",
+        "research"
+      ],
+      "landmarkBundle": "laboratory.parasite.vats",
+      "stateVariants": [
+        "dormant",
+        "active",
+        "ruptured"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "K53",
+      "zoneId": "K",
+      "name": "Sealed Observatory",
+      "kind": "observatory",
+      "size": [
+        17,
+        15
+      ],
+      "tags": [
+        "map-intel",
+        "secret-discovery",
+        "magic",
+        "camera-landmark"
+      ],
+      "landmarkBundle": "laboratory.observatory.sealed",
+      "stateVariants": [
+        "sealed",
+        "calibrated",
+        "void-exposed"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "K54",
+      "zoneId": "K",
+      "name": "Failed Summoning Room",
+      "kind": "summoning-room",
+      "size": [
+        20,
+        17
+      ],
+      "tags": [
+        "wraith",
+        "boss-hook",
+        "death-energy",
+        "unstable"
+      ],
+      "landmarkBundle": "laboratory.summoning.failed",
+      "stateVariants": [
+        "dormant",
+        "breached",
+        "stabilized"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "K55",
+      "zoneId": "K",
+      "name": "Emergency Way",
+      "kind": "emergency-route",
+      "size": [
+        12,
+        20
+      ],
+      "tags": [
+        "secret-route",
+        "final-access",
+        "escape",
+        "collapse"
+      ],
+      "landmarkBundle": "laboratory.emergency.way",
+      "stateVariants": [
+        "sealed",
+        "opened",
+        "collapsed"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "L56",
+      "zoneId": "L",
+      "name": "Royal Antechamber",
+      "kind": "antechamber",
+      "size": [
+        20,
+        16
+      ],
+      "tags": [
+        "royal-entry",
+        "large-settlement",
+        "multi-route",
+        "guardians"
+      ],
+      "landmarkBundle": "royal.antechamber",
+      "stateVariants": [
+        "sealed",
+        "occupied",
+        "fortified"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "L57",
+      "zoneId": "L",
+      "name": "Crown Vault",
+      "kind": "treasure-vault",
+      "size": [
+        18,
+        14
+      ],
+      "tags": [
+        "rare-equipment",
+        "wealth",
+        "trap",
+        "laboratory-link"
+      ],
+      "landmarkBundle": "royal.vault.crown",
+      "stateVariants": [
+        "sealed",
+        "opened",
+        "stripped"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "L58",
+      "zoneId": "L",
+      "name": "Shattered Banquet Hall",
+      "kind": "banquet-hall",
+      "size": [
+        24,
+        18
+      ],
+      "tags": [
+        "food-history",
+        "settlement-candidate",
+        "large-combat",
+        "ghost-event"
+      ],
+      "landmarkBundle": "royal.banquet.shattered",
+      "stateVariants": [
+        "haunted",
+        "occupied",
+        "restored-feast"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "L59",
+      "zoneId": "L",
+      "name": "The Black Throne",
+      "kind": "throne-room",
+      "size": [
+        23,
+        18
+      ],
+      "tags": [
+        "royal-core",
+        "boss-gate",
+        "faction-capital",
+        "major-event"
+      ],
+      "landmarkBundle": "royal.throne.black",
+      "stateVariants": [
+        "empty",
+        "claimed",
+        "awakened"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "L60",
+      "zoneId": "L",
+      "name": "Royal Bedchamber",
+      "kind": "royal-bedchamber",
+      "size": [
+        17,
+        14
+      ],
+      "tags": [
+        "story",
+        "rest",
+        "secret",
+        "relic"
+      ],
+      "landmarkBundle": "royal.bedchamber",
+      "stateVariants": [
+        "sealed",
+        "searched",
+        "sanctuary"
+      ],
+      "floorId": "B2",
+      "floor": -2
+    },
+    {
+      "id": "M61",
+      "zoneId": "M",
+      "name": "The Seal Gate",
+      "kind": "final-gate",
+      "size": [
+        18,
+        13
+      ],
+      "tags": [
+        "campaign-gate",
+        "siege",
+        "ritual-lock",
+        "boss-access"
+      ],
+      "landmarkBundle": "sanctum.gate.seal",
+      "stateVariants": [
+        "sealed",
+        "under-assault",
+        "opened"
+      ],
+      "floorId": "B3",
+      "floor": -3
+    },
+    {
+      "id": "M62",
+      "zoneId": "M",
+      "name": "Circular Sanctum",
+      "kind": "sanctum",
+      "size": [
+        24,
+        20
+      ],
+      "tags": [
+        "ritual",
+        "multi-faction-event",
+        "boss-staging",
+        "major-landmark"
+      ],
+      "landmarkBundle": "sanctum.circular",
+      "stateVariants": [
+        "dormant",
+        "ritual-active",
+        "fractured"
+      ],
+      "floorId": "B3",
+      "floor": -3
+    },
+    {
+      "id": "M63",
+      "zoneId": "M",
+      "name": "Heart Chamber",
+      "kind": "final-boss-room",
+      "size": [
+        28,
+        22
+      ],
+      "tags": [
+        "boss",
+        "campaign-resolution",
+        "ecosystem-reset",
+        "hero-diorama"
+      ],
+      "landmarkBundle": "sanctum.heart.chamber",
+      "stateVariants": [
+        "sleeping",
+        "awakened",
+        "claimed",
+        "collapsed"
+      ],
+      "floorId": "B3",
+      "floor": -3
+    }
   ],
   "connections": [
-    ["A01", "A02"], ["A01", "A03"], ["A02", "A04"], ["A03", "A05"], ["A04", "A05"], ["A05", "B06"],
-    ["B06", "B07"], ["B06", "B09"], ["B07", "B08"], ["B07", "B10"], ["B08", "B09"], ["B09", "B10"], ["B08", "C11"], ["E25", "L56"],
-    ["C11", "C12"], ["C11", "C14"], ["C12", "C13"], ["C13", "C15"], ["C14", "C15"], ["C14", "D16"],
-    ["D16", "D17"], ["D16", "D18"], ["D17", "D19"], ["D18", "D19"], ["D18", "D20"], ["D19", "I41"],
-    ["E21", "E22"], ["E21", "E23"], ["E22", "E24"], ["E23", "E24"], ["E23", "E25"],
-    ["F26", "F27"], ["F26", "F28"], ["F27", "F29"], ["F28", "F29"], ["F28", "F30"], ["F30", "I44"],
-    ["G31", "G32"], ["G31", "G34"], ["G32", "G33"], ["G33", "G35"], ["G34", "G35"], ["G31", "I41"],
-    ["H36", "H37"], ["H36", "H38"], ["H37", "H39"], ["H38", "H40"], ["H39", "H40"], ["H36", "I41"],
-    ["I41", "I42"], ["I41", "I43"], ["I41", "I44"], ["I42", "I45"], ["I43", "I45"], ["I44", "I45"], ["I41", "J46"], ["I43", "D19"],
-    ["J46", "J47"], ["J46", "J49"], ["J47", "J48"], ["J47", "J50"], ["J48", "J49"], ["J49", "J50"], ["J50", "L56"],
-    ["K51", "K52"], ["K51", "K53"], ["K52", "K54"], ["K53", "K54"], ["K53", "K55"], ["K54", "K55"], ["K51", "L57"],
-    ["L56", "L57"], ["L56", "L58"], ["L57", "L59"], ["L58", "L59"], ["L58", "L60"], ["L59", "L60"], ["L59", "M61"],
-    ["M61", "M62"], ["M62", "M63"]
+    [
+      "A01",
+      "A02"
+    ],
+    [
+      "A01",
+      "A03"
+    ],
+    [
+      "A02",
+      "A04"
+    ],
+    [
+      "A03",
+      "A05"
+    ],
+    [
+      "A04",
+      "A05"
+    ],
+    [
+      "B06",
+      "B07"
+    ],
+    [
+      "B06",
+      "B09"
+    ],
+    [
+      "B07",
+      "B08"
+    ],
+    [
+      "B07",
+      "B10"
+    ],
+    [
+      "B08",
+      "B09"
+    ],
+    [
+      "B09",
+      "B10"
+    ],
+    [
+      "B08",
+      "C11"
+    ],
+    [
+      "E25",
+      "L56"
+    ],
+    [
+      "C11",
+      "C12"
+    ],
+    [
+      "C11",
+      "C14"
+    ],
+    [
+      "C12",
+      "C13"
+    ],
+    [
+      "C13",
+      "C15"
+    ],
+    [
+      "C14",
+      "C15"
+    ],
+    [
+      "C14",
+      "D16"
+    ],
+    [
+      "D16",
+      "D17"
+    ],
+    [
+      "D16",
+      "D18"
+    ],
+    [
+      "D17",
+      "D19"
+    ],
+    [
+      "D18",
+      "D19"
+    ],
+    [
+      "D18",
+      "D20"
+    ],
+    [
+      "D19",
+      "I41"
+    ],
+    [
+      "E21",
+      "E22"
+    ],
+    [
+      "E21",
+      "E23"
+    ],
+    [
+      "E22",
+      "E24"
+    ],
+    [
+      "E23",
+      "E24"
+    ],
+    [
+      "E23",
+      "E25"
+    ],
+    [
+      "F26",
+      "F27"
+    ],
+    [
+      "F26",
+      "F28"
+    ],
+    [
+      "F27",
+      "F29"
+    ],
+    [
+      "F28",
+      "F29"
+    ],
+    [
+      "F28",
+      "F30"
+    ],
+    [
+      "G31",
+      "G32"
+    ],
+    [
+      "G31",
+      "G34"
+    ],
+    [
+      "G32",
+      "G33"
+    ],
+    [
+      "G33",
+      "G35"
+    ],
+    [
+      "G34",
+      "G35"
+    ],
+    [
+      "H36",
+      "H37"
+    ],
+    [
+      "H36",
+      "H38"
+    ],
+    [
+      "H39",
+      "H40"
+    ],
+    [
+      "H36",
+      "I41"
+    ],
+    [
+      "I41",
+      "I42"
+    ],
+    [
+      "I41",
+      "I43"
+    ],
+    [
+      "I41",
+      "I44"
+    ],
+    [
+      "I41",
+      "J46"
+    ],
+    [
+      "I43",
+      "D19"
+    ],
+    [
+      "J46",
+      "J47"
+    ],
+    [
+      "J46",
+      "J49"
+    ],
+    [
+      "J47",
+      "J48"
+    ],
+    [
+      "J47",
+      "J50"
+    ],
+    [
+      "J48",
+      "J49"
+    ],
+    [
+      "J49",
+      "J50"
+    ],
+    [
+      "K51",
+      "K52"
+    ],
+    [
+      "K51",
+      "K53"
+    ],
+    [
+      "K52",
+      "K54"
+    ],
+    [
+      "K53",
+      "K54"
+    ],
+    [
+      "K53",
+      "K55"
+    ],
+    [
+      "K54",
+      "K55"
+    ],
+    [
+      "K51",
+      "L57"
+    ],
+    [
+      "L56",
+      "L57"
+    ],
+    [
+      "L56",
+      "L58"
+    ],
+    [
+      "L57",
+      "L59"
+    ],
+    [
+      "L58",
+      "L59"
+    ],
+    [
+      "L58",
+      "L60"
+    ],
+    [
+      "L59",
+      "L60"
+    ],
+    [
+      "M61",
+      "M62"
+    ],
+    [
+      "M62",
+      "M63"
+    ],
+    [
+      "E25",
+      "F27"
+    ],
+    [
+      "F30",
+      "I45"
+    ],
+    [
+      "G31",
+      "I45"
+    ],
+    [
+      "H39",
+      "I45"
+    ],
+    [
+      "B10",
+      "H38"
+    ],
+    [
+      "C13",
+      "D17"
+    ],
+    [
+      "D20",
+      "I43"
+    ],
+    [
+      "I42",
+      "J47"
+    ],
+    [
+      "F29",
+      "H39"
+    ],
+    [
+      "G35",
+      "L58"
+    ]
   ],
   "conditionalConnections": [
-    { "id": "conn-C15-F26", "from": "C15", "to": "F26", "condition": "sluice-drained", "defaultState": "locked" },
-    { "id": "conn-D20-J48", "from": "D20", "to": "J48", "condition": "powder-wall-breached", "defaultState": "locked" },
-    { "id": "conn-K55-M61", "from": "K55", "to": "M61", "condition": "emergency-way-opened", "defaultState": "locked" }
+    {
+      "id": "conn-D20-J48",
+      "from": "D20",
+      "to": "J48",
+      "condition": "powder-wall-breached",
+      "defaultState": "locked"
+    },
+    {
+      "id": "conn-F28-I45",
+      "from": "F28",
+      "to": "I45",
+      "condition": "mycelial-route-open",
+      "defaultState": "locked"
+    },
+    {
+      "id": "conn-K55-L60",
+      "from": "K55",
+      "to": "L60",
+      "condition": "observatory-bridge-open",
+      "defaultState": "locked"
+    }
   ],
   "secretConnections": [
-    { "id": "secret-B10-E21", "from": "B10", "to": "E21", "discovery": ["chapel-search", "ossuary-rumor"] },
-    { "id": "secret-B08-H39", "from": "B08", "to": "H39", "discovery": ["rogue-search", "inn-ledger", "wall-break"] },
-    { "id": "secret-C14-F27", "from": "C14", "to": "F27", "discovery": ["drainage-engine-reactivated", "kobold-map"] },
-    { "id": "secret-D19-I45", "from": "D19", "to": "I45", "discovery": ["goblin-trade", "smuggler-rumor"] },
-    { "id": "secret-G34-L56", "from": "G34", "to": "L56", "discovery": ["spider-path-observed", "silk-bridge-cleared"] },
-    { "id": "secret-H40-I45", "from": "H40", "to": "I45", "discovery": ["innkeeper-ledger-found"] },
-    { "id": "secret-K55-M61", "from": "K55", "to": "M61", "discovery": ["observatory-calibrated", "laboratory-key"] }
+    {
+      "id": "secret-G34-L56",
+      "from": "G34",
+      "to": "L56",
+      "discovery": [
+        "spider-path-observed",
+        "silk-bridge-cleared"
+      ]
+    },
+    {
+      "id": "secret-H40-I45",
+      "from": "H40",
+      "to": "I45",
+      "discovery": [
+        "innkeeper-ledger-found"
+      ]
+    },
+    {
+      "id": "secret-B08-H37",
+      "from": "B08",
+      "to": "H37",
+      "discovery": [
+        "laundry-ledger",
+        "service-wall-search"
+      ]
+    },
+    {
+      "id": "secret-C14-D18",
+      "from": "C14",
+      "to": "D18",
+      "discovery": [
+        "drainage-engine-reactivated",
+        "kobold-map"
+      ]
+    },
+    {
+      "id": "secret-D19-H38",
+      "from": "D19",
+      "to": "H38",
+      "discovery": [
+        "goblin-trade",
+        "inn-smuggler-rumor"
+      ]
+    },
+    {
+      "id": "secret-K54-L60",
+      "from": "K54",
+      "to": "L60",
+      "discovery": [
+        "laboratory-key",
+        "royal-bedchamber-rumor"
+      ]
+    },
+    {
+      "id": "secret-E24-K52",
+      "from": "E24",
+      "to": "K52",
+      "discovery": [
+        "nameless-tomb-inscription",
+        "laboratory-archive"
+      ]
+    }
   ],
   "factions": [
-    { "id": "lantern-compact", "runtimeFactionId": "adventurer-expedition", "initialRooms": ["A01", "A02", "A04"], "goals": ["restore-old-lantern-inn", "reach-royal-laboratory", "open-heart-sanctum"] },
-    { "id": "brass-button-market", "runtimeFactionId": "goblin-clan", "initialRooms": ["D19", "D17"], "goals": ["control-central-market", "collect-scrap", "trade-or-steal"] },
-    { "id": "copper-tail-clutch", "runtimeFactionId": "copper-tail-clutch", "initialRooms": ["D18", "C14"], "goals": ["control-machinery", "fortify-secret-routes", "sell-safe-passage"] },
-    { "id": "red-tusk-host", "runtimeFactionId": "red-tusk-tribe", "initialRooms": ["J46", "J47", "J48", "J49", "J50"], "goals": ["capture-central-market", "collect-meat", "besiege-royal-quarter"] },
-    { "id": "choir-unfinished-names", "runtimeFactionId": "undead-host", "initialRooms": ["E21", "E22", "E23", "E25"], "goals": ["collect-corpses", "restore-funeral-chapel", "spread-ossuary-outposts"] },
-    { "id": "bluecap-communion", "runtimeFactionId": "bluecap-colony", "initialRooms": ["F26", "F28", "F30"], "goals": ["expand-humidity", "convert-corpses", "reach-inn-cellar"] },
-    { "id": "red-silk-brood", "runtimeFactionId": "red-wing-brood", "initialRooms": ["G31", "G32", "G33", "G35"], "goals": ["capture-hosts", "restore-queen-nest", "infiltrate-inn"] }
+    {
+      "id": "lantern-compact",
+      "runtimeFactionId": "adventurer-expedition",
+      "initialRooms": [
+        "A01",
+        "A02",
+        "A04"
+      ],
+      "goals": [
+        "restore-old-lantern-inn",
+        "reach-royal-laboratory",
+        "open-heart-sanctum"
+      ]
+    },
+    {
+      "id": "brass-button-market",
+      "runtimeFactionId": "goblin-clan",
+      "initialRooms": [
+        "D19",
+        "D17"
+      ],
+      "goals": [
+        "control-central-market",
+        "collect-scrap",
+        "trade-or-steal"
+      ]
+    },
+    {
+      "id": "copper-tail-clutch",
+      "runtimeFactionId": "copper-tail-clutch",
+      "initialRooms": [
+        "D18",
+        "C14"
+      ],
+      "goals": [
+        "control-machinery",
+        "fortify-secret-routes",
+        "sell-safe-passage"
+      ]
+    },
+    {
+      "id": "red-tusk-host",
+      "runtimeFactionId": "red-tusk-tribe",
+      "initialRooms": [
+        "J46",
+        "J47",
+        "J48",
+        "J49",
+        "J50"
+      ],
+      "goals": [
+        "capture-central-market",
+        "collect-meat",
+        "besiege-royal-quarter"
+      ]
+    },
+    {
+      "id": "choir-unfinished-names",
+      "runtimeFactionId": "undead-host",
+      "initialRooms": [
+        "E21",
+        "E22",
+        "E23",
+        "E25"
+      ],
+      "goals": [
+        "collect-corpses",
+        "restore-funeral-chapel",
+        "spread-ossuary-outposts"
+      ]
+    },
+    {
+      "id": "bluecap-communion",
+      "runtimeFactionId": "bluecap-colony",
+      "initialRooms": [
+        "F26",
+        "F28",
+        "F30"
+      ],
+      "goals": [
+        "expand-humidity",
+        "convert-corpses",
+        "reach-inn-cellar"
+      ]
+    },
+    {
+      "id": "red-silk-brood",
+      "runtimeFactionId": "red-wing-brood",
+      "initialRooms": [
+        "G31",
+        "G32",
+        "G33",
+        "G35"
+      ],
+      "goals": [
+        "capture-hosts",
+        "restore-queen-nest",
+        "infiltrate-inn"
+      ]
+    }
   ],
   "campaignMilestones": [
-    { "id": "first-safe-descent", "requirements": ["A05-visited"], "effects": ["unlock-zone-B-rumors"] },
-    { "id": "first-interior-base", "requirements": ["adventurer-settlement-tier-1"], "effects": ["extend-expedition-endurance"] },
-    { "id": "old-lantern-restored", "requirements": ["H36-settlement-tier-3", "H37-working", "H38-capacity-8"], "effects": ["unlock-inn-party-spawn", "unlock-neutral-traders"] },
-    { "id": "central-market-settled", "requirements": ["I41-control-70"], "effects": ["unlock-faction-diplomacy", "increase-cargo-traffic"] },
-    { "id": "royal-quarter-open", "requirements": ["L56-accessible", "K51-or-J50-resolved"], "effects": ["unlock-zone-L"] },
-    { "id": "heart-awakened", "requirements": ["M61-open", "three-major-faction-states-resolved"], "effects": ["activate-M63-boss-state"] }
+    {
+      "id": "first-safe-descent",
+      "requirements": [
+        "A05-visited"
+      ],
+      "effects": [
+        "unlock-zone-B-rumors"
+      ]
+    },
+    {
+      "id": "first-interior-base",
+      "requirements": [
+        "adventurer-settlement-tier-1"
+      ],
+      "effects": [
+        "extend-expedition-endurance"
+      ]
+    },
+    {
+      "id": "old-lantern-restored",
+      "requirements": [
+        "H36-settlement-tier-3",
+        "H37-working",
+        "H38-capacity-8"
+      ],
+      "effects": [
+        "unlock-inn-party-spawn",
+        "unlock-neutral-traders"
+      ]
+    },
+    {
+      "id": "central-market-settled",
+      "requirements": [
+        "I41-control-70"
+      ],
+      "effects": [
+        "unlock-faction-diplomacy",
+        "increase-cargo-traffic"
+      ]
+    },
+    {
+      "id": "royal-quarter-open",
+      "requirements": [
+        "L56-accessible",
+        "K51-or-J50-resolved"
+      ],
+      "effects": [
+        "unlock-zone-L"
+      ]
+    },
+    {
+      "id": "heart-awakened",
+      "requirements": [
+        "M61-open",
+        "three-major-faction-states-resolved"
+      ],
+      "effects": [
+        "activate-M63-boss-state"
+      ]
+    }
   ],
   "globalEvents": [
-    { "id": "sluice-failure", "zones": ["C", "F"], "effects": ["flood-level-change", "route-change", "slime-growth"] },
-    { "id": "market-war", "zones": ["D", "I", "J"], "effects": ["cargo-raid-surge", "siege-jobs", "refugees"] },
-    { "id": "red-silk-migration", "zones": ["G", "H", "L"], "effects": ["webbed-connections", "host-capture", "secret-route-discovery"] },
-    { "id": "choir-rising", "zones": ["E", "L"], "effects": ["corpse-conversion", "death-energy-surge", "holy-demand"] },
-    { "id": "inn-festival", "zones": ["H", "I"], "requirements": ["old-lantern-restored"], "effects": ["stress-reduction", "trade-boost", "rare-recruit"] }
+    {
+      "id": "sluice-failure",
+      "zones": [
+        "C",
+        "F"
+      ],
+      "effects": [
+        "flood-level-change",
+        "route-change",
+        "slime-growth"
+      ]
+    },
+    {
+      "id": "market-war",
+      "zones": [
+        "D",
+        "I",
+        "J"
+      ],
+      "effects": [
+        "cargo-raid-surge",
+        "siege-jobs",
+        "refugees"
+      ]
+    },
+    {
+      "id": "red-silk-migration",
+      "zones": [
+        "G",
+        "H",
+        "L"
+      ],
+      "effects": [
+        "webbed-connections",
+        "host-capture",
+        "secret-route-discovery"
+      ]
+    },
+    {
+      "id": "choir-rising",
+      "zones": [
+        "E",
+        "L"
+      ],
+      "effects": [
+        "corpse-conversion",
+        "death-energy-surge",
+        "holy-demand"
+      ]
+    },
+    {
+      "id": "inn-festival",
+      "zones": [
+        "H",
+        "I"
+      ],
+      "requirements": [
+        "old-lantern-restored"
+      ],
+      "effects": [
+        "stress-reduction",
+        "trade-boost",
+        "rare-recruit"
+      ]
+    }
   ],
   "validation": {
     "expectedRoomCount": 63,
-    "minimumSecretConnections": 6,
+    "minimumSecretConnections": 7,
     "minimumSettlementCandidates": 8,
     "minimumLargeCreatureDoorWidth": 1.8,
     "requireLandmarkBundleForEveryRoom": true,
     "requireStateVariantsForEveryRoom": true,
-    "allowRuntimeMissingAssetsDuringDesign": true
-  }
+    "allowRuntimeMissingAssetsDuringDesign": true,
+    "requireExplicitFloors": true,
+    "requireVerticalConnectors": true,
+    "requireHorizontalCorridors": true
+  },
+  "wp13FloorArchitecture": {
+    "version": 1,
+    "mode": "formal-floor-map",
+    "horizontalCorridorsOnly": true,
+    "connectorCount": 9
+  },
+  "floors": [
+    {
+      "id": "F0",
+      "index": 0,
+      "elevation": 0,
+      "name": {
+        "en": "Lantern Gate",
+        "ko": "지상 관문"
+      },
+      "cameraProfile": "entry",
+      "ambientProfile": "surface-gate",
+      "roomIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05"
+      ]
+    },
+    {
+      "id": "B1",
+      "index": -1,
+      "elevation": -5.4,
+      "name": {
+        "en": "Outer Citadel",
+        "ko": "외성 생활·산업층"
+      },
+      "cameraProfile": "outer-citadel",
+      "ambientProfile": "outer-citadel",
+      "roomIds": [
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "D16",
+        "D17",
+        "D18",
+        "D19",
+        "D20",
+        "H36",
+        "H37",
+        "H38",
+        "I41",
+        "I42",
+        "I43",
+        "I44",
+        "J46",
+        "J47",
+        "J48",
+        "J49",
+        "J50"
+      ]
+    },
+    {
+      "id": "B2",
+      "index": -2,
+      "elevation": -10.8,
+      "name": {
+        "en": "Deep Citadel",
+        "ko": "심층 생태·왕실층"
+      },
+      "cameraProfile": "deep-citadel",
+      "ambientProfile": "deep-citadel",
+      "roomIds": [
+        "E21",
+        "E22",
+        "E23",
+        "E24",
+        "E25",
+        "F26",
+        "F27",
+        "F28",
+        "F29",
+        "F30",
+        "G31",
+        "G32",
+        "G33",
+        "G34",
+        "G35",
+        "H39",
+        "H40",
+        "I45",
+        "K51",
+        "K52",
+        "K53",
+        "K54",
+        "K55",
+        "L56",
+        "L57",
+        "L58",
+        "L59",
+        "L60"
+      ]
+    },
+    {
+      "id": "B3",
+      "index": -3,
+      "elevation": -16.2,
+      "name": {
+        "en": "Heart Sanctum",
+        "ko": "심장 성소"
+      },
+      "cameraProfile": "heart-sanctum",
+      "ambientProfile": "heart-sanctum",
+      "roomIds": [
+        "M61",
+        "M62",
+        "M63"
+      ]
+    }
+  ],
+  "verticalConnectors": [
+    {
+      "id": "VC-01",
+      "type": "grand-stair",
+      "state": "open",
+      "initialState": "open",
+      "capacity": 6,
+      "queueCapacity": 8,
+      "transitTime": 2.4,
+      "allowsCargo": true,
+      "allowsLargeActors": true,
+      "accessCondition": "first-safe-descent",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "route-A05-B06"
+      ],
+      "from": {
+        "id": "VC-01:F0",
+        "connectorId": "VC-01",
+        "floorId": "F0",
+        "roomId": "A05",
+        "position": {
+          "x": 40,
+          "z": -36
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 40,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": 39.35,
+            "z": -34.3
+          },
+          {
+            "x": 40.65,
+            "z": -34.3
+          },
+          {
+            "x": 39.35,
+            "z": -32.95
+          },
+          {
+            "x": 40.65,
+            "z": -32.95
+          },
+          {
+            "x": 39.35,
+            "z": -31.6
+          },
+          {
+            "x": 40.65,
+            "z": -31.6
+          }
+        ],
+        "cameraAnchor": {
+          "x": 40,
+          "z": -36,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-01:B1",
+        "connectorId": "VC-01",
+        "floorId": "B1",
+        "roomId": "B06",
+        "position": {
+          "x": 40,
+          "z": -36
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 40,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": 39.35,
+            "z": -37.7
+          },
+          {
+            "x": 40.65,
+            "z": -37.7
+          },
+          {
+            "x": 39.35,
+            "z": -39.05
+          },
+          {
+            "x": 40.65,
+            "z": -39.05
+          },
+          {
+            "x": 39.35,
+            "z": -40.4
+          },
+          {
+            "x": 40.65,
+            "z": -40.4
+          }
+        ],
+        "cameraAnchor": {
+          "x": 40,
+          "z": -36,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-02",
+      "type": "maintenance-lift",
+      "state": "locked",
+      "initialState": "locked",
+      "capacity": 4,
+      "queueCapacity": 6,
+      "transitTime": 3.2,
+      "allowsCargo": true,
+      "allowsLargeActors": false,
+      "accessCondition": "sluice-drained",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "conn-C15-F26"
+      ],
+      "from": {
+        "id": "VC-02:B1",
+        "connectorId": "VC-02",
+        "floorId": "B1",
+        "roomId": "C15",
+        "position": {
+          "x": 0,
+          "z": -148
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 0,
+          "z": -148
+        },
+        "queueSockets": [
+          {
+            "x": -0.65,
+            "z": -146.3
+          },
+          {
+            "x": 0.65,
+            "z": -146.3
+          },
+          {
+            "x": -0.65,
+            "z": -144.95
+          },
+          {
+            "x": 0.65,
+            "z": -144.95
+          }
+        ],
+        "cameraAnchor": {
+          "x": 0,
+          "z": -148,
+          "distance": 23
+        }
+      },
+      "to": {
+        "id": "VC-02:B2",
+        "connectorId": "VC-02",
+        "floorId": "B2",
+        "roomId": "F26",
+        "position": {
+          "x": 0,
+          "z": -148
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 0,
+          "z": -148
+        },
+        "queueSockets": [
+          {
+            "x": -0.65,
+            "z": -149.7
+          },
+          {
+            "x": 0.65,
+            "z": -149.7
+          },
+          {
+            "x": -0.65,
+            "z": -151.05
+          },
+          {
+            "x": 0.65,
+            "z": -151.05
+          }
+        ],
+        "cameraAnchor": {
+          "x": 0,
+          "z": -148,
+          "distance": 23
+        }
+      }
+    },
+    {
+      "id": "VC-03",
+      "type": "secret-stair",
+      "state": "hidden",
+      "initialState": "hidden",
+      "capacity": 2,
+      "queueCapacity": 4,
+      "transitTime": 2.4,
+      "allowsCargo": false,
+      "allowsLargeActors": false,
+      "accessCondition": "chapel-search",
+      "visibility": "hidden",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "secret-B10-E21"
+      ],
+      "from": {
+        "id": "VC-03:B1",
+        "connectorId": "VC-03",
+        "floorId": "B1",
+        "roomId": "B10",
+        "position": {
+          "x": -20,
+          "z": -36
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": -20,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": -20.65,
+            "z": -34.3
+          },
+          {
+            "x": -19.35,
+            "z": -34.3
+          }
+        ],
+        "cameraAnchor": {
+          "x": -20,
+          "z": -36,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-03:B2",
+        "connectorId": "VC-03",
+        "floorId": "B2",
+        "roomId": "E21",
+        "position": {
+          "x": -20,
+          "z": -36
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": -20,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": -20.65,
+            "z": -37.7
+          },
+          {
+            "x": -19.35,
+            "z": -37.7
+          }
+        ],
+        "cameraAnchor": {
+          "x": -20,
+          "z": -36,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-04",
+      "type": "spiral-stair",
+      "state": "webbed",
+      "initialState": "webbed",
+      "capacity": 3,
+      "queueCapacity": 5,
+      "transitTime": 2.4,
+      "allowsCargo": false,
+      "allowsLargeActors": false,
+      "accessCondition": "red-silk-cleared",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 0,
+      "legacyRouteIds": [
+        "route-G31-I41"
+      ],
+      "from": {
+        "id": "VC-04:B1",
+        "connectorId": "VC-04",
+        "floorId": "B1",
+        "roomId": "I41",
+        "position": {
+          "x": 140,
+          "z": -48
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 140,
+          "z": -48
+        },
+        "queueSockets": [
+          {
+            "x": 139.35,
+            "z": -46.3
+          },
+          {
+            "x": 140.65,
+            "z": -46.3
+          },
+          {
+            "x": 139.35,
+            "z": -44.95
+          }
+        ],
+        "cameraAnchor": {
+          "x": 140,
+          "z": -48,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-04:B2",
+        "connectorId": "VC-04",
+        "floorId": "B2",
+        "roomId": "G31",
+        "position": {
+          "x": 140,
+          "z": -48
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 140,
+          "z": -48
+        },
+        "queueSockets": [
+          {
+            "x": 139.35,
+            "z": -49.7
+          },
+          {
+            "x": 140.65,
+            "z": -49.7
+          },
+          {
+            "x": 139.35,
+            "z": -51.05
+          }
+        ],
+        "cameraAnchor": {
+          "x": 140,
+          "z": -48,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-05",
+      "type": "well-hoist",
+      "state": "inactive",
+      "initialState": "inactive",
+      "capacity": 3,
+      "queueCapacity": 5,
+      "transitTime": 3.2,
+      "allowsCargo": "light",
+      "allowsLargeActors": false,
+      "accessCondition": "neutral-well-pact",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "route-F30-I44"
+      ],
+      "from": {
+        "id": "VC-05:B1",
+        "connectorId": "VC-05",
+        "floorId": "B1",
+        "roomId": "I44",
+        "position": {
+          "x": 92,
+          "z": -52
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 92,
+          "z": -52
+        },
+        "queueSockets": [
+          {
+            "x": 91.35,
+            "z": -50.3
+          },
+          {
+            "x": 92.65,
+            "z": -50.3
+          },
+          {
+            "x": 91.35,
+            "z": -48.95
+          }
+        ],
+        "cameraAnchor": {
+          "x": 92,
+          "z": -52,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-05:B2",
+        "connectorId": "VC-05",
+        "floorId": "B2",
+        "roomId": "F30",
+        "position": {
+          "x": 92,
+          "z": -52
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 92,
+          "z": -52
+        },
+        "queueSockets": [
+          {
+            "x": 91.35,
+            "z": -53.7
+          },
+          {
+            "x": 92.65,
+            "z": -53.7
+          },
+          {
+            "x": 91.35,
+            "z": -55.05
+          }
+        ],
+        "cameraAnchor": {
+          "x": 92,
+          "z": -52,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-06",
+      "type": "service-stair",
+      "state": "blocked",
+      "initialState": "blocked",
+      "capacity": 4,
+      "queueCapacity": 6,
+      "transitTime": 2.4,
+      "allowsCargo": true,
+      "allowsLargeActors": false,
+      "accessCondition": "old-lantern-restored",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 0,
+      "legacyRouteIds": [
+        "route-H37-H39",
+        "route-H38-H40",
+        "secret-B08-H39"
+      ],
+      "from": {
+        "id": "VC-06:B1",
+        "connectorId": "VC-06",
+        "floorId": "B1",
+        "roomId": "H36",
+        "position": {
+          "x": 108,
+          "z": -12
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 108,
+          "z": -12
+        },
+        "queueSockets": [
+          {
+            "x": 107.35,
+            "z": -10.3
+          },
+          {
+            "x": 108.65,
+            "z": -10.3
+          },
+          {
+            "x": 107.35,
+            "z": -8.95
+          },
+          {
+            "x": 108.65,
+            "z": -8.95
+          }
+        ],
+        "cameraAnchor": {
+          "x": 108,
+          "z": -12,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-06:B2",
+        "connectorId": "VC-06",
+        "floorId": "B2",
+        "roomId": "H39",
+        "position": {
+          "x": 108,
+          "z": -12
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 108,
+          "z": -12
+        },
+        "queueSockets": [
+          {
+            "x": 107.35,
+            "z": -13.7
+          },
+          {
+            "x": 108.65,
+            "z": -13.7
+          },
+          {
+            "x": 107.35,
+            "z": -15.05
+          },
+          {
+            "x": 108.65,
+            "z": -15.05
+          }
+        ],
+        "cameraAnchor": {
+          "x": 108,
+          "z": -12,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-07",
+      "type": "freight-lift",
+      "state": "sealed",
+      "initialState": "sealed",
+      "capacity": 8,
+      "queueCapacity": 10,
+      "transitTime": 3.2,
+      "allowsCargo": true,
+      "allowsLargeActors": true,
+      "accessCondition": "royal-quarter-open",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "route-J50-L56"
+      ],
+      "from": {
+        "id": "VC-07:B1",
+        "connectorId": "VC-07",
+        "floorId": "B1",
+        "roomId": "J50",
+        "position": {
+          "x": 232,
+          "z": -108
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 232,
+          "z": -108
+        },
+        "queueSockets": [
+          {
+            "x": 231.35,
+            "z": -106.3
+          },
+          {
+            "x": 232.65,
+            "z": -106.3
+          },
+          {
+            "x": 231.35,
+            "z": -104.95
+          },
+          {
+            "x": 232.65,
+            "z": -104.95
+          },
+          {
+            "x": 231.35,
+            "z": -103.6
+          },
+          {
+            "x": 232.65,
+            "z": -103.6
+          },
+          {
+            "x": 231.35,
+            "z": -102.25
+          },
+          {
+            "x": 232.65,
+            "z": -102.25
+          }
+        ],
+        "cameraAnchor": {
+          "x": 232,
+          "z": -108,
+          "distance": 23
+        }
+      },
+      "to": {
+        "id": "VC-07:B2",
+        "connectorId": "VC-07",
+        "floorId": "B2",
+        "roomId": "L56",
+        "position": {
+          "x": 232,
+          "z": -108
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 232,
+          "z": -108
+        },
+        "queueSockets": [
+          {
+            "x": 231.35,
+            "z": -109.7
+          },
+          {
+            "x": 232.65,
+            "z": -109.7
+          },
+          {
+            "x": 231.35,
+            "z": -111.05
+          },
+          {
+            "x": 232.65,
+            "z": -111.05
+          },
+          {
+            "x": 231.35,
+            "z": -112.4
+          },
+          {
+            "x": 232.65,
+            "z": -112.4
+          },
+          {
+            "x": 231.35,
+            "z": -113.75
+          },
+          {
+            "x": 232.65,
+            "z": -113.75
+          }
+        ],
+        "cameraAnchor": {
+          "x": 232,
+          "z": -108,
+          "distance": 23
+        }
+      }
+    },
+    {
+      "id": "VC-08",
+      "type": "processional-stair",
+      "state": "ritual-locked",
+      "initialState": "ritual-locked",
+      "capacity": 8,
+      "queueCapacity": 10,
+      "transitTime": 2.4,
+      "allowsCargo": false,
+      "allowsLargeActors": true,
+      "accessCondition": "heart-awakened",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "route-L59-M61"
+      ],
+      "from": {
+        "id": "VC-08:B2",
+        "connectorId": "VC-08",
+        "floorId": "B2",
+        "roomId": "L59",
+        "position": {
+          "x": 280,
+          "z": -36
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 280,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": 279.35,
+            "z": -34.3
+          },
+          {
+            "x": 280.65,
+            "z": -34.3
+          },
+          {
+            "x": 279.35,
+            "z": -32.95
+          },
+          {
+            "x": 280.65,
+            "z": -32.95
+          },
+          {
+            "x": 279.35,
+            "z": -31.6
+          },
+          {
+            "x": 280.65,
+            "z": -31.6
+          },
+          {
+            "x": 279.35,
+            "z": -30.25
+          },
+          {
+            "x": 280.65,
+            "z": -30.25
+          }
+        ],
+        "cameraAnchor": {
+          "x": 280,
+          "z": -36,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-08:B3",
+        "connectorId": "VC-08",
+        "floorId": "B3",
+        "roomId": "M61",
+        "position": {
+          "x": 280,
+          "z": -36
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 280,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": 279.35,
+            "z": -37.7
+          },
+          {
+            "x": 280.65,
+            "z": -37.7
+          },
+          {
+            "x": 279.35,
+            "z": -39.05
+          },
+          {
+            "x": 280.65,
+            "z": -39.05
+          },
+          {
+            "x": 279.35,
+            "z": -40.4
+          },
+          {
+            "x": 280.65,
+            "z": -40.4
+          },
+          {
+            "x": 279.35,
+            "z": -41.75
+          },
+          {
+            "x": 280.65,
+            "z": -41.75
+          }
+        ],
+        "cameraAnchor": {
+          "x": 280,
+          "z": -36,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-09",
+      "type": "counterweight-shaft",
+      "state": "hidden",
+      "initialState": "hidden",
+      "capacity": 2,
+      "queueCapacity": 4,
+      "transitTime": 2.4,
+      "allowsCargo": false,
+      "allowsLargeActors": false,
+      "accessCondition": "emergency-way-opened",
+      "visibility": "hidden",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "conn-K55-M61",
+        "secret-K55-M61"
+      ],
+      "from": {
+        "id": "VC-09:B2",
+        "connectorId": "VC-09",
+        "floorId": "B2",
+        "roomId": "K55",
+        "position": {
+          "x": 232,
+          "z": 0
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 232,
+          "z": 0
+        },
+        "queueSockets": [
+          {
+            "x": 231.35,
+            "z": 1.7
+          },
+          {
+            "x": 232.65,
+            "z": 1.7
+          }
+        ],
+        "cameraAnchor": {
+          "x": 232,
+          "z": 0,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-09:B3",
+        "connectorId": "VC-09",
+        "floorId": "B3",
+        "roomId": "M61",
+        "position": {
+          "x": 232,
+          "z": 0
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 232,
+          "z": 0
+        },
+        "queueSockets": [
+          {
+            "x": 231.35,
+            "z": -1.7
+          },
+          {
+            "x": 232.65,
+            "z": -1.7
+          }
+        ],
+        "cameraAnchor": {
+          "x": 232,
+          "z": 0,
+          "distance": 20
+        }
+      }
+    }
+  ]
 }

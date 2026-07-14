@@ -136,6 +136,14 @@ function normalizeRoutes(linksOrRoutes = []) {
 }
 
 function buildAuthoredConnection(route, a, b, index) {
+  if (route.floorId) {
+    const aFloorId = a.floorId ?? route.floorId;
+    const bFloorId = b.floorId ?? route.floorId;
+    const hasYOffset = (route.points ?? []).some(point => Number.isFinite(point.yOffset));
+    if (aFloorId !== bFloorId || route.floorId !== aFloorId || route.vertical || route.fromFloor !== route.toFloor || Number(route.elevation ?? 0) !== 0 || hasYOffset) {
+      throw new Error(`formal horizontal corridor ${route.id} violates the same-floor invariant`);
+    }
+  }
   const aPort = normalizeAuthoredPort(route.ports?.[a.id], a, route.id, 'a');
   const bPort = normalizeAuthoredPort(route.ports?.[b.id], b, route.id, 'b');
   const elevation = Number.isFinite(route.elevation) ? route.elevation : 0;

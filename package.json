@@ -45,7 +45,7 @@
     "test:campaign-map": "node tests/campaign-map-integration-audit.mjs",
     "test:asset-integration": "node tests/phase8-asset-resolver-smoke.mjs",
     "test:assets": "npm run test:miniatures && npm run test:fungal && npm run test:spider && npm run test:waystation && npm run test:residential && npm run test:flooded && npm run test:laboratory && npm run test:royal && npm run test:old-lantern && npm run test:central-market && npm run test:orc-barracks && npm run test:industrial && npm run test:ossuary && npm run test:campaign-completion && npm run test:campaign-placement && npm run test:campaign-map && npm run test:world-interaction && npm run test:asset-integration",
-    "test:production": "npm run validate:production-content && npm run test:content && npm run test:facade && npm run test:presentation && npm run test:assets && npm run test:campaign-layout && npm run test:environment-tasks && npm run test:settlement-operations && npm run test:zone-interactions && npm run test:observer-controls && npm run test:wp7 && npm run test:wp7c && npm run test:wp8a && npm run test:wp8b && npm run test:wp8c && npm run test:wp8d && npm run test:wp8e && npm run test:wp9a && npm run test:wp9b && npm run test:camera-v10 && npm run test:height-stability && npm run test:wp11 && npm run test:wp12",
+    "test:production": "npm run validate:production-content && npm run test:content && npm run test:facade && npm run test:presentation && npm run test:assets && npm run test:campaign-layout && npm run test:environment-tasks && npm run test:settlement-operations && npm run test:zone-interactions && npm run test:observer-controls && npm run test:wp7 && npm run test:wp7c && npm run test:wp8a && npm run test:wp8b && npm run test:wp8c && npm run test:wp8d && npm run test:wp8e && npm run test:wp9a && npm run test:wp9b && npm run test:camera-v10 && npm run test:height-stability && npm run test:wp11 && npm run test:wp12 && npm run test:wp13",
     "test:world-interaction": "node tests/world-interaction-wp1-smoke.mjs && node tests/world-interaction-picker-runtime-smoke.mjs",
     "test:campaign-layout": "node tests/campaign-authored-layout-smoke.mjs && node tests/campaign-route-state-smoke.mjs",
     "test:environment-tasks": "node tests/wp3-environment-task-system-smoke.mjs && node tests/wp3-world-actions-smoke.mjs",
@@ -64,7 +64,8 @@
     "test:camera-v10": "node tests/wp10-camera-math-smoke.mjs && node tests/wp10-camera-preferences-smoke.mjs && node tests/wp10-camera-target-resolver-smoke.mjs && node tests/wp10-camera-controller-smoke.mjs && node tests/wp10-camera-source-integration-smoke.mjs",
     "test:height-stability": "node tests/height-stability-regression-smoke.mjs",
     "test:wp11": "node tests/wp11-room-state-selector-smoke.mjs && node tests/wp11-spatial-compositor-smoke.mjs && node tests/wp11-room-state-source-integration-smoke.mjs",
-    "test:wp12": "node tests/wp12-adventurer-profile-smoke.mjs && node tests/wp12-adventurer-ability-smoke.mjs && node tests/wp12-adventurer-source-integration-smoke.mjs"
+    "test:wp12": "node tests/wp12-adventurer-profile-smoke.mjs && node tests/wp12-adventurer-ability-smoke.mjs && node tests/wp12-adventurer-source-integration-smoke.mjs",
+    "test:wp13": "node tests/wp13-floor-content-contract-smoke.mjs && node tests/wp13-vertical-connector-system-smoke.mjs && node tests/wp13-floor-scene-manager-smoke.mjs && node tests/wp13-floor-layout-audit.mjs && node tests/wp13-source-integration-smoke.mjs"
   },
   "keywords": [
     "threejs",

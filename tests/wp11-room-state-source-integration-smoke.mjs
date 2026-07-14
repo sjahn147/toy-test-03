@@ -38,7 +38,11 @@ assert.equal(normalized.entities.spatialRooms.A01.actorCapacity, 8);
 
 for (const token of ['selectRoomStateMap', 'previousRoomStates', 'selectOverlayAvailability', 'roomStates']) assert.ok(facade.includes(token), `facade missing ${token}`);
 for (const token of ['applyWP11SpatialLayout', 'StrategyObserverShellRoomStateWP11', 'onRoomOverlayMode']) assert.ok(screen.includes(token), `screen missing ${token}`);
-for (const token of ['ObserveScreenRoomStateWP11', 'StrategyDungeonRendererWP11', 'rebindRoomStatePresentation']) assert.ok(strategyScreen.includes(token), `strategy screen missing ${token}`);
+// WP13 layers ObserveScreenFloorWP13 / StrategyDungeonRendererWP13 on top of the WP11
+// classes (both still extend their WP11 counterpart), so either name confirms the chain.
+assert.ok(strategyScreen.includes('ObserveScreenRoomStateWP11') || strategyScreen.includes('ObserveScreenFloorWP13'), 'strategy screen missing a WP11-descended observe screen');
+assert.ok(strategyScreen.includes('StrategyDungeonRendererWP11') || strategyScreen.includes('StrategyDungeonRendererWP13'), 'strategy screen missing a WP11-descended dungeon renderer');
+assert.ok(strategyScreen.includes('rebindRoomStatePresentation'), 'strategy screen missing rebindRoomStatePresentation');
 for (const token of ['SpatialReservationCompositor', 'findPlacement', 'roomSpatialState', 'spatial: this.spatialCompositor.snapshot()']) assert.ok(occupancy.includes(token), `occupancy missing ${token}`);
 for (const token of ['WP11 immediate reservation', 'unblockByBlocker', 'placementFor(room, type, faction)']) assert.ok(territory.includes(token), `territory integration missing ${token}`);
 assert.ok(shell.includes('data-room-overlay'));

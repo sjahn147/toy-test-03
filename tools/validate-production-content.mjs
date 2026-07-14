@@ -122,6 +122,11 @@ function validateCampaign(campaign, assetIds) {
     requireRef(connection.to, roomIds, `${connection.id}.to`);
   }
 
+  for (const connector of campaign.verticalConnectors ?? []) {
+    requireRef(connector.from?.roomId, roomIds, `${connector.id}.from.roomId`);
+    requireRef(connector.to?.roomId, roomIds, `${connector.id}.to.roomId`);
+  }
+
   if ((campaign.secretConnections?.length ?? 0) < (campaign.validation?.minimumSecretConnections ?? 0)) {
     fail(`campaign.secretConnections: minimum ${campaign.validation.minimumSecretConnections}, found ${campaign.secretConnections.length}`);
   }
@@ -139,6 +144,7 @@ function validateCampaign(campaign, assetIds) {
   for (const [from, to] of campaign.connections ?? []) addConnection(from, to);
   for (const connection of campaign.conditionalConnections ?? []) addConnection(connection.from, connection.to);
   for (const connection of campaign.secretConnections ?? []) addConnection(connection.from, connection.to);
+  for (const connector of campaign.verticalConnectors ?? []) addConnection(connector.from?.roomId, connector.to?.roomId);
 
   const visited = new Set();
   const queue = roomIds.has(campaign.entryRoomId) ? [campaign.entryRoomId] : [];

@@ -28,7 +28,9 @@ const roomById = new Map(manifest.rooms.map(room => [room.id, room]));
 const catalogIds = new Set(catalog.entries.map(entry => entry.id));
 const authoredLinks = [
   ...manifest.connections,
-  ...manifest.secretConnections.map(link => [link.from, link.to])
+  ...manifest.secretConnections.map(link => [link.from, link.to]),
+  // WP13 room-to-room vertical connectors also need an authored portal on each landing room.
+  ...(manifest.verticalConnectors ?? []).map(connector => [connector.from?.roomId, connector.to?.roomId])
 ];
 
 assert.equal(recipes.length, 5, 'Residential Quarter must provide five dedicated landmarks');

@@ -289,7 +289,7 @@ export class DungeonRenderer {
   travelPosition(agent, mesh = null) {
     const travel = agent.travel;
     const destinationRoom = this.topology.roomById.get(travel.toRoomId);
-    const height = agentRenderHeight(agent);
+    const height = this.agentGroundOffset(agent, mesh);
 
     if (travel.phase === 'entering') {
       const start = travel.entryPort;
@@ -316,7 +316,7 @@ export class DungeonRenderer {
     const normalZ = sample.tx;
     return {
       x: sample.x + normalX * laneOffset,
-      y: y + height + (sample.yOffset ?? 0),
+      y: y + height,
       z: sample.z + normalZ * laneOffset,
       rotation: Math.atan2(sample.tx * (forward ? 1 : -1), sample.tz * (forward ? 1 : -1))
     };

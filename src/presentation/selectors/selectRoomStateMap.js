@@ -170,13 +170,15 @@ export function selectRoomState(state, roomId, { previous = null, observerFactio
     roomId,
     name: room.name ?? roomId,
     zoneId: room.zoneId ?? room.zoneCode ?? room.code ?? null,
+    floorId: room.floorId ?? null,
     kind: room.kind ?? 'room',
     discovered,
     position: {
       x: numeric(room.x),
       y: numeric((room.floor ?? 0) * DEFAULT_FLOOR_HEIGHT),
       z: numeric(room.z),
-      floor: numeric(room.floor)
+      floor: numeric(room.floor),
+      floorId: room.floorId ?? null
     },
     ownership: {
       ownerFactionId,

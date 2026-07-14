@@ -25,7 +25,8 @@ try {
   // --- 1. authored 콘텐츠 로드 ---
   const { manifest, assetCatalog } = loadSleepingCitadel(ROOT);
   const { campaignManifestSchema } = loadSchemas(ROOT);
-  assert.equal(manifest.schemaVersion, 1, 'campaign manifest schemaVersion is not 1');
+  // WP13 bumped the manifest schema to 2 for the floors/verticalConnectors contract.
+  assert.equal(manifest.schemaVersion, 2, 'campaign manifest schemaVersion is not 2');
   assert.equal(assetCatalog.schemaVersion, 1, 'asset catalog schemaVersion is not 1');
   console.log('content load ok');
 
