@@ -1,13 +1,13 @@
 import { THREE } from '../ThreeScene.js';
 
-const FLOOR_HEIGHT = 2.85;
 const geometryCache = new Map();
 const materialCache = new Map();
 
 export class HeroWorldActorRenderer {
-  constructor(group, agentMeshes = new Map()) {
+  constructor(group, agentMeshes = new Map(), roomY = room => (room?.floor ?? 0) * 5.4) {
     this.group = group;
     this.agentMeshes = agentMeshes;
+    this.roomY = roomY;
     this.deployables = new Map();
     this.projectiles = new Map();
     this.fields = new Map();
@@ -31,7 +31,7 @@ export class HeroWorldActorRenderer {
       const room = roomById.get(record.roomId);
       if (!room) { mesh.visible = false; return; }
       mesh.visible = true;
-      mesh.position.set((room.x ?? 0) + (record.ox ?? 0), roomY(room) + (record.y ?? 0), (room.z ?? 0) + (record.oz ?? 0));
+      mesh.position.set((room.x ?? 0) + (record.ox ?? 0), this.roomY(room) + (record.y ?? 0), (room.z ?? 0) + (record.oz ?? 0));
       mesh.userData.state = record.state;
       animateDeployable(mesh, record, time);
     });
@@ -46,7 +46,7 @@ export class HeroWorldActorRenderer {
       const from = record.from ?? { x: 0, y: 1, z: 0 };
       const to = record.to ?? { x: 0, y: 0, z: 0 };
       const arc = Math.sin(t * Math.PI) * (record.arcHeight ?? 3);
-      mesh.position.set((room.x ?? 0) + mix(from.x, to.x, t), roomY(room) + mix(from.y, to.y, t) + arc, (room.z ?? 0) + mix(from.z, to.z, t));
+      mesh.position.set((room.x ?? 0) + mix(from.x, to.x, t), this.roomY(room) + mix(from.y, to.y, t) + arc, (room.z ?? 0) + mix(from.z, to.z, t));
       const dx = to.x - from.x;
       const dz = to.z - from.z;
       mesh.rotation.y = Math.atan2(dx, dz);
@@ -60,7 +60,7 @@ export class HeroWorldActorRenderer {
       const room = roomById.get(record.roomId);
       if (!room) { mesh.visible = false; return; }
       mesh.visible = true;
-      mesh.position.set(room.x ?? 0, roomY(room) + 0.035, room.z ?? 0);
+      mesh.position.set(room.x ?? 0, this.roomY(room) + 0.035, room.z ?? 0);
       mesh.scale.setScalar(Math.max(0.1, record.radius ?? 4) / Math.max(0.1, mesh.userData.baseRadius ?? 1));
       animateField(mesh, record, time);
     });
@@ -76,7 +76,7 @@ export class HeroWorldActorRenderer {
       const targetMesh = record.targetType === 'agent' ? this.agentMeshes.get(record.targetId) : null;
       const end = targetMesh?.position ?? new THREE.Vector3(
         (room.x ?? 0) + (record.targetX ?? 0),
-        roomY(room) + 0.18,
+        this.roomY(room) + 0.18,
         (room.z ?? 0) + (record.targetZ ?? 0)
       );
       updateTetherGeometry(mesh, start, end, time);
@@ -89,7 +89,7 @@ export class HeroWorldActorRenderer {
       if (!room) { mesh.visible = false; return; }
       mesh.visible = true;
       const center = record.center ?? { x: 0, z: 0 };
-      mesh.position.set((room.x ?? 0) + (center.x ?? 0), roomY(room) + 0.045, (room.z ?? 0) + (center.z ?? 0));
+      mesh.position.set((room.x ?? 0) + (center.x ?? 0), this.roomY(room) + 0.045, (room.z ?? 0) + (center.z ?? 0));
       const direction = record.direction ?? { x: 0, z: 1 };
       mesh.rotation.y = Math.atan2(direction.x, direction.z);
       animateFormation(mesh, record, time);
@@ -108,7 +108,7 @@ export class HeroWorldActorRenderer {
       const nx = dx / length;
       const nz = dz / length;
       const edgeDistance = Math.max(1.2, Math.min(room.w ?? 6, room.d ?? 6) * 0.42);
-      mesh.position.set((room.x ?? 0) + nx * edgeDistance, roomY(room), (room.z ?? 0) + nz * edgeDistance);
+      mesh.position.set((room.x ?? 0) + nx * edgeDistance, this.roomY(room), (room.z ?? 0) + nz * edgeDistance);
       mesh.rotation.y = Math.atan2(nx, nz);
       animateBarrier(mesh, record, time);
     });
@@ -509,9 +509,6 @@ function syncMap(map, records, group, create, update) {
   }
 }
 
-function roomY(room) {
-  return (room.floor ?? 0) * FLOOR_HEIGHT;
-}
 
 function fieldColor(kind) {
   if (kind === 'emergency-drain' || kind === 'pressure-seal') return 0x75d4e5;

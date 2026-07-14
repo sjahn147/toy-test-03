@@ -1,0 +1,45 @@
+/* WP11 room-state intelligence: screen-space badges, strategic overlays and inspector gauges. */
+.wp11-room-status-layer{position:absolute;inset:0;z-index:24;pointer-events:none;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wp11-room-badge{--owner-color:#9aa2ad;--challenger-color:#d36a62;--control-angle:0deg;position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;min-width:72px;max-width:190px;padding:4px 7px 4px 4px;border:1px solid color-mix(in srgb,var(--owner-color) 64%,#e9e4d7 20%);border-radius:14px;background:linear-gradient(180deg,rgba(20,24,29,.94),rgba(13,16,20,.88));box-shadow:0 3px 12px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.07);color:#f2eee3;pointer-events:auto;cursor:pointer;white-space:nowrap;transform-origin:50% 100%;transition:border-color .16s ease,background .16s ease,opacity .16s ease,filter .16s ease}
+.wp11-room-badge:hover,.wp11-room-badge:focus-visible{border-color:#f2d68c;background:linear-gradient(180deg,rgba(35,38,42,.98),rgba(18,21,25,.96));outline:none;filter:brightness(1.08)}
+.wp11-room-badge.is-selected{border-color:#83d4ff;box-shadow:0 0 0 2px rgba(92,190,236,.22),0 4px 18px rgba(0,0,0,.48)}
+.wp11-room-badge.is-critical{animation:wp11-critical-pulse 1.4s ease-in-out infinite}
+.wp11-room-badge[data-lod="far"]{min-width:0;padding:2px;border-radius:50%;background:rgba(14,18,22,.82)}
+.wp11-room-badge[data-lod="far"] .wp11-room-badge-body{display:none}
+.wp11-room-badge[data-lod="mid"] .wp11-room-badge-name{max-width:74px}
+.wp11-room-badge[data-lod="mid"] .wp11-room-badge-meta em{display:none}
+.wp11-room-badge[data-lod="near"]{padding-right:8px}
+.wp11-room-control-ring{width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center;border-radius:50%;background:conic-gradient(var(--owner-color) 0 var(--control-angle),var(--challenger-color) var(--control-angle) 360deg);box-shadow:inset 0 0 0 2px rgba(0,0,0,.58),0 0 0 1px rgba(255,255,255,.13)}
+.wp11-room-control-ring::before{content:"";grid-area:1/1;width:20px;height:20px;border-radius:50%;background:#171b20;box-shadow:inset 0 1px 2px rgba(255,255,255,.08)}
+.wp11-room-control-ring span{grid-area:1/1;z-index:1;font-size:8.5px;font-weight:800;letter-spacing:-.03em;color:#fff}
+.wp11-room-badge.is-contested .wp11-room-control-ring{animation:wp11-ring-turn 5s linear infinite}
+.wp11-room-badge-body{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name icons" "meta icons";column-gap:6px;text-align:left}
+.wp11-room-badge-name{grid-area:name;overflow:hidden;text-overflow:ellipsis;font-size:10px;line-height:1.12;letter-spacing:.01em}
+.wp11-room-badge-meta{grid-area:meta;display:flex;align-items:center;gap:4px;min-width:0;color:#afa99d;font-size:8px;line-height:1.1;text-transform:capitalize}
+.wp11-room-badge-meta em{font-style:normal;overflow:hidden;text-overflow:ellipsis;max-width:74px}
+.wp11-room-tier{padding:0 3px;border-radius:4px;background:rgba(255,255,255,.08);color:#ddc77d;font-weight:700}
+.wp11-room-trend{font-size:10px}.wp11-room-trend.trend-rising{color:#80d49c}.wp11-room-trend.trend-falling{color:#ef7e70}.wp11-room-trend.trend-steady{color:#999}
+.wp11-room-badge-icons{grid-area:icons;display:flex;align-items:center;gap:2px}
+.wp11-room-status-icon{display:grid;place-items:center;width:16px;height:16px;border-radius:5px;background:rgba(255,255,255,.08);font-style:normal;font-size:10px;line-height:1;color:#ded8ca}
+.wp11-room-status-icon.status-ruined,.wp11-room-status-icon.status-collapsing,.wp11-room-status-icon.status-siege,.wp11-room-status-icon.status-combat{background:rgba(196,75,64,.24);color:#ff9c8d}
+.wp11-room-status-icon.status-blockaded,.wp11-room-status-icon.status-contested{background:rgba(209,132,59,.22);color:#f2bd75}
+.wp11-room-status-icon.status-infected{background:rgba(137,91,174,.25);color:#cea5ef}
+.wp11-room-status-icon.status-flooded{background:rgba(63,126,168,.25);color:#91cce9}
+.wp11-room-status-icon.status-construction,.wp11-room-status-icon.status-work{color:#efd98e}
+.wp11-room-hover-card{position:absolute;z-index:4000;width:230px;padding:10px 11px;border:1px solid rgba(225,204,145,.42);border-radius:10px;background:rgba(14,17,21,.97);box-shadow:0 10px 30px rgba(0,0,0,.54);color:#eae5d9;pointer-events:none}
+.wp11-room-hover-card[hidden]{display:none}
+.wp11-room-hover-card header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}.wp11-room-hover-card header b{font-size:12px}.wp11-room-hover-card header span{color:#999;font-size:9px}
+.wp11-room-hover-card dl{display:grid;gap:4px;margin:0}.wp11-room-hover-card dl div{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px}.wp11-room-hover-card dt{color:#aaa}.wp11-room-hover-card dd{margin:0;font-weight:700}.wp11-room-hover-card p{margin:8px 0 0;color:#d4c89d;font-size:9px}.wp11-room-hover-card small{display:block;margin-top:6px;color:#84c6df}
+.wp11-overlay-toolbar{position:absolute;left:50%;bottom:16px;z-index:31;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:6px;border:1px solid rgba(222,211,181,.18);border-radius:12px;background:rgba(13,16,20,.9);box-shadow:0 5px 18px rgba(0,0,0,.38);backdrop-filter:blur(8px)}
+.wp11-overlay-buttons{display:flex;gap:3px}.wp11-overlay-buttons button{min-height:30px;padding:0 8px;border:1px solid transparent;border-radius:7px;background:transparent;color:#aaa79f;font-size:10px;cursor:pointer}.wp11-overlay-buttons button:hover{background:rgba(255,255,255,.07);color:#fff}.wp11-overlay-buttons button.is-active{border-color:rgba(120,201,235,.5);background:rgba(71,145,178,.2);color:#cdeeff}.wp11-overlay-buttons button:disabled{opacity:.32;cursor:not-allowed}
+.wp11-overlay-legend{min-width:190px;max-width:280px;padding-left:8px;border-left:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column}.wp11-overlay-legend b{font-size:10px;color:#e6d7a4}.wp11-overlay-legend span{font-size:8.5px;color:#8e918f;white-space:normal}
+.wp11-room-summary-card{display:grid;gap:10px}.wp11-room-primary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.wp11-room-gauge{padding:8px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.025)}
+.wp11-room-gauge header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}.wp11-room-gauge header span{color:#aaa;font-size:9px}.wp11-room-gauge header b{font-size:12px}.wp11-room-gauge-track{height:7px;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.08)}.wp11-room-gauge-track i{display:block;height:100%;width:var(--value,0%);border-radius:inherit;background:var(--gauge-color,#75bde4);transition:width .25s ease}
+.wp11-room-gauge.is-danger i{background:#d96658}.wp11-room-gauge.is-integrity i{background:#c8ad67}.wp11-room-gauge.is-supply i{background:#6ebd8a}.wp11-room-gauge.is-population i{background:#8a9ed7}
+.wp11-room-cause-list{display:grid;gap:4px;margin:0;padding:0;list-style:none}.wp11-room-cause-list li{display:flex;gap:6px;align-items:flex-start;color:#b6b2a8;font-size:10px}.wp11-room-cause-list li::before{content:"›";color:#d8be70;font-weight:700}
+.strategy-nav-row .wp11-nav-room-stats{display:flex;align-items:center;gap:5px;margin-top:3px}.strategy-nav-row .wp11-nav-control{width:34px;height:4px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}.strategy-nav-row .wp11-nav-control i{display:block;width:var(--value,0%);height:100%;background:var(--owner-color,#999)}.strategy-nav-row .wp11-nav-icons{display:flex;gap:2px;color:#d6c98f;font-size:9px}
+@keyframes wp11-critical-pulse{0%,100%{box-shadow:0 3px 12px rgba(0,0,0,.38)}50%{box-shadow:0 0 0 2px rgba(213,85,72,.18),0 4px 18px rgba(0,0,0,.48)}}
+@keyframes wp11-ring-turn{to{rotate:360deg}}
+@media(max-width:1050px){.wp11-overlay-legend{display:none}.wp11-overlay-toolbar{bottom:12px}.wp11-overlay-buttons button{padding:0 6px}.wp11-room-badge[data-lod="mid"] .wp11-room-badge-name{display:none}.wp11-room-badge[data-lod="mid"] .wp11-room-badge-meta{display:none}}
+@media(max-width:720px){.wp11-overlay-toolbar{left:8px;right:8px;bottom:10px;transform:none;overflow-x:auto;justify-content:flex-start}.wp11-overlay-buttons{min-width:max-content}.wp11-room-badge{max-width:128px}.wp11-room-badge-name{max-width:58px}.wp11-room-status-icon:nth-child(n+3){display:none}}
+@media(prefers-reduced-motion:reduce){.wp11-room-badge,.wp11-room-control-ring,.wp11-room-gauge-track i{animation:none!important;transition:none!important}}

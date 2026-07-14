@@ -64,6 +64,10 @@ export const ENTITY_TABLES = [
   'heroMimicActors',
   'heroGardenPatches',
   'heroHoardActors',
+  'territories',
+  'sieges',
+  'constructionJobs',
+  'spatialRooms',
   'effects'
 ];
 
@@ -91,7 +95,13 @@ export const INDEX_NAMES = [
   'heroBroodActorsByRoom',
   'heroMimicActorsByRoom',
   'heroGardenPatchesByRoom',
-  'heroHoardActorsByRoom'
+  'heroHoardActorsByRoom',
+  'settlementsByRoom',
+  'structuresByRoom',
+  'cargoByRoom',
+  'siegesByRoom',
+  'constructionJobsByRoom',
+  'connectionsByRoom',
 ];
 
 const CLOCK_KEYS = ['time', 'turn', 'ended'];

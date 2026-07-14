@@ -15,6 +15,7 @@ export class DungeonSim extends Phase6DungeonSim {
       rooms: this.rooms,
       props: this.props,
       graph: this.graph,
+      occupancy: this.occupancy,
       onEvent: text => this.event(text)
     });
     this.blockTerritoryFootprints();

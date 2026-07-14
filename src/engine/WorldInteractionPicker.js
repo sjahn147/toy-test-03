@@ -152,10 +152,14 @@ export class WorldInteractionPicker {
     const directChildren = this.renderer.group?.children ?? [];
     const seenIds = new Set();
     for (const object of directChildren) {
+      if (object?.userData?.pickable === false) continue;
       const routeId = object?.userData?.routeId ?? object?.userData?.connectionId;
       if (!routeId || seenIds.has(routeId)) continue;
       seenIds.add(routeId);
       const route = this.renderer.scenario?.routes?.find(candidate => candidate.id === routeId) ?? null;
+      const routeKind = object.userData?.routeKind ?? route?.kind ?? 'ordinary';
+      const routeState = object.userData?.routeState ?? route?.state ?? route?.defaultState ?? null;
+      if (object.userData?.worldInteractionHidden || (routeKind === 'secret' && routeState === 'hidden')) continue;
       this.register(object, makeTarget({
         type: 'route',
         id: routeId,

@@ -1,4 +1,5 @@
 import { THREE } from './ThreeScene.js';
+import { connectionSurfaceY, connectionProgressAtPoint, DEFAULT_FLOOR_HEIGHT } from './DungeonTopology.js';
 
 const ROUTE_COLORS = Object.freeze({
   ordinary: 0x8b806d,
@@ -56,10 +57,13 @@ export class AuthoredRouteRenderer {
       routeState: connection.state,
       fromRoomId: connection.aId,
       toRoomId: connection.bId,
-      active: connection.active
+      active: connection.active,
+      worldInteractionHidden: connection.kind === 'secret' && connection.state === 'hidden'
     };
 
     const revealCorridor = connection.active === true;
+    const undiscoveredSecret = connection.kind === 'secret' && connection.state === 'hidden';
+    if (undiscoveredSecret) group.userData.pickable = false;
     const revealFrame = connection.kind !== 'secret' || connection.state !== 'hidden';
     const hiddenCover = connection.kind === 'secret' && ['hidden', 'suspected', 'discovered'].includes(connection.state);
     const lockedCover = connection.kind === 'conditional' && ['locked', 'opening'].includes(connection.state);
@@ -77,7 +81,7 @@ export class AuthoredRouteRenderer {
       this.addSeal(group, connection, connection.aPort, hiddenCover ? 'hidden' : 'locked');
       this.addSeal(group, connection, connection.bPort, hiddenCover ? 'hidden' : 'locked');
     }
-    if (connection.kind !== 'ordinary' && !revealCorridor) this.addRouteMarker(group, connection);
+    if (connection.kind !== 'ordinary' && !revealCorridor && !undiscoveredSecret) this.addRouteMarker(group, connection);
     if (collapsed) this.addCollapseMarker(group, connection);
 
     group.traverse(node => {
@@ -104,11 +108,9 @@ export class AuthoredRouteRenderer {
       if (length <= 0.02) continue;
       const segment = this.assets.makeCorridorSegment(length, connection.width);
       const progress = (i + 0.5) / Math.max(1, points.length - 1);
-      const yOffsetA = Number.isFinite(a.yOffset) ? a.yOffset : connection.elevation;
-      const yOffsetB = Number.isFinite(b.yOffset) ? b.yOffset : connection.elevation;
       segment.position.set(
         (a.x + b.x) / 2,
-        ay + (by - ay) * progress + (yOffsetA + yOffsetB) / 2,
+        this.routeY(connection, progress),
         (a.z + b.z) / 2
       );
       segment.rotation.y = -Math.atan2(dz, dx);
@@ -120,7 +122,6 @@ export class AuthoredRouteRenderer {
   addCorridorModules(group, connection) {
     const aRoom = this.topology.roomById.get(connection.aId);
     const bRoom = this.topology.roomById.get(connection.bId);
-    const baseY = (this.roomY(aRoom) + this.roomY(bRoom)) / 2 + connection.elevation;
     const tone = routeTone(connection.routeType);
     for (let index = 0; index < (connection.modules ?? []).length; index += 1) {
       const module = connection.modules[index];
@@ -155,7 +156,8 @@ export class AuthoredRouteRenderer {
         marker.add(lamp);
       }
 
-      marker.position.set(point.x, baseY + 0.02, point.z);
+      const progress = connectionProgressAtPoint(connection, point);
+      marker.position.set(point.x, this.routeY(connection, progress) + 0.02, point.z);
       marker.rotation.y = corridorHeading(connection.points, point);
       group.add(marker);
     }
@@ -214,7 +216,7 @@ export class AuthoredRouteRenderer {
       new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7, depthWrite: false })
     );
     marker.rotation.x = Math.PI / 2;
-    marker.position.set(point.x, connection.elevation + 0.1, point.z);
+    marker.position.set(point.x, this.routeY(connection, 0.5) + 0.1, point.z);
     marker.name = `${connection.kind}-route-marker`;
     group.add(marker);
   }
@@ -224,10 +226,19 @@ export class AuthoredRouteRenderer {
     const material = new THREE.MeshStandardMaterial({ color: 0x4b4038, roughness: 1 });
     for (let i = 0; i < 5; i += 1) {
       const stone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22 + (i % 2) * 0.08, 0), material);
-      stone.position.set(point.x + (i - 2) * 0.28, connection.elevation + 0.16 + (i % 2) * 0.09, point.z + ((i % 3) - 1) * 0.24);
+      stone.position.set(point.x + (i - 2) * 0.28, this.routeY(connection, 0.5) + 0.16 + (i % 2) * 0.09, point.z + ((i % 3) - 1) * 0.24);
       stone.name = 'collapsed-route-stone';
       group.add(stone);
     }
+  }
+
+  routeY(connection, progress) {
+    const aRoom = this.topology.roomById.get(connection.aId);
+    const bRoom = this.topology.roomById.get(connection.bId);
+    const inferredHeight = Math.abs((aRoom?.floor ?? 0) - (bRoom?.floor ?? 0)) > 0
+      ? Math.abs(this.roomY(aRoom) - this.roomY(bRoom)) / Math.abs((aRoom?.floor ?? 0) - (bRoom?.floor ?? 0))
+      : DEFAULT_FLOOR_HEIGHT;
+    return connectionSurfaceY(connection, this.topology, progress, inferredHeight);
   }
 
   destroy() {

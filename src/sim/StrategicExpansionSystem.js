@@ -292,6 +292,16 @@ export class StrategicExpansionSystem {
       rotation: (this.sequence % 4) * Math.PI / 2,
       scale: 0.76
     };
+    const safeOutpostPlacement = this.occupancy?.findPlacement?.(room.id, {
+      radius: 0.68 * placement.scale,
+      preferred: placement,
+      avoidOccupied: true
+    });
+    if (this.occupancy?.findPlacement && !safeOutpostPlacement) return false;
+    if (safeOutpostPlacement) {
+      placement.ox = safeOutpostPlacement.ox;
+      placement.oz = safeOutpostPlacement.oz;
+    }
     const prop = {
       id: `monster-forward-outpost-${this.sequence++}`,
       type: 'territory_banner',

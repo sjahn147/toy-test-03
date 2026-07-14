@@ -24,7 +24,7 @@ function isAdventurer(agent) {
   return agentFactionId(agent) === 'adventurer-expedition';
 }
 
-export function selectGlobalBar(state) {
+export function selectGlobalBar(state, roomStates = null) {
   const clock = state?.clock ?? {};
   const agents = Object.values(table(state, 'agents'));
   const rooms = Object.values(table(state, 'rooms'));
@@ -60,10 +60,12 @@ export function selectGlobalBar(state) {
     if (THREATENED_STATES.has(settlementState)) threatenedSettlements += 1;
   }
 
-  const contestedRooms = rooms.filter(room => {
-    if (room.contested) return true;
-    return Array.isArray(room.tags) && room.tags.includes('contested');
-  }).length;
+  const contestedRooms = roomStates
+    ? Object.values(roomStates).filter(room => room?.ownership?.contested).length
+    : rooms.filter(room => {
+      if (room.contested) return true;
+      return Array.isArray(room.tags) && room.tags.includes('contested');
+    }).length;
 
   const alerts = [];
   for (let i = events.length - 1; i >= 0 && alerts.length < MAX_ALERTS; i -= 1) {

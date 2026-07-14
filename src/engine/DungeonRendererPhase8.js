@@ -77,7 +77,9 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
     for (const agent of agents) {
       if ((!agent.alive && !agent.corpse) || agent.hidden || agent.departed) continue;
       const mesh = this.agentMeshes.get(agent.id);
-      if (mesh) this.miniatureAnimator.update(mesh, agent, time, effects);
+      if (!mesh) continue;
+      const animatedByBaseRenderer = Boolean(mesh.userData?.isHero || mesh.userData?.heroId || String(mesh.userData?.recipeId ?? '').startsWith('elite:'));
+      if (!animatedByBaseRenderer) this.miniatureAnimator.update(mesh, agent, time, effects);
     }
   }
 
@@ -93,7 +95,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       const room = roomById.get(activity.targetRoomId ?? activity.roomId ?? settlement?.roomId ?? agent.roomId);
       if (!mesh || !room) continue;
       const transform = resolveActivityTransform(activity.anchor, settlement, propById);
-      mesh.position.set(room.x + transform.ox, this.roomY(room) + (activity.type === 'sleeping' || activity.type === 'monster-resting' ? 0.04 : 0.08), room.z + transform.oz);
+      mesh.position.set(room.x + transform.ox, this.agentGroundY(agent, mesh, room), room.z + transform.oz);
       mesh.rotation.y = transform.facing;
       mesh.userData.activityAnchored = true;
     }

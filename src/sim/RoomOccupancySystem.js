@@ -1,3 +1,4 @@
+import { SpatialReservationCompositor } from './SpatialReservationCompositor.js';
 const DEFAULT_CELL_SIZE = 0.78;
 const WALL_MARGIN = 0.82;
 
@@ -17,6 +18,15 @@ export class RoomOccupancySystem {
     this.blockedCells = new Map();
     this.agentIndex = new Map();
     this.buildGrids();
+    this.spatialCompositor = new SpatialReservationCompositor({
+      rooms: this.rooms,
+      topology: this.topology,
+      grids: this.grids,
+      blockedCells: this.blockedCells,
+      occupiedByCell: this.occupiedByCell,
+      reservations: this.reservations,
+      cellSize: this.cellSize
+    });
   }
 
   buildGrids() {
@@ -136,26 +146,25 @@ export class RoomOccupancySystem {
     return agent.roomCell;
   }
 
-  blockArea(roomId, worldX, worldZ, radius, blockerId) {
-    const grid = this.grids.get(roomId);
-    if (!grid) return [];
-    const blocked = [];
-    for (const cell of grid.cells) {
-      if (Math.hypot(cell.x - worldX, cell.z - worldZ) > radius) continue;
-      this.blockedCells.set(cell.id, blockerId);
-      blocked.push(cell.id);
-    }
-    return blocked;
+  blockArea(roomId, worldX, worldZ, radius, blockerId, metadata = {}) {
+    return this.spatialCompositor.reserveCircle({
+      roomId, worldX, worldZ, radius, blockerId,
+      blocksMovement: metadata.blocksMovement !== false,
+      blocksPlacement: metadata.blocksPlacement !== false,
+      metadata
+    });
   }
 
   unblockByBlocker(blockerId) {
-    const released = [];
-    for (const [cellId, currentBlocker] of [...this.blockedCells.entries()]) {
-      if (currentBlocker !== blockerId) continue;
-      this.blockedCells.delete(cellId);
-      released.push(cellId);
-    }
-    return released;
+    return this.spatialCompositor.releaseBlocker(blockerId);
+  }
+
+  findPlacement(roomId, options = {}) {
+    return this.spatialCompositor.findPlacement(roomId, options);
+  }
+
+  roomSpatialState(roomId) {
+    return this.spatialCompositor.roomState(roomId);
   }
 
   release(agentId) {
@@ -269,7 +278,8 @@ export class RoomOccupancySystem {
       })),
       occupied: [...this.agentCells.entries()].map(([agentId, cell]) => ({ agentId, ...cell })),
       reserved: [...this.reservations.values()],
-      blocked: [...this.blockedCells.entries()].map(([cellId, blockerId]) => ({ cellId, blockerId }))
+      blocked: [...this.blockedCells.entries()].map(([cellId, blockerId]) => ({ cellId, blockerId })),
+      spatial: this.spatialCompositor.snapshot()
     };
   }
 }

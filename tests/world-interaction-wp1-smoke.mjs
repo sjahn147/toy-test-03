@@ -17,7 +17,7 @@ const state = {
       stockade: { id: 'stockade', roomId: 'H36', type: 'palisade', integrity: 30, maxIntegrity: 40, buildProgress: 1 }
     },
     connections: {
-      'secret-H36-H39': { id: 'secret-H36-H39', from: 'H36', to: 'H39', kind: 'secret', state: 'hidden' }
+      'secret-H36-H39': { id: 'secret-H36-H39', from: 'H36', to: 'H39', kind: 'secret', state: 'discovered' }
     },
     cargo: {
       ale: { id: 'ale', roomId: 'H36', resourceType: 'ale', amount: 4, state: 'stored', routeRisk: 0.18 }
@@ -26,11 +26,13 @@ const state = {
       stockade: { id: 'stockade', roomId: 'H36', type: 'palisade', integrity: 30, maxIntegrity: 40, buildProgress: 1 }
     }
   },
-  indexes: { agentsByRoom: { H36: ['fighter'] }, propsByRoom: { H36: ['hearth', 'stockade'] } }
+  indexes: { agentsByRoom: { H36: ['fighter'] }, propsByRoom: { H36: ['hearth', 'stockade'] }, connectionsByRoom: { H36: ['secret-H36-H39'] } }
 };
 
 const room = selectRoomInspector(state, 'H36');
-assert.equal(room.secret, true, 'hyphenated secret-route tag must be recognized');
+// WP11 deliberately derives room.secret from discovered secret-route state, not raw
+// tags, so hidden/undiscovered secrets never leak into the player-facing room state.
+assert.equal(room.secret, true, 'discovered secret route must be reflected in room.secret');
 assert.equal(room.routes.length, 1);
 assert.equal(room.routes[0].kind, 'secret');
 assert.equal(room.resources.food, 8);

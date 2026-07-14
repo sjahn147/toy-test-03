@@ -75,6 +75,32 @@ function tableOf(source, prefix) {
   return table;
 }
 
+function tableByField(source, field, prefix) {
+  const table = {};
+  if (!source) return table;
+  const values = source instanceof Map ? [...source.values()] : Array.isArray(source) ? source : Object.values(source);
+  values.forEach((record, index) => {
+    if (!record || typeof record !== 'object') return;
+    const cleaned = toSerializable(record);
+    if (!cleaned || typeof cleaned !== 'object' || Array.isArray(cleaned)) return;
+    const id = cleaned[field] ?? cleaned.id ?? `${prefix}-${index}`;
+    cleaned.id = String(id);
+    table[String(id)] = cleaned;
+  });
+  return table;
+}
+
+function connectionRoomIndex(connections) {
+  const result = {};
+  for (const connection of Object.values(connections)) {
+    for (const roomId of [connection.from, connection.to]) {
+      if (typeof roomId !== 'string' || !roomId) continue;
+      (result[roomId] ??= []).push(connection.id);
+    }
+  }
+  return result;
+}
+
 function connectionTable(routes, links) {
   const table = {};
   const source = Array.isArray(routes) && routes.length ? routes : links;
@@ -168,6 +194,10 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const heroMimicActors = tableOf([...(raw.heroMimicry?.husks ?? []), ...(raw.heroMimicry?.echoes ?? [])], 'hero-mimic');
   const heroGardenPatches = tableOf(raw.heroGarden?.patches, 'hero-garden');
   const heroHoardActors = tableOf([...(raw.heroHoard?.shells ?? []), ...(raw.heroHoard?.projectiles ?? [])], 'hero-hoard');
+  const territories = tableByField(raw.territory?.rooms, 'roomId', 'territory');
+  const sieges = tableOf(raw.construction?.sieges, 'siege');
+  const constructionJobs = tableOf(raw.construction?.jobs, 'construction-job');
+  const spatialRooms = tableByField(raw.occupancy?.spatial?.rooms, 'roomId', 'spatial-room');
   const factions = factionTable(agents, settlements);
 
   const visited = new Set(Array.isArray(raw.visited) ? raw.visited : []);
@@ -179,7 +209,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       turn: finiteNumber(turn ?? raw.turn),
       ended: raw.ended === true
     },
-    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, heroForms, heroDeployables, heroProjectiles, heroFields, heroFormations, heroSummons, heroBarriers, heroAdaptationFields, heroBroodActors, heroMimicActors, heroGardenPatches, heroHoardActors, effects },
+    entities: { agents, rooms, connections, props, settlements, factions, parties, cargo, structures, environmentTasks, settlementOrders, zoneInteractions, heroes, heroForms, heroDeployables, heroProjectiles, heroFields, heroFormations, heroSummons, heroBarriers, heroAdaptationFields, heroBroodActors, heroMimicActors, heroGardenPatches, heroHoardActors, territories, sieges, constructionJobs, spatialRooms, effects },
     indexes: {
       agentsByRoom: groupIndex(agents, agent =>
         agent.alive !== false && agent.departed !== true ? agent.roomId : null
@@ -206,7 +236,13 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
       heroBroodActorsByRoom: groupIndex(heroBroodActors, item => item.roomId),
       heroMimicActorsByRoom: groupIndex(heroMimicActors, item => item.roomId),
       heroGardenPatchesByRoom: groupIndex(heroGardenPatches, item => item.roomId),
-      heroHoardActorsByRoom: groupIndex(heroHoardActors, item => item.roomId)
+      heroHoardActorsByRoom: groupIndex(heroHoardActors, item => item.roomId),
+      settlementsByRoom: groupIndex(settlements, settlement => settlement.roomId),
+      structuresByRoom: groupIndex(structures, structure => structure.roomId),
+      cargoByRoom: groupIndex(cargo, item => item.roomId),
+      siegesByRoom: groupIndex(sieges, siege => siege.roomId),
+      constructionJobsByRoom: groupIndex(constructionJobs, job => job.roomId),
+      connectionsByRoom: connectionRoomIndex(connections)
     },
     events: Array.isArray(events)
       ? events.map(event => toSerializable(event)).filter(event => event && typeof event === 'object')

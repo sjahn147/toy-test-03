@@ -1,22 +1,19 @@
 const ACTIONS_BY_ROOM = Object.freeze({
   C14: [action('sluice.drain-system', 'Drain the flooded storehouses', 'Restore C14 and open the C15–F26 route.')],
-  C15: [action('sluice.drain-system', 'Drain the flooded storehouses', 'Restore C14 and open the C15–F26 route.')],
   D16: [action('workshop.reactivate', 'Reactivate the workshop', 'Spend 2 materials to restore the D16 workshop.')],
   D20: [action('workshop.controlled-breach', 'Prepare a controlled breach', 'Use the restored workshop and 1 material to open D20–J48.')],
   E22: [action('ossuary.break-choir', 'Break the funeral choir', 'Disrupt the undead rite in the Funeral Chapel.')],
-  E25: [action('ossuary.seal-last-names', 'Seal the Well of Last Names', 'Seal the wraith source and open the route to L56.')],
+  E25: [action('ossuary.seal-last-names', 'Seal the Well of Last Names', 'Seal the wraith source and secure the royal funeral route.')],
   F30: [
     action('fungal.communion', 'Commune with the Mycelial Heart', 'Secure safe passage and a myconid accord.'),
     action('fungal.burn-heart', 'Burn out the Mycelial Heart', 'Destroy the fungal core and recover biomass.')
   ],
   G32: [action('spider.rescue-hosts', 'Rescue the living hosts', 'Cut free surviving captives after clearing the vault.')],
-  I41: [action('market.negotiate-neutrality', 'Negotiate the Neutral Well accord', 'Spend 1 wealth to reduce trade-route risk in the market.')],
   I44: [action('market.negotiate-neutrality', 'Negotiate the Neutral Well accord', 'Spend 1 wealth to reduce trade-route risk in the market.')],
   J49: [action('arena.challenge-champion', 'Challenge the Red Pit champion', 'Send a capable adventurer into a formal arena challenge.')],
   K53: [action('laboratory.calibrate-observatory', 'Calibrate the observatory', 'Spend 1 material to reveal royal and sanctum routes.')],
   K54: [action('laboratory.stabilize-summoning', 'Stabilize the summoning room', 'Use the calibrated observatory to contain the breach.')],
   M61: [action('sanctum.open-seal-gate', 'Open the Heart Sanctum gate', 'Assemble three adventurers after resolving the laboratory.')],
-  M62: finalActions(),
   M63: finalActions()
 });
 

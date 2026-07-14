@@ -120,6 +120,14 @@ export class ConstructionSiegeSystem {
     const room = this.rooms.find(candidate => candidate.id === settlement.roomId);
     if (!room) return null;
     const placement = this.structurePlacement(room, type, settlement.factionId);
+    if (!placement) {
+      if (!force) {
+        this.territorySystem.factionSupply.set(settlement.factionId, (this.territorySystem.factionSupply.get(settlement.factionId) ?? 0) + profile.supply);
+        settlement.materials = (settlement.materials ?? 0) + profile.materials;
+      }
+      settlement.lastBuildBlockedReason = 'WP11 placement unavailable';
+      return null;
+    }
     const prop = {
       id: `construction-${type}-${this.sequence++}`,
       type,
@@ -471,14 +479,16 @@ export class ConstructionSiegeSystem {
   structurePlacement(room, type, factionId) {
     const hash = hashString(`${room.id}:${type}:${factionId}:${this.sequence}`);
     const angle = (hash % 628) / 100;
-    const distanceX = room.w * (type === 'gatehouse' ? 0.37 : 0.3);
-    const distanceZ = room.d * (type === 'gatehouse' ? 0.35 : 0.28);
-    return {
-      ox: round(Math.cos(angle) * distanceX),
-      oz: round(Math.sin(angle) * distanceZ),
+    const desired = {
+      ox: round(Math.cos(angle) * room.w * (type === 'gatehouse' ? 0.37 : 0.3)),
+      oz: round(Math.sin(angle) * room.d * (type === 'gatehouse' ? 0.35 : 0.28)),
       rotation: round(angle + Math.PI),
       scale: type === 'gatehouse' ? 0.9 : type === 'supply_depot' ? 0.82 : 0.78
     };
+    const radius = this.profileFor(type).radius * desired.scale;
+    const safePlacement = this.occupancy?.findPlacement?.(room.id, { radius, preferred: desired, avoidOccupied: true });
+    if (this.occupancy?.findPlacement && !safePlacement) return null;
+    return safePlacement ? { ...desired, ox: safePlacement.ox, oz: safePlacement.oz } : desired;
   }
 
   blockStructure(prop) {

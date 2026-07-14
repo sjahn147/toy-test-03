@@ -6,15 +6,18 @@ const state = {
   entities: {
     rooms: {
       C14: { id: 'C14', name: 'Drainage Engine Hall' },
+      C15: { id: 'C15', name: 'Flooded Storehouse' },
       D16: { id: 'D16', name: 'Abandoned Workshop' },
       D20: { id: 'D20', name: 'Powder Magazine' },
       E22: { id: 'E22', name: 'Funeral Chapel', choirBroken: true },
       E25: { id: 'E25', name: 'Well of Last Names' },
       F30: { id: 'F30', name: 'Mycelial Heart' },
+      I41: { id: 'I41', name: 'Market Approach' },
       I44: { id: 'I44', name: 'Neutral Well' },
       K53: { id: 'K53', name: 'Sealed Observatory', observatoryCalibrated: true },
       K54: { id: 'K54', name: 'Failed Summoning Room', summoningStabilized: true },
       M61: { id: 'M61', name: 'Seal Gate', sealGateOpened: true },
+      M62: { id: 'M62', name: 'Sanctum Processional' },
       M63: { id: 'M63', name: 'Heart Chamber' }
     },
     connections: {
@@ -51,6 +54,10 @@ assert.equal(sluice.actions.length, 1);
 assert.equal(sluice.actions[0].enabled, false);
 assert.match(sluice.actions[0].reason, /already working/);
 assert.equal(sluice.tasks.length, 1);
+
+assert.equal(selectZoneInteractions(state, { type: 'room', id: 'C15', roomId: 'C15' }).actions.length, 0);
+assert.equal(selectZoneInteractions(state, { type: 'room', id: 'I41', roomId: 'I41' }).actions.length, 0);
+assert.equal(selectZoneInteractions(state, { type: 'room', id: 'M62', roomId: 'M62' }).actions.length, 0);
 
 const breach = selectZoneInteractions(state, { type: 'room', id: 'D20', roomId: 'D20' });
 assert.equal(breach.actions[0].enabled, false);

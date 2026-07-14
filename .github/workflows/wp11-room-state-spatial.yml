@@ -1,0 +1,16 @@
+name: WP11 Room State and Spatial Integration
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  wp11-room-state-spatial:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:wp11
+      - run: npm run test:production

@@ -7,7 +7,7 @@ const graph = new Map(roomIds.map(id => [id, new Set(roomIds.filter(other => oth
 const routeMap = new Map([
   ['conn-C15-F26', { id: 'conn-C15-F26', kind: 'conditional', state: 'locked' }],
   ['conn-D20-J48', { id: 'conn-D20-J48', kind: 'conditional', state: 'locked' }],
-  ['conn-E25-L56', { id: 'conn-E25-L56', kind: 'conditional', state: 'locked' }],
+  ['route-L56-E25', { id: 'route-L56-E25', kind: 'ordinary', state: 'open', active: true }],
   ['conn-K55-M61', { id: 'conn-K55-M61', kind: 'conditional', state: 'locked' }],
   ['secret-G34-L56', { id: 'secret-G34-L56', kind: 'secret', state: 'hidden' }],
   ['secret-K55-M61', { id: 'secret-K55-M61', kind: 'secret', state: 'hidden' }]
@@ -39,7 +39,14 @@ const sim = {
 function setRouteState(id, state) {
   const route = routeMap.get(id);
   if (!route) return { ok: false, error: `missing route ${id}` };
+  const allowed = route.kind === 'ordinary'
+    ? new Set(['open', 'collapsed'])
+    : route.kind === 'conditional'
+      ? new Set(['locked', 'opening', 'opened', 'collapsed'])
+      : new Set(['hidden', 'suspected', 'discovered', 'opened', 'collapsed']);
+  if (!allowed.has(state)) return { ok: false, error: `invalid ${route.kind} route state ${state}` };
   route.state = state;
+  route.active = route.kind === 'ordinary' ? state === 'open' : state === 'opened';
   return { ok: true, result: { routeId: id, state } };
 }
 const system = new ZoneInteractionSystem({ rooms, props: [], onEvent: (text, meta) => events.push({ text, ...meta }) });
@@ -48,20 +55,23 @@ sim.zoneInteractionSystem = system;
 await run('sluice.drain-system', 'C14');
 assert.equal(room('C14').mechanismOperational, true);
 assert.equal(room('C11').visualState, 'drained');
-assert.equal(routeMap.get('conn-C15-F26').state, 'open');
+assert.equal(routeMap.get('conn-C15-F26').state, 'opened');
+assert.equal(routeMap.get('conn-C15-F26').active, true);
 
 await run('workshop.reactivate', 'D16');
 assert.equal(room('D16').workshopOperational, true);
 assert.equal(settlement.materials, 8);
 await run('workshop.controlled-breach', 'D20');
-assert.equal(routeMap.get('conn-D20-J48').state, 'open');
+assert.equal(routeMap.get('conn-D20-J48').state, 'opened');
+assert.equal(routeMap.get('conn-D20-J48').active, true);
 assert.equal(settlement.materials, 7);
 
 await run('ossuary.break-choir', 'E22');
 assert.equal(room('E22').choirBroken, true);
 await run('ossuary.seal-last-names', 'E25');
 assert.equal(room('E25').lastNamesSealed, true);
-assert.equal(routeMap.get('conn-E25-L56').state, 'open');
+assert.equal(routeMap.get('route-L56-E25').state, 'open');
+assert.equal(routeMap.has('conn-E25-L56'), false);
 
 await run('fungal.communion', 'F30');
 assert.equal(room('F30').fungalResolution, 'communion');
@@ -91,7 +101,8 @@ assert.equal(room('K54').summoningStabilized, true);
 
 await run('sanctum.open-seal-gate', 'M61', 'wizard');
 assert.equal(room('M61').sealGateOpened, true);
-assert.equal(routeMap.get('conn-K55-M61').state, 'open');
+assert.equal(routeMap.get('conn-K55-M61').state, 'opened');
+assert.equal(routeMap.get('conn-K55-M61').active, true);
 await run('sanctum.seal-heart', 'M63', 'cleric');
 assert.equal(room('M63').campaignResolution, 'seal');
 assert.equal(sim.campaignResolution.resolution, 'seal');

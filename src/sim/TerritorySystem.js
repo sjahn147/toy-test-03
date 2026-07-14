@@ -4,10 +4,11 @@ const WARRIOR_ROLES = new Set(['goblin', 'skeleton', 'spider', 'ogre', 'zombie',
 const BUILD_COSTS = { territory_banner: 2, barricade: 4, watch_post: 6 };
 
 export class TerritorySystem {
-  constructor({ rooms, props, graph, onEvent = () => {} }) {
+  constructor({ rooms, props, graph, occupancy = null, onEvent = () => {} }) {
     this.rooms = rooms;
     this.props = props;
     this.graph = graph;
+    this.occupancy = occupancy;
     this.onEvent = onEvent;
     this.roomStates = new Map();
     this.factionSupply = new Map();
@@ -175,24 +176,40 @@ export class TerritorySystem {
       if (!target || supply < cost) continue;
       this.factionSupply.set(faction, supply - cost);
       const room = this.rooms.find(candidate => candidate.id === target.roomId);
+      const wp11Placement = this.placementFor(room, desired, faction);
+      if (!wp11Placement) continue;
       const prop = {
         id: `territory-${desired}-${this.sequence++}`,
         type: desired,
         roomId: target.roomId,
         ecologyFaction: faction,
         label: `${faction} ${desired.replace('_', ' ')}`,
-        placement: {
-          ox: desired === 'barricade' ? 0 : room.w * 0.28,
-          oz: desired === 'watch_post' ? room.d * 0.24 : -room.d * 0.26,
-          rotation: (this.sequence % 4) * Math.PI / 2,
-          scale: desired === 'watch_post' ? 0.82 : 0.74
-        }
+        placement: wp11Placement
       };
       this.props.push(prop);
+      if (this.occupancy?.blockArea) {
+        const placement = prop.placement ?? {};
+        const radius = prop.type === 'barricade' ? 0.92 : prop.type === 'watch_post' ? 0.95 : 0.55;
+        this.occupancy.blockArea(prop.roomId, room.x + (placement.ox ?? 0), room.z + (placement.oz ?? 0), radius * (placement.scale ?? 1), prop.id);
+        prop.territoryBlocked = true; // WP11 immediate reservation
+      }
       sim.emitEffect('territory-build', { roomId: target.roomId, duration: 1.1 });
       this.onEvent(`${faction} built ${prop.label} in ${sim.roomName(target.roomId)}.`);
       break;
     }
+  }
+
+  placementFor(room, type, faction) {
+    const desired = {
+      ox: type === 'barricade' ? 0 : room.w * 0.28,
+      oz: type === 'watch_post' ? room.d * 0.24 : -room.d * 0.26,
+      rotation: (this.sequence % 4) * Math.PI / 2,
+      scale: type === 'watch_post' ? 0.82 : 0.74
+    };
+    const radius = type === 'barricade' ? 0.92 : type === 'watch_post' ? 0.95 : 0.55;
+    const safe = this.occupancy?.findPlacement?.(room.id, { radius: radius * desired.scale, preferred: desired, avoidOccupied: true });
+    if (this.occupancy?.findPlacement && !safe) return null;
+    return safe ? { ...desired, ox: safe.ox, oz: safe.oz } : desired;
   }
 
   removeEnemyFortifications(roomId, newOwner, sim) {
@@ -200,6 +217,7 @@ export class TerritorySystem {
       prop.roomId === roomId && ['territory_banner', 'barricade', 'watch_post'].includes(prop.type) && prop.ecologyFaction !== newOwner
     );
     if (!removed.length) return;
+    for (const prop of removed) this.occupancy?.unblockByBlocker?.(prop.id);
     const ids = new Set(removed.map(prop => prop.id));
     for (let i = this.props.length - 1; i >= 0; i -= 1) {
       if (ids.has(this.props[i].id)) this.props.splice(i, 1);
