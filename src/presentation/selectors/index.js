@@ -17,3 +17,5 @@ export {
   selectFactionInspector
 } from './selectNavigatorCollections.js';
 export { selectWorldInteractionInspector } from './selectWorldInteractionInspector.js';
+export { selectRoomState, selectRoomStateMap } from './selectRoomStateMap.js';
+export { selectOverlayAvailability } from './selectOverlayAvailability.js';

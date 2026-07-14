@@ -1,4 +1,5 @@
 import { selectWorldTaskActions } from './selectWorldTaskActions.js';
+import { selectRoomState } from './selectRoomStateMap.js';
 
 // room inspector selector (surface.inspector.room).
 
@@ -25,10 +26,11 @@ function connectionEndpoints(connection) {
   return null;
 }
 
-export function selectRoomInspector(state, roomId) {
+export function selectRoomInspector(state, roomId, roomStates = null) {
   if (typeof roomId !== 'string' || roomId.length === 0) return null;
   const room = table(state, 'rooms')[roomId];
   if (!room || typeof room !== 'object') return null;
+  const canonicalRoomState = roomStates?.[roomId] ?? selectRoomState(state, roomId);
 
   const agents = table(state, 'agents');
   const props = table(state, 'props');
@@ -98,14 +100,16 @@ export function selectRoomInspector(state, roomId) {
   const control = room.ownership?.control ?? room.control ?? null;
   const contested = room.ownership?.contested ?? room.contested ?? false;
   const visualState = room.visualState ?? room.stateVariant ?? room.state ?? null;
+  const visibleRoutes = routes.filter(route => route.kind !== 'secret' || ['discovered', 'opened', 'collapsed'].includes(route.state));
   const resources = collectResources(room);
-  const secret = tags.some(tag => SECRET_TAGS.has(tag)) || routes.some(route => route.kind === 'secret');
+  const secret = (canonicalRoomState?.routes?.secretDiscovered ?? 0) > 0;
   const hostileOccupants = factionId
     ? occupants.filter(occupant => occupant.factionId && occupant.factionId !== factionId).length
     : 0;
 
   const result = {
     identity,
+    roomState: canonicalRoomState,
     size: {
       w: typeof room.w === 'number' ? room.w : 0,
       d: typeof room.d === 'number' ? room.d : 0
@@ -113,8 +117,8 @@ export function selectRoomInspector(state, roomId) {
     tags,
     occupants,
     props: roomProps,
-    connections,
-    routes,
+    connections: visibleRoutes.map(route => route.otherRoomId),
+    routes: visibleRoutes,
     secret,
     visited: room.visited === true,
     status: {

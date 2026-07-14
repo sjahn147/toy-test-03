@@ -1,3 +1,5 @@
+import { selectRoomStateMap } from '../presentation/selectors/selectRoomStateMap.js';
+import { selectOverlayAvailability } from '../presentation/selectors/selectOverlayAvailability.js';
 // UI-facing runtime facade.
 
 import {
@@ -20,10 +22,10 @@ import {
 const RUNTIME_METHODS = ['update', 'getSnapshot', 'dispatch', 'subscribe', 'destroy'];
 const ALERT_SEVERITIES = new Set(['major', 'critical', 'historic']);
 
-function selectSelection(state, context) {
+function selectSelection(state, context, roomStates = null) {
   if (context.agentId) return { type: 'agent', id: context.agentId, inspector: selectAgentInspector(state, context.agentId) };
   if (context.partyId) return { type: 'party', id: context.partyId, inspector: selectPartyInspector(state, context.partyId) };
-  if (context.roomId) return { type: 'room', id: context.roomId, inspector: selectRoomInspector(state, context.roomId) };
+  if (context.roomId) return { type: 'room', id: context.roomId, inspector: selectRoomInspector(state, context.roomId, roomStates) };
   if (context.settlementId) return { type: 'settlement', id: context.settlementId, inspector: selectSettlementInspector(state, context.settlementId) };
   if (context.factionId) return { type: 'faction', id: context.factionId, inspector: selectFactionInspector(state, context.factionId) };
   if (context.worldTarget) {
@@ -41,6 +43,7 @@ export class GameRuntimeFacade {
     }
     this.runtime = runtime;
     this.destroyed = false;
+    this.previousRoomStates = {};
   }
 
   update(dt) {
@@ -64,6 +67,11 @@ export class GameRuntimeFacade {
 
   getViewModel(context = {}) {
     const state = this.getSnapshot();
+    const roomStates = selectRoomStateMap(state, {
+      previous: this.previousRoomStates,
+      observerFactionId: context.observerFactionId ?? null
+    });
+    this.previousRoomStates = roomStates;
     const timeline = selectTimelineEvents(state, {
       filter: context.timelineFilter ?? 'all',
       limit: context.timelineLimit ?? 50,
@@ -71,16 +79,18 @@ export class GameRuntimeFacade {
       locale: context.locale ?? 'en'
     });
     return {
-      topBar: selectGlobalBar(state),
+      topBar: selectGlobalBar(state, roomStates),
       observerFaction: selectObserverFactionSummary(state, context.observerFactionId ?? null),
       navigator: {
         factions: selectFactionList(state),
         parties: selectPartyList(state),
         settlements: selectSettlementList(state),
-        rooms: selectRoomList(state)
+        rooms: selectRoomList(state, roomStates)
       },
       followRoster: selectFollowRoster(state),
-      selection: selectSelection(state, context),
+      roomStates,
+      overlays: selectOverlayAvailability(state, roomStates),
+      selection: selectSelection(state, context, roomStates),
       timeline,
       timelineMode: context.timelineMode ?? 'chronicle',
       locale: context.locale ?? 'en',

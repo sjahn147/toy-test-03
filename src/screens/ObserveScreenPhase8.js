@@ -6,18 +6,19 @@ import { applyPhase7Territories } from '../data/applyPhase7Territories.js';
 import { applyPhase8SpatialScale } from '../data/applyPhase8SpatialScale.js';
 import { applyPhase8PropLayout } from '../data/applyPhase8PropLayout.js';
 import { createLegacyGameRuntime } from '../application/GameRuntimeFactory.js';
-import { StrategyObserverShellCameraPhase10 } from '../ui/StrategyObserverShellCameraPhase10.js';
+import { StrategyObserverShellRoomStateWP11 } from '../ui/StrategyObserverShellRoomStateWP11.js';
 import { renderStrategyInspector } from '../ui/renderStrategyInspector.js';
 import { CameraDirector } from '../engine/CameraDirector.js';
 import { OVERLAY_MODES, normalizeOverlayMode, cycleOverlayMode } from '../engine/StrategicOverlayModel.js';
 import { WorldInteractionPicker } from '../engine/WorldInteractionPicker.js';
 import { WorldInteractionTooltip } from '../ui/WorldInteractionTooltip.js';
 import { loadChroniclePreferences, saveChroniclePreferences } from '../application/ChroniclePreferences.js';
+import { applyWP11SpatialLayout } from '../data/applyWP11SpatialLayout.js';
 
 export class ObserveScreen extends Phase6ObserveScreen {
   constructor(options) {
     super(options);
-    this.scenario = applyPhase8PropLayout(applyPhase7Territories(applyPhase8SpatialScale(this.scenario)));
+    this.scenario = applyWP11SpatialLayout(applyPhase8PropLayout(applyPhase7Territories(applyPhase8SpatialScale(this.scenario))));
     this.runtime = null;
     this.runtimeUnsubscribe = null;
     this.shell = null;
@@ -60,13 +61,14 @@ export class ObserveScreen extends Phase6ObserveScreen {
     this.runtime = createLegacyGameRuntime({ sim: this.sim });
     this.runtimeUnsubscribe = this.runtime.subscribe(() => { this.viewModelClock = 0; });
 
-    this.shell = new StrategyObserverShellCameraPhase10({
+    this.shell = new StrategyObserverShellRoomStateWP11({
       onPauseToggle: paused => this.runtime.dispatch({ type: paused ? 'clock.pause' : 'clock.resume' }),
       onSpeedChange: speed => this.runtime.dispatch({ type: 'clock.set-speed', speed }),
       onBack: this.onBack,
       onSelect: payload => this.selectEntity(payload),
       onCameraMode: mode => this.setCameraMode(mode),
       onCameraAction: action => this.handleCameraAction(action),
+      onRoomOverlayMode: mode => this.setRoomOverlayMode?.(mode),
       onCameraSettings: settings => this.cameraController?.applySettings(settings),
       onOverlayMode: mode => this.setOverlayMode(mode),
       onTimelineFilter: filter => { this.timelineFilter = filter; this.refreshViewModel(true); },

@@ -335,7 +335,15 @@ function navigatorRow(tab, row, selectionType, selectionId) {
   if (tab === 'factions') return rowMarkup('faction', row.id, row.name, `${row.population} population · ${row.territories} rooms`, row.threatened ? `${row.threatened} threatened` : 'stable', null, selectionType, selectionId);
   if (tab === 'parties') return rowMarkup('party', row.id, row.name, `${row.memberCount} members · ${row.state}`, row.leaderName ?? 'no leader', row.targetRoomId, selectionType, selectionId);
   if (tab === 'settlements') return rowMarkup('settlement', row.id, row.name, `${row.population}/${row.capacity} · ${row.state}`, row.supplyStatus, row.roomId, selectionType, selectionId);
-  return rowMarkup('room', row.id, row.name, `${row.kind} · ${row.occupantCount} occupants`, row.secret ? 'secret' : row.visited ? 'discovered' : 'unseen', row.id, selectionType, selectionId);
+  return roomRowMarkup(row, selectionType, selectionId);
+}
+
+function roomRowMarkup(row, selectionType, selectionId) {
+  const selected = selectionType === 'room' && String(row.id) === String(selectionId);
+  const control = Math.max(0, Math.min(100, Number(row.control) || 0));
+  const icons = (row.statuses ?? []).slice(0, 3).map(item => `<i title="${escapeHtml(item.id)}">${escapeHtml(item.glyph ?? '·')}</i>`).join('');
+  const capacity = row.capacity > 0 ? `/${row.capacity}` : '';
+  return `<button class="strategy-nav-row${selected ? ' is-selected' : ''}" data-entity-type="room" data-entity-id="${escapeHtml(row.id)}" data-room-id="${escapeHtml(row.id)}" aria-current="${selected ? 'true' : 'false'}"><span><b>${escapeHtml(row.name)}</b><small>${escapeHtml(row.kind)} · ${row.occupantCount}${capacity} · ${escapeHtml(row.primaryStatus ?? 'stable')}</small><span class="wp11-nav-room-stats"><span class="wp11-nav-control" style="--owner-color:${escapeHtml(row.ownerColor ?? '#999')};--value:${control}%"><i></i></span><span class="wp11-nav-icons">${icons}</span></span></span><em>${row.contested ? 'contested' : row.secret ? 'secret' : row.visited ? 'discovered' : 'unseen'}</em></button>`;
 }
 
 function rowMarkup(type, id, title, detail, meta, roomId, selectionType, selectionId) {

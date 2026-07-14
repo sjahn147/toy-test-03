@@ -212,15 +212,26 @@ export class SettlementSystem {
   }
 
   computeCapacity(settlement) {
+    let logicalCapacity;
     if (settlement.indestructible) {
       const bonus = settlement.buildings.reduce((sum, building) => sum + (SETTLEMENT_BUILDING_BONUSES[building.type]?.capacity ?? 0), 0);
-      return Math.max(1, settlement.baseCapacity + bonus);
+      logicalCapacity = Math.max(1, settlement.baseCapacity + bonus);
+    } else if (!settlement.anchorPresent || settlement.state === 'ruined') {
+      logicalCapacity = 0;
+    } else {
+      const bonus = settlement.buildings.reduce((sum, building) => sum + (SETTLEMENT_BUILDING_BONUSES[building.type]?.capacity ?? 0), 0);
+      const integrityFactor = 0.25 + clamp(settlement.structuralIntegrity, 0, 100) / 100 * 0.75;
+      const collapseFactor = settlement.state === 'collapsing' ? 0.45 : 1;
+      logicalCapacity = Math.max(1, Math.floor((settlement.baseCapacity + bonus) * integrityFactor * collapseFactor));
     }
-    if (!settlement.anchorPresent || settlement.state === 'ruined') return 0;
-    const bonus = settlement.buildings.reduce((sum, building) => sum + (SETTLEMENT_BUILDING_BONUSES[building.type]?.capacity ?? 0), 0);
-    const integrityFactor = 0.25 + clamp(settlement.structuralIntegrity, 0, 100) / 100 * 0.75;
-    const collapseFactor = settlement.state === 'collapsing' ? 0.45 : 1;
-    return Math.max(1, Math.floor((settlement.baseCapacity + bonus) * integrityFactor * collapseFactor));
+    const spatialCapacity = this.occupancy?.roomSpatialState?.(settlement.roomId)?.actorCapacity ?? logicalCapacity;
+    const effectiveCapacity = logicalCapacity > 0 && spatialCapacity > 0
+      ? Math.min(logicalCapacity, spatialCapacity)
+      : logicalCapacity;
+    settlement.logicalCapacity = logicalCapacity;
+    settlement.spatialCapacity = spatialCapacity;
+    settlement.effectiveCapacity = effectiveCapacity;
+    return effectiveCapacity;
   }
 
   updateSettlementStates(dt, sim) {

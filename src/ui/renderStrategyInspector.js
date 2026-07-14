@@ -94,24 +94,70 @@ function renderSettlement(value) {
 }
 
 function renderRoom(value) {
+  const canonical = value.roomState ?? null;
   const status = value.status ?? {};
-  const resourceRows = Object.entries(value.resources ?? {}).map(([key, amount]) => row(key, amount));
+  const resourceRows = Object.entries(canonical?.economy ?? value.resources ?? {}).filter(([key]) => !key.startsWith('cargo')).map(([key, amount]) => row(key, amount));
   const routeRows = (value.routes ?? []).map(route => row(route.otherRoomId, route.state, `${route.kind}${route.hidden ? ' · hidden' : ''}${route.locked ? ' · locked' : ''}`));
   const propRows = (value.props ?? []).slice(0, 10).map(prop => row(prop.label, prop.state ?? prop.type ?? 'present', prop.type ?? ''));
   return `${header(value.identity.name, `${value.identity.kind ?? 'room'}${value.identity.zoneCode ? ` · ${value.identity.zoneCode}` : ''}`)}
-    <div class="inspect-grid">${stat(`${value.size.w}×${value.size.d}`, 'size')}${stat(value.occupants.length, 'occupants')}${stat(value.props.length, 'props')}${stat(value.routes?.length ?? value.connections.length, 'routes')}</div>
-    ${section('State', [
-      row('visual', status.visualState ?? 'default', status.settlementState ?? ''),
-      row('visited', value.visited ? 'yes' : 'no', value.secret ? 'secret-linked' : ''),
-      row('danger', status.danger == null ? '—' : Math.round(status.danger), `${status.hostileOccupants ?? 0} hostile occupants`),
-      row('tier', status.tier ?? '—', status.contested ? 'contested' : '')
-    ])}
-    ${value.ownership ? section('Ownership', [row('faction', value.ownership.factionId ?? 'none', value.ownership.control == null ? '' : `${Math.round(value.ownership.control)} control`), row('contest', value.ownership.contested ? 'active' : 'clear')]) : ''}
+    ${renderRoomSummary(value)}
     ${resourceRows.length ? section('Resources', resourceRows) : ''}
     ${routeRows.length ? section(`Routes · ${routeRows.length}`, routeRows) : ''}
     ${propRows.length ? dossier(`Props · ${value.props.length}`, section('Room props', propRows)) : ''}
     ${renderTaskSurface(value)}
     ${section(`Occupants · ${value.occupants.length}`, value.occupants.length ? value.occupants.map(agent => `<button class="strategy-related-row" data-inspect-agent="${esc(agent.id)}"><span>${esc(agent.name)}</span><b>${esc(agent.role ?? '')}</b><em>${esc(agent.factionId ?? '')}</em></button>`) : ['<div class="strategy-empty">No occupants</div>'])}`;
+}
+
+function renderRoomSummary(value) {
+  const room = value.roomState;
+  if (!room) {
+    const status = value.status ?? {};
+    return `<div class="inspect-grid">${stat(`${value.size.w}×${value.size.d}`, 'size')}${stat(value.occupants.length, 'occupants')}${stat(status.danger == null ? '—' : Math.round(status.danger), 'danger')}${stat(status.contested ? 'yes' : 'no', 'contested')}</div>`;
+  }
+  const control = Math.round(room.ownership?.control ?? 0);
+  const population = room.population?.current ?? 0;
+  const capacity = room.population?.capacity ?? 0;
+  const danger = Math.round((room.danger?.score ?? 0) * 100);
+  const integrity = Math.round(room.settlement?.integrity ?? 100);
+  const supply = Math.round((room.settlement?.supplyEfficiency ?? 1) * 100);
+  const statusChips = (room.presentation?.statuses ?? []).map(item => `<span class="inventory-chip status-${esc(item.id)}">${esc(item.glyph)} ${esc(item.id.replaceAll('-', ' '))}</span>`).join('');
+  const causes = roomCauses(room);
+  const species = Object.entries(room.population?.bySpecies ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, count]) => row(name, count, '')).join('');
+  const activity = [
+    ...(room.activity?.construction ?? []).map(item => row(item.type, `${Math.round(item.progress * 100)}%`, item.state)),
+    ...(room.activity?.workOrders ?? []).map(item => row(item.label, `${Math.round(item.progress * 100)}%`, item.status))
+  ].join('');
+  return `<div class="wp11-room-summary-card">
+    <div class="wp11-room-primary">
+      ${gauge('Control', control, `${control}% ${room.ownership?.controlTrend ?? 'steady'}`, 'control')}
+      ${gauge('Population', capacity > 0 ? Math.min(100, population / capacity * 100) : 0, capacity > 0 ? `${population}/${capacity}` : population, 'population')}
+      ${gauge('Danger', danger, room.danger?.level ?? 'low', 'danger')}
+      ${room.settlement ? gauge('Integrity', integrity, `${integrity}%`, 'integrity') : gauge('Usable floor', room.spatial?.totalCells ? room.spatial.walkableCells / room.spatial.totalCells * 100 : 0, room.spatial ? `${room.spatial.walkableCells}/${room.spatial.totalCells}` : '—', 'space')}
+      ${room.settlement ? gauge('Supply', supply, room.settlement.supplyStatus ?? 'open', 'supply') : ''}
+    </div>
+    ${statusChips ? `<div class="inventory-line">${statusChips}</div>` : ''}
+    ${causes.length ? `<section class="equipment-panel"><strong>Why this room is changing</strong><ul class="wp11-room-cause-list">${causes.map(cause => `<li>${esc(cause)}</li>`).join('')}</ul></section>` : ''}
+    ${species ? `<section class="equipment-panel"><strong>Population</strong>${species}</section>` : ''}
+    ${activity ? `<section class="equipment-panel"><strong>Active work</strong>${activity}</section>` : ''}
+  </div>`;
+}
+
+function gauge(label, value, display, kind) {
+  const percent = Math.max(0, Math.min(100, Number(value) || 0));
+  return `<div class="wp11-room-gauge is-${esc(kind)}"><header><span>${esc(label)}</span><b>${esc(display)}</b></header><div class="wp11-room-gauge-track"><i style="--value:${percent}%"></i></div></div>`;
+}
+
+function roomCauses(room) {
+  const causes = [];
+  if (room.ownership?.controlTrend === 'falling') causes.push(`Control is falling by ${Math.abs(room.ownership.controlDelta ?? 0).toFixed(1)}.`);
+  if ((room.population?.hostile ?? 0) > 0) causes.push(`${room.population.hostile} hostile units are present.`);
+  if ((room.population?.overcrowded ?? 0) > 0) causes.push(`${room.population.overcrowded} residents exceed effective capacity.`);
+  if (room.settlement?.supplyStatus === 'blockaded') causes.push('The settlement is cut off from supply.');
+  else if (room.settlement?.supplyStatus === 'threatened') causes.push('The supply route is under pressure.');
+  if (room.activity?.siege) causes.push(`Siege phase: ${room.activity.siege.phase}.`);
+  if (room.environment?.infected) causes.push(`${room.environment.infectedAgents ?? 0} infected or hosted units are present.`);
+  if (room.spatial?.conflicts > 0) causes.push(`${room.spatial.conflicts} placement conflicts require attention.`);
+  return causes.slice(0, 5);
 }
 
 function renderWorldTarget(value) {

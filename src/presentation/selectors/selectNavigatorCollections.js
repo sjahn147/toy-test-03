@@ -98,19 +98,28 @@ export function selectSettlementList(state) {
   });
 }
 
-export function selectRoomList(state) {
+export function selectRoomList(state, roomStates = null) {
   const rooms = table(state, 'rooms');
   const agentsByRoom = state?.indexes?.agentsByRoom ?? {};
-  return Object.values(rooms).map(room => ({
-    id: room.id,
-    name: room.name ?? room.id,
-    kind: room.kind ?? 'room',
-    visited: room.visited === true,
-    secret: Array.isArray(room.tags) && room.tags.includes('secret_route'),
-    factionId: room.factionId ?? room.ownerFactionId ?? room.ownership?.factionId ?? null,
-    danger: room.danger ?? null,
-    occupantCount: agentsByRoom[room.id]?.length ?? 0
-  })).sort((a, b) => Number(b.visited) - Number(a.visited) || b.occupantCount - a.occupantCount || a.name.localeCompare(b.name));
+  return Object.values(rooms).map(room => {
+    const canonical = roomStates?.[room.id] ?? null;
+    return {
+      id: room.id,
+      name: room.name ?? room.id,
+      kind: room.kind ?? 'room',
+      visited: canonical?.discovered ?? room.visited === true,
+      secret: (canonical?.routes?.secretDiscovered ?? 0) > 0,
+      factionId: canonical?.ownership?.ownerFactionId ?? room.factionId ?? room.ownerFactionId ?? room.ownership?.factionId ?? null,
+      ownerColor: canonical?.ownership?.ownerColor ?? null,
+      control: canonical?.ownership?.control ?? room.control ?? null,
+      contested: canonical?.ownership?.contested ?? room.contested ?? false,
+      danger: canonical?.danger?.score ?? room.danger ?? null,
+      occupantCount: canonical?.population?.current ?? agentsByRoom[room.id]?.length ?? 0,
+      capacity: canonical?.population?.capacity ?? 0,
+      primaryStatus: canonical?.presentation?.primaryStatus ?? 'stable',
+      statuses: canonical?.presentation?.statuses ?? []
+    };
+  }).sort((a, b) => Number(b.visited) - Number(a.visited) || b.occupantCount - a.occupantCount || a.name.localeCompare(b.name));
 }
 
 export function selectFollowRoster(state) {
