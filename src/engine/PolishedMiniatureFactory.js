@@ -12,6 +12,8 @@ import { decorateOrc } from './OrcMiniaturePolish.js';
 import { applyMiniaturePresentationPolish } from './MiniaturePresentationPolish.js';
 import { installAdvancedMiniatureAnimation } from './AdvancedMiniatureAnimator.js';
 import { installCombatPresentationBridge } from './CombatPresentationBridge.js';
+import { createEliteMiniature } from '../miniatures/EliteMiniatureFactory.js';
+import { createHeroMiniature } from './heroes/HeroMiniatureFactory.js';
 
 installAdvancedMiniatureAnimation();
 installCombatPresentationBridge();
@@ -26,6 +28,10 @@ const EXOTIC_BUILDERS = {
 
 export class PolishedMiniatureFactory extends MiniatureFactory {
   create(agent) {
+    const hero = createHeroMiniature(agent);
+    if (hero) return hero;
+    const elite = createEliteMiniature(agent);
+    if (elite) return elite;
     const recipe = getMiniatureRecipe(agent.role);
     if (recipe.skeleton === 'slime') return this.createCreature(agent, recipe, 'slime');
     if (recipe.skeleton === 'mimic') return this.createCreature(agent, recipe, 'mimic');

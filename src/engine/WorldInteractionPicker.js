@@ -157,6 +157,9 @@ export class WorldInteractionPicker {
       if (!routeId || seenIds.has(routeId)) continue;
       seenIds.add(routeId);
       const route = this.renderer.scenario?.routes?.find(candidate => candidate.id === routeId) ?? null;
+      const routeKind = object.userData?.routeKind ?? route?.kind ?? 'ordinary';
+      const routeState = object.userData?.routeState ?? route?.state ?? route?.defaultState ?? null;
+      if (object.userData?.worldInteractionHidden || (routeKind === 'secret' && routeState === 'hidden')) continue;
       this.register(object, makeTarget({
         type: 'route',
         id: routeId,

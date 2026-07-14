@@ -333,13 +333,14 @@ export class ZoneInteractionSystem {
 function applyOutcome(actionId, sim, crewIds, outcomes) {
   const room = id => roomById(sim, id, []);
   if (actionId === 'sluice.drain-system') {
+    const routeResult = setRoute(sim, 'conn-C15-F26', 'opened');
+    if (!routeResult.ok) return fail(routeResult.error ?? 'failed to open conn-C15-F26');
     setRoomState(room('C14'), 'operational', { mechanismOperational: true, drainageState: 'drained' });
     setRoomState(room('C11'), 'drained', { waterLevel: 0, movementPenalty: 0 });
     setRoomState(room('C13'), 'drained', { waterLevel: 0 });
     setRoomState(room('C15'), 'open', { floodHazard: false });
-    setRoute(sim, 'conn-C15-F26', 'open');
     outcomes.set('sluice-drained', { actionId, roomId: 'C14', resolvedAt: number(sim.time) });
-    return ok({ routeId: 'conn-C15-F26', state: 'open', effectType: 'cargo-delivery' });
+    return ok({ routeId: 'conn-C15-F26', state: 'opened', effectType: 'cargo-delivery' });
   }
   if (actionId === 'workshop.reactivate') {
     setRoomState(room('D16'), 'reactivated', { workshopOperational: true, constructionBonus: 0.2 });
@@ -347,10 +348,11 @@ function applyOutcome(actionId, sim, crewIds, outcomes) {
     return ok({ workshopOperational: true, effectType: 'construction-complete' });
   }
   if (actionId === 'workshop.controlled-breach') {
+    const routeResult = setRoute(sim, 'conn-D20-J48', 'opened');
+    if (!routeResult.ok) return fail(routeResult.error ?? 'failed to open conn-D20-J48');
     setRoomState(room('D20'), 'detonated', { controlledBreach: true, explosiveRisk: 0 });
-    setRoute(sim, 'conn-D20-J48', 'open');
     outcomes.set('powder-wall-breached', { actionId, roomId: 'D20', resolvedAt: number(sim.time) });
-    return ok({ routeId: 'conn-D20-J48', state: 'open', effectType: 'siege-hit' });
+    return ok({ routeId: 'conn-D20-J48', state: 'opened', effectType: 'siege-hit' });
   }
   if (actionId === 'ossuary.break-choir') {
     setRoomState(room('E22'), 'purified', { choirBroken: true, deathEnergy: 0, zoneInteractionSafetyBonus: 0.18 });
@@ -359,9 +361,8 @@ function applyOutcome(actionId, sim, crewIds, outcomes) {
   }
   if (actionId === 'ossuary.seal-last-names') {
     setRoomState(room('E25'), 'sealed', { lastNamesSealed: true, wraithSpawnDisabled: true, zoneInteractionSafetyBonus: 0.24 });
-    setRoute(sim, 'conn-E25-L56', 'open');
     outcomes.set('last-names-ritual-resolved', { actionId, roomId: 'E25', resolvedAt: number(sim.time) });
-    return ok({ routeId: 'conn-E25-L56', state: 'open', effectType: 'heal' });
+    return ok({ lastNamesSealed: true, effectType: 'heal' });
   }
   if (actionId === 'fungal.communion') {
     setRoomState(room('F30'), 'stable', { fungalResolution: 'communion', myconidDiplomacy: 'allied', zoneInteractionSafetyBonus: 0.22 });
@@ -426,10 +427,11 @@ function applyOutcome(actionId, sim, crewIds, outcomes) {
     return ok({ stabilized: true, effectType: 'heal' });
   }
   if (actionId === 'sanctum.open-seal-gate') {
+    const routeResult = setRoute(sim, 'conn-K55-M61', 'opened');
+    if (!routeResult.ok) return fail(routeResult.error ?? 'failed to open conn-K55-M61');
     setRoomState(room('M61'), 'opened', { sealGateOpened: true });
-    setRoute(sim, 'conn-K55-M61', 'open');
     outcomes.set('heart-sanctum-opened', { actionId, roomId: 'M61', resolvedAt: number(sim.time) });
-    return ok({ routeId: 'conn-K55-M61', state: 'open', effectType: 'old-lantern-upgrade' });
+    return ok({ routeId: 'conn-K55-M61', state: 'opened', effectType: 'old-lantern-upgrade' });
   }
   if (['sanctum.seal-heart', 'sanctum.claim-heart', 'sanctum.shatter-heart'].includes(actionId)) {
     const resolution = actionId.split('.').at(-1).replace('-heart', '');

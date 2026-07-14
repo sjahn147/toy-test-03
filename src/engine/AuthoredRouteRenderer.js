@@ -57,7 +57,8 @@ export class AuthoredRouteRenderer {
       routeState: connection.state,
       fromRoomId: connection.aId,
       toRoomId: connection.bId,
-      active: connection.active
+      active: connection.active,
+      worldInteractionHidden: connection.kind === 'secret' && connection.state === 'hidden'
     };
 
     const revealCorridor = connection.active === true;

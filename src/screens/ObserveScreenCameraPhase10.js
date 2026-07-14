@@ -8,10 +8,18 @@ export class ObserveScreen extends Phase8ObserveScreen {
     this.cameraMode = 'free';
     this.cameraController = null;
     this.cameraResolver = null;
+    this.cameraResizeObserver = null;
   }
 
   mount(root) {
     super.mount(root);
+    this.three?.resize?.();
+    const ResizeObserverCtor = globalThis.ResizeObserver;
+    if (ResizeObserverCtor && this.viewport) {
+      this.cameraResizeObserver?.disconnect?.();
+      this.cameraResizeObserver = new ResizeObserverCtor(() => this.three?.resize?.());
+      this.cameraResizeObserver.observe(this.viewport);
+    }
     this.cameraDirector?.destroy?.();
     this.cameraDirector = null;
     this.three?.setAutoOrbitEnabled?.(false);
@@ -45,6 +53,7 @@ export class ObserveScreen extends Phase8ObserveScreen {
       this.cameraResolver.renderer = this.renderer;
       this.cameraResolver.setWorldPicker(this.worldPicker);
     }
+    this.three?.resize?.();
   }
 
   selectEntity({ type, id, roomId = null, cameraIntent = 'move' }) {
@@ -173,10 +182,20 @@ export class ObserveScreen extends Phase8ObserveScreen {
   }
 
   handleShortcut(event) {
-    if (this.cameraController?.handleKeyDown(event)) return;
     if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
     const target = event.target;
     if (target?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
+    if (event.shiftKey && /^Digit[1-9]$/.test(event.code)) {
+      event.preventDefault();
+      this.selectOverlayByIndex(Number(event.code.slice(-1)) - 1);
+      return;
+    }
+    if (event.key?.toLowerCase() === 'v') {
+      event.preventDefault();
+      this.cycleOverlay(event.shiftKey ? -1 : 1);
+      return;
+    }
+    if (this.cameraController?.handleKeyDown(event)) return;
     if (event.code === 'Space') {
       event.preventDefault();
       const paused = this.shell ? !this.shell.paused : false;
@@ -208,7 +227,10 @@ export class ObserveScreen extends Phase8ObserveScreen {
     const dt = Math.min(this.three.clock.getDelta(), 0.045);
     this.viewModelClock -= dt;
     this.runtime?.update(dt * 0.62);
+    this.renderer.setOverlayMode?.(this.overlayMode);
+    this.renderer.setOverlayContext?.({ selection: this.selection, followAgentId: this.followAgentId ?? this.selectedAgentId ?? null, observerFactionId: this.observerFactionId });
     this.renderer.renderState(this.sim.snapshot());
+    this.syncOverlayPresentation();
     this.worldPicker?.refreshHighlights();
     this.refreshViewModel(false);
     this.cameraController?.update(dt);
@@ -218,6 +240,8 @@ export class ObserveScreen extends Phase8ObserveScreen {
   }
 
   destroy() {
+    this.cameraResizeObserver?.disconnect?.();
+    this.cameraResizeObserver = null;
     this.cameraController?.destroy();
     this.cameraController = null;
     this.cameraResolver = null;
