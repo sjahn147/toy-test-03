@@ -65,7 +65,7 @@
     "test:height-stability": "node tests/height-stability-regression-smoke.mjs",
     "test:wp11": "node tests/wp11-room-state-selector-smoke.mjs && node tests/wp11-spatial-compositor-smoke.mjs && node tests/wp11-room-state-source-integration-smoke.mjs",
     "test:wp12": "node tests/wp12-adventurer-profile-smoke.mjs && node tests/wp12-adventurer-ability-smoke.mjs && node tests/wp12-adventurer-source-integration-smoke.mjs",
-    "test:wp13": "node tests/wp13-floor-content-contract-smoke.mjs && node tests/wp13-vertical-connector-system-smoke.mjs && node tests/wp13-floor-scene-manager-smoke.mjs && node tests/wp13-floor-layout-audit.mjs && node tests/wp13-source-integration-smoke.mjs"
+    "test:wp13": "node tests/wp13-floor-content-contract-smoke.mjs && node tests/wp13-vertical-connector-system-smoke.mjs && node tests/wp13-floor-scene-manager-smoke.mjs && node tests/wp13-floor-navigation-smoke.mjs && node tests/wp13-floor-layout-audit.mjs && node tests/wp13-source-integration-smoke.mjs"
   },
   "keywords": [
     "threejs",

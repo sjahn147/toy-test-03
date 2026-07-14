@@ -8,12 +8,13 @@ const ROUTE_COLORS = Object.freeze({
 });
 
 export class AuthoredRouteRenderer {
-  constructor({ three, assets, parent, topology, roomY }) {
+  constructor({ three, assets, parent, topology, roomY, floorHeight = DEFAULT_FLOOR_HEIGHT }) {
     this.three = three;
     this.assets = assets;
     this.parent = parent;
     this.topology = topology;
     this.roomY = roomY;
+    this.floorHeight = floorHeight;
     this.groups = new Map();
     this.signatures = new Map();
   }
@@ -255,7 +256,7 @@ export class AuthoredRouteRenderer {
     const bRoom = this.topology.roomById.get(connection.bId);
     const inferredHeight = Math.abs((aRoom?.floor ?? 0) - (bRoom?.floor ?? 0)) > 0
       ? Math.abs(this.roomY(aRoom) - this.roomY(bRoom)) / Math.abs((aRoom?.floor ?? 0) - (bRoom?.floor ?? 0))
-      : DEFAULT_FLOOR_HEIGHT;
+      : this.floorHeight;
     return connectionSurfaceY(connection, this.topology, progress, inferredHeight);
   }
 

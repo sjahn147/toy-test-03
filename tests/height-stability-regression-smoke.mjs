@@ -6,6 +6,7 @@ const rooms=[{id:'A',floorId:'B1',floor:-1,x:0,z:0,w:12,d:12},{id:'B',floorId:'B
 const routes=[{id:'horizontal',from:'A',to:'B',kind:'ordinary',floorId:'B1',points:[{x:6,z:0},{x:14,z:0}],ports:{A:{roomId:'A',side:'E',x:6,z:0,normalX:1,normalZ:0,width:2},B:{roomId:'B',side:'W',x:14,z:0,normalX:-1,normalZ:0,width:2}},vertical:false,fromFloor:-1,toFloor:-1,elevation:0}];
 const topology=buildDungeonTopology(rooms,routes,{includeInactive:true});const route=topology.connectionById.get('horizontal');
 for(const t of[0,.25,.5,.75,1])assert.equal(connectionSurfaceY(route,topology,t,DEFAULT_FLOOR_HEIGHT),-DEFAULT_FLOOR_HEIGHT);
-const renderer=await readFile(new URL('../src/engine/DungeonRenderer.js',import.meta.url),'utf8');const connector=await readFile(new URL('../src/engine/StrategyDungeonRendererWP13.js',import.meta.url),'utf8');
+const renderer=await readFile(new URL('../src/engine/DungeonRenderer.js',import.meta.url),'utf8');const connector=await readFile(new URL('../src/engine/StrategyDungeonRendererWP13.js',import.meta.url),'utf8');const authoredRoute=await readFile(new URL('../src/engine/AuthoredRouteRenderer.js',import.meta.url),'utf8');
 assert.match(renderer,/const height = this\.agentGroundOffset\(agent, mesh\)/);assert.doesNotMatch(renderer,/y: y \+ height \+ \(sample\.yOffset/);assert.match(connector,/vertical-connector/);assert.match(connector,/this\.agentGroundOffset\(agent, mesh\)/);
+assert.match(renderer,/floorHeight: this\.floorHeight/);assert.match(authoredRoute,/: this\.floorHeight;/);
 console.log('height stability regression smoke: ok');

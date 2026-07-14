@@ -31,8 +31,7 @@ export class StrategyDungeonRendererWP13 extends StrategyDungeonRendererWP11 {
     this.lastFullSnapshot = snapshot;
     const filtered = filterSnapshotForFloor(snapshot, this.activeFloorId);
     super.renderState(filtered);
-    this.verticalConnectorRenderer.sync(snapshot.verticalConnectors ?? this.scenario.verticalConnectors ?? []);
-    this.floorSceneManager.reindex();
+    this.verticalConnectorRenderer.sync(filtered.verticalConnectors ?? this.scenario.verticalConnectors ?? []);
     this.floorSceneManager.apply();
     this.landmarkClearanceConflicts = this.landmarkVerticalAudit.inspect(this.landmarkMeshes, this.activeFloorId);
   }
@@ -98,16 +97,28 @@ export function filterSnapshotForFloor(snapshot, floorId) {
   const rooms = snapshot?.rooms ?? [];
   const roomFloor = new Map(rooms.map(room => [room.id, roomFloorId(room)]));
   const isRoomVisible = roomId => !roomId || roomFloor.get(roomId) === floorId;
+  const isConnectorVisible = connector => {
+    const fromFloorId = connector?.from?.floorId ?? roomFloor.get(connector?.from?.roomId);
+    const toFloorId = connector?.to?.floorId ?? roomFloor.get(connector?.to?.roomId);
+    return fromFloorId === floorId || toFloorId === floorId;
+  };
   const agentVisible = agent => {
     if (isRoomVisible(agent.roomId)) return true;
     const travel = agent.travel;
     return travel?.kind === 'vertical-connector' && (travel.fromFloorId === floorId || travel.toFloorId === floorId);
+  };
+  const routeVisible = route => {
+    const explicitFloorId = route?.floorId ?? null;
+    if (explicitFloorId) return explicitFloorId === floorId;
+    return isRoomVisible(route?.from ?? route?.aId) || isRoomVisible(route?.to ?? route?.bId);
   };
   const visibleAgentIds = new Set((snapshot.agents ?? []).filter(agentVisible).map(agent => agent.id));
   const result = {
     ...snapshot,
     rooms: rooms.filter(room => roomFloorId(room) === floorId),
     agents: (snapshot.agents ?? []).filter(agentVisible),
+    routes: (snapshot.routes ?? []).filter(routeVisible),
+    verticalConnectors: (snapshot.verticalConnectors ?? []).filter(isConnectorVisible),
     props: (snapshot.props ?? []).filter(prop => isRoomVisible(prop.roomId)),
     effects: (snapshot.effects ?? []).filter(effect => isRoomVisible(effect.roomId) || visibleAgentIds.has(effect.agentId))
   };

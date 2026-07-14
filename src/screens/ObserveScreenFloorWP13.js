@@ -24,7 +24,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
       root:this.viewport ?? root,
       floors:this.floors,
       activeFloorId:this.activeFloorId,
-      onSelect:floorId => this.setActiveFloor(floorId, { focus:true, restorePose:false })
+      onSelect:floorId => this.setActiveFloor(floorId, { focus:true, restorePose:false, source:'user' })
     });
     globalThis.addEventListener?.('keydown', this.floorKeyHandler);
     this.rebindFloorPresentation();
@@ -38,10 +38,13 @@ export class ObserveScreen extends RoomStateObserveScreen {
     this.renderActiveFloorBadges();
   }
 
-  setActiveFloor(floorId, { focus = false, announce = true, restorePose = true } = {}) {
+  setActiveFloor(floorId, { focus = false, announce = true, restorePose = true, source = 'system' } = {}) {
     if (!this.floors.some(floor => floor.id === floorId)) return false;
     const changed = floorId !== this.activeFloorId;
     if (changed) this.captureFloorCameraPose(this.activeFloorId);
+    if (source === 'user' && this.cameraController?.mode === 'focus') {
+      this.cameraController.leaveFocus({ restore:false, reason:'floor-select' });
+    }
     this.activeFloorId = floorId;
     this.renderer?.setActiveFloor?.(floorId);
     this.applyFloorCameraBounds(floorId);
@@ -58,7 +61,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
   stepFloor(direction) {
     const index = this.floors.findIndex(floor => floor.id === this.activeFloorId);
     const next = Math.max(0, Math.min(this.floors.length - 1, index + direction));
-    if (next !== index) this.setActiveFloor(this.floors[next].id, { focus:true });
+    if (next !== index) this.setActiveFloor(this.floors[next].id, { focus:true, source:'user' });
   }
 
   handleFloorShortcut(event) {
@@ -101,6 +104,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   followFloorTransition() {
+    if (this.cameraController?.mode !== 'focus') return;
     const followedId = this.followAgentId ?? this.selectedAgentId;
     if (!followedId) return;
     const agent = this.sim?.agents?.find?.(candidate => String(candidate.id) === String(followedId));

@@ -166,7 +166,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
         this.group.add(mesh);
       }
       const placement = recipe.placement ?? {};
-      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.04, room.z + (placement.oz ?? 0));
+      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.04 + (placement.oy ?? 0), room.z + (placement.oz ?? 0));
       mesh.rotation.y = placement.rotation ?? 0;
       mesh.scale.setScalar(placement.scale ?? 1);
       this.assets.animateCampaignLandmark(mesh, elapsedSeconds, deltaSeconds);
@@ -205,7 +205,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       const placement = prop.placement ?? {};
       const progress = Math.max(0.08, prop.buildProgress ?? 1);
       const integrityRatio = Math.max(0.08, (prop.integrity ?? prop.maxIntegrity ?? 1) / Math.max(1, prop.maxIntegrity ?? 1));
-      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.035, room.z + (placement.oz ?? 0));
+      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.035 + (placement.oy ?? 0), room.z + (placement.oz ?? 0));
       mesh.rotation.y = placement.rotation ?? 0;
       const baseScale = placement.scale ?? 1;
       const damagePulse = integrityRatio < 0.4 ? 1 + Math.sin(time * 9 + prop.id.length) * 0.025 : 1;
@@ -233,7 +233,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       const room = rooms.find(candidate => candidate.id === camp.roomId);
       if (!room) continue;
       const placement = camp.placement ?? {};
-      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.035, room.z + (placement.oz ?? 0));
+      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.035 + (placement.oy ?? 0), room.z + (placement.oz ?? 0));
       mesh.rotation.y = placement.rotation ?? 0;
       mesh.scale.setScalar(placement.scale ?? 0.82);
       this.assets.expedition.animateFieldCamp(mesh, time);
@@ -297,7 +297,7 @@ export class DungeonRendererPhase8 extends DungeonRendererPhase7 {
       const room = rooms.find(candidate => candidate.id === settlement.roomId);
       if (!room) continue;
       const placement = settlement.visualPlacement ?? {};
-      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.035, room.z + (placement.oz ?? 0));
+      mesh.position.set(room.x + (placement.ox ?? 0), this.roomY(room) + 0.035 + (placement.oy ?? 0), room.z + (placement.oz ?? 0));
       mesh.rotation.y = placement.rotation ?? 0;
       mesh.scale.setScalar(placement.scale ?? 0.68);
       this.animateSettlement(mesh, settlement, time);

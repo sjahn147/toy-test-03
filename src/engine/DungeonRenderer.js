@@ -37,7 +37,8 @@ export class DungeonRenderer {
         assets: this.assets,
         parent: this.group,
         topology: this.topology,
-        roomY: room => this.roomY(room)
+        roomY: room => this.roomY(room),
+        floorHeight: this.floorHeight
       });
       this.routeRenderer.build();
     } else {

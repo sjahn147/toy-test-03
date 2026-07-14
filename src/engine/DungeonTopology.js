@@ -87,6 +87,8 @@ export function sampleConnection(connection, progress) {
 }
 
 export function roomSurfaceY(room, floorHeight = DEFAULT_FLOOR_HEIGHT) {
+  if (Number.isFinite(room?.floorElevation)) return room.floorElevation;
+  if (Number.isFinite(room?.elevation)) return room.elevation;
   return (room?.floor ?? 0) * floorHeight;
 }
 
