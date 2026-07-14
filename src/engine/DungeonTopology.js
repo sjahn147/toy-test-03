@@ -22,7 +22,7 @@ export function buildDungeonTopology(rooms, linksOrRoutes, options = {}) {
   const connectionByPair = new Map();
   const connectionById = new Map();
   const routes = normalizeRoutes(linksOrRoutes);
-  const authored = routes.some(route => route.authored);
+  const authored = options.authoredPhysicalLayout === true;
 
   for (let index = 0; index < routes.length; index += 1) {
     const route = routes[index];
@@ -31,7 +31,7 @@ export function buildDungeonTopology(rooms, linksOrRoutes, options = {}) {
     const b = roomById.get(route.bId);
     if (!a || !b) continue;
 
-    const connection = route.authored
+    const connection = authored && route.authored
       ? buildAuthoredConnection(route, a, b, index)
       : buildGeneratedConnection(route, a, b, index);
 
@@ -88,7 +88,6 @@ export function sampleConnection(connection, progress) {
 
 export function roomSurfaceY(room, floorHeight = DEFAULT_FLOOR_HEIGHT) {
   if (Number.isFinite(room?.floorElevation)) return room.floorElevation;
-  if (Number.isFinite(room?.elevation)) return room.elevation;
   return (room?.floor ?? 0) * floorHeight;
 }
 

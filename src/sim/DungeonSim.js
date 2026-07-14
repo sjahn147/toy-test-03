@@ -17,7 +17,9 @@ export class DungeonSim {
     this.routeGraph = Array.isArray(scenario.routes) ? new ActiveCampaignGraph(scenario.routes) : null;
     this.verticalConnectorSystem = new VerticalConnectorSystem(scenario.verticalConnectors ?? [], this.rooms);
     this.graph = buildGraph(this.navigationLinks());
-    this.topology = buildDungeonTopology(this.rooms, this.routeGraph ? this.routeGraph.activeRoutes() : scenario.links);
+    this.topology = buildDungeonTopology(this.rooms, this.routeGraph ? this.routeGraph.activeRoutes() : scenario.links, {
+      authoredPhysicalLayout: scenario.meta?.authoredPhysicalLayout === true
+    });
     this.routeGraphUnsubscribe = this.routeGraph?.subscribe(event => this.rebuildActiveRouteGraph(event)) ?? null;
     this.visited = new Set(['entry']);
     this.onEvent = onEvent ?? (() => {});
@@ -79,7 +81,9 @@ export class DungeonSim {
     if (!this.routeGraph) return;
     const activeRoutes = this.routeGraph.activeRoutes();
     this.graph = buildGraph(this.navigationLinks());
-    this.topology = buildDungeonTopology(this.rooms, activeRoutes);
+    this.topology = buildDungeonTopology(this.rooms, activeRoutes, {
+      authoredPhysicalLayout: this.scenario?.meta?.authoredPhysicalLayout === true
+    });
     const activeRouteIds = new Set(activeRoutes.map(route => route.id));
     for (const agent of this.agents) {
       if (!agent.travel || agent.travel.kind === 'vertical-connector' || activeRouteIds.has(agent.travel.connectionId)) continue;

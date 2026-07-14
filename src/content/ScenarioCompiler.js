@@ -69,6 +69,8 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
   const authoredLayout = getAuthoredCampaignLayout(manifest);
   const spawnNetwork = getCampaignSpawnNetwork(manifest);
   const centers = authoredLayout?.centers ?? layoutZones({ zones, rooms: roomsForLayout, layout: manifest.layout });
+  const floorDefinitions = manifest.floors ?? authoredLayout?.floors ?? [];
+  const floorElevationById = new Map(floorDefinitions.map(floor => [floor.id, floor.elevation]));
 
   // 연결 shape: connections는 [a,b] pair, secretConnections/conditionalConnections는 객체.
   const secretConnections = manifest.secretConnections ?? [];
@@ -94,6 +96,9 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
       kind: mapRoomKind(source.kind, source.id, entryRoomId),
       floorId: source.floorId ?? authoredPlacement?.floorId ?? null,
       floor: source.floor ?? authoredPlacement?.floor ?? 0,
+      floorElevation: Number.isFinite(floorElevationById.get(source.floorId ?? authoredPlacement?.floorId ?? null))
+        ? floorElevationById.get(source.floorId ?? authoredPlacement?.floorId ?? null)
+        : undefined,
       rotation: authoredPlacement?.rotation ?? 0,
       layoutRole: authoredPlacement?.role ?? null,
       depthBand: authoredPlacement?.depthBand ?? null,

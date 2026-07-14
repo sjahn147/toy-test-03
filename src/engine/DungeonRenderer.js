@@ -18,7 +18,10 @@ export class DungeonRenderer {
     this.scenario = scenario;
     this.assets = assets;
     this.floorHeight = Number.isFinite(scenario.floorHeight) ? scenario.floorHeight : DEFAULT_FLOOR_HEIGHT;
-    this.topology = buildDungeonTopology(scenario.rooms, scenario.routes ?? scenario.links, { includeInactive: true });
+    this.topology = buildDungeonTopology(scenario.rooms, scenario.routes ?? scenario.links, {
+      includeInactive: true,
+      authoredPhysicalLayout: scenario.meta?.authoredPhysicalLayout === true
+    });
     this.connectionById = new Map(this.topology.connections.map(connection => [connection.id, connection]));
     this.roomMeshes = new Map();
     this.agentMeshes = new Map();
