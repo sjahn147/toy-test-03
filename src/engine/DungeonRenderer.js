@@ -111,12 +111,16 @@ export class DungeonRenderer {
     if (side === 'S') wall.position.set(room.x + center, y, room.z + room.d / 2);
     if (side === 'W') wall.position.set(room.x - room.w / 2, y, room.z + center);
     if (side === 'E') wall.position.set(room.x + room.w / 2, y, room.z + center);
+    wall.userData ??= {};
+    wall.userData.roomId = room.id;
     this.group.add(wall);
   }
 
   addRoomMarker(room, color) {
     const marker = this.assets.makeRoomMarker(room, color);
     marker.position.set(room.x, this.roomY(room) + 0.04, room.z);
+    marker.userData ??= {};
+    marker.userData.roomId = room.id;
     this.group.add(marker);
   }
 
