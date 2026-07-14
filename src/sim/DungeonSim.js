@@ -4,7 +4,7 @@ import { buildDungeonTopology, findConnection } from '../engine/DungeonTopology.
 import { ActiveCampaignGraph } from '../domain/ActiveCampaignGraph.js';
 
 const PARTY_NAMES = ['Rana', 'Milo', 'Sister Pell', 'Orwin', 'Tamsin', 'Berric', 'Nell', 'Grubbs'];
-const PARTY_ROLES = ['fighter', 'rogue', 'cleric', 'wizard'];
+const PARTY_ROLES = ['fighter', 'rogue', 'cleric', 'wizard', 'archer'];
 const MONSTER_ROLES = ['goblin', 'skeleton', 'slime'];
 
 export class DungeonSim {

@@ -14,6 +14,7 @@ import { installAdvancedMiniatureAnimation } from './AdvancedMiniatureAnimator.j
 import { installCombatPresentationBridge } from './CombatPresentationBridge.js';
 import { createEliteMiniature } from '../miniatures/EliteMiniatureFactory.js';
 import { createHeroMiniature } from './heroes/HeroMiniatureFactory.js';
+import { createModernAdventurerMiniature } from './adventurers/AdventurerSkinnedFactory.js';
 
 installAdvancedMiniatureAnimation();
 installCombatPresentationBridge();
@@ -32,6 +33,8 @@ export class PolishedMiniatureFactory extends MiniatureFactory {
     if (hero) return hero;
     const elite = createEliteMiniature(agent);
     if (elite) return elite;
+    const adventurer = createModernAdventurerMiniature(agent);
+    if (adventurer) return adventurer;
     const recipe = getMiniatureRecipe(agent.role);
     if (recipe.skeleton === 'slime') return this.createCreature(agent, recipe, 'slime');
     if (recipe.skeleton === 'mimic') return this.createCreature(agent, recipe, 'mimic');

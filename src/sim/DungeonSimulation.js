@@ -22,6 +22,7 @@ import { HeroBroodSystem } from './heroes/HeroBroodSystem.js';
 import { HeroMimicrySystem } from './heroes/HeroMimicrySystem.js';
 import { HeroGardenSystem } from './heroes/HeroGardenSystem.js';
 import { HeroHoardSystem } from './heroes/HeroHoardSystem.js';
+import { AdventurerAbilitySystem } from './AdventurerAbilitySystem.js';
 
 export class DungeonSimulation extends LegacyDungeonSimulation {
   constructor(scenario, options = {}) {
@@ -74,12 +75,15 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     this.heroMimicrySystem = new HeroMimicrySystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroGardenSystem = new HeroGardenSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroHoardSystem = new HeroHoardSystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
+    this.adventurerAbilitySystem = new AdventurerAbilitySystem({ onEvent: (text, meta = {}) => this.event(text, meta) });
     this.heroSystem.initialize(this);
     this.heroSkillSystem.initialize(this);
     this.heroFormSystem.initialize(this);
+    this.adventurerAbilitySystem.initialize(this);
   }
 
   update(dt) {
+    this.adventurerAbilitySystem.update(dt, this);
     this.heroSystem.update(dt, this);
     this.heroSkillSystem.update(dt, this);
     this.heroFormSystem.update(dt, this);
@@ -110,6 +114,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
     if (this.isActive(agent) && !agent.travel && !agent.combat) {
       const heroFormAction = this.heroFormSystem.decide(agent, this);
       if (heroFormAction && this.heroFormSystem.resolve(agent, heroFormAction, this)) return;
+      const adventurerAction = this.adventurerAbilitySystem.decide(agent, this);
+      if (adventurerAction && this.adventurerAbilitySystem.resolve(agent, adventurerAction, this)) return;
       const heroAction = this.heroSkillSystem.decide(agent, this);
       if (heroAction && this.heroSkillSystem.resolve(agent, heroAction, this)) return;
       const eliteAbility = this.eliteAbilitySystem.decide(agent, this);
@@ -146,7 +152,8 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
   }
 
   applyCombatDamage(source, target, amount, metadata = {}) {
-    let adjusted = this.heroSkillSystem?.modifyIncomingDamage?.(source, target, amount, metadata) ?? amount;
+    let adjusted = this.adventurerAbilitySystem?.modifyIncomingDamage?.(source, target, amount, metadata) ?? amount;
+    adjusted = this.heroSkillSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
     adjusted = this.heroFormationSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
     adjusted = this.heroBarrierSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
     adjusted = this.heroAdaptationSystem?.modifyIncomingDamage?.(source, target, adjusted, metadata) ?? adjusted;
@@ -234,6 +241,7 @@ export class DungeonSimulation extends LegacyDungeonSimulation {
       eliteEcology: this.eliteEcologySystem.snapshot(),
       eliteAbilities: this.eliteAbilitySystem.snapshot(),
       eliteBehavior: this.eliteBehaviorSystem.snapshot(),
+      adventurers: this.adventurerAbilitySystem.snapshot(this),
       heroes: this.heroSystem.snapshot(),
       heroSkills: this.heroSkillSystem.snapshot(),
       heroLeadership: this.heroLeadershipSystem.snapshot(),
