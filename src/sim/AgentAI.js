@@ -1,4 +1,5 @@
 import { graphDistance, nearestRoom, nextStep } from './Pathfinding.js';
+import { ensureAdventurerProfile } from '../adventurers/AdventurerProfile.js';
 
 const STATS = {
   fighter: { hp: 18, attack: 5, courage: 9 },
@@ -20,7 +21,7 @@ export function hydrateAgent(raw, i) {
   const stats = STATS[raw.role] ?? STATS.goblin;
   const level = raw.level ?? 1;
   const partyBoost = raw.faction === 'party' ? level - 1 : Math.floor((level - 1) * 0.6);
-  return {
+  const agent = {
     ...raw,
     index: i,
     level,
@@ -46,6 +47,7 @@ export function hydrateAgent(raw, i) {
     previousRoomId: null,
     recentRooms: Array.isArray(raw.recentRooms) ? [...raw.recentRooms].slice(-6) : [raw.roomId].filter(Boolean)
   };
+  return ensureAdventurerProfile(agent);
 }
 
 export function decideAction(agent, sim) {

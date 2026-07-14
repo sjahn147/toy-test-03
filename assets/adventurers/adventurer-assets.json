@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "pipeline": "wp12-modern-adventurers",
+  "runtimeMode": "procedural-skinned-fallback",
+  "authoredAssetPolicy": {
+    "format": "glb",
+    "compression": ["EXT_meshopt_compression", "KHR_texture_basisu"],
+    "sharedSkeleton": "adventurer-canonical-v1",
+    "coordinateSystem": "Y_UP_FORWARD_Z",
+    "rootOrigin": "feet-center"
+  },
+  "lod": {
+    "lod0": { "triangles": [12000, 18000], "materialsMax": 3, "deformBonesMax": 40 },
+    "lod1": { "triangles": [6000, 9000], "materialsMax": 2, "deformBonesMax": 32 },
+    "lod2": { "triangles": [1800, 3000], "materialsMax": 1, "deformBonesMax": 18 }
+  },
+  "roles": {
+    "fighter": { "fallback": "runtime-skinned", "authoredUrl": null },
+    "rogue": { "fallback": "runtime-skinned", "authoredUrl": null },
+    "cleric": { "fallback": "runtime-skinned", "authoredUrl": null },
+    "wizard": { "fallback": "runtime-skinned", "authoredUrl": null },
+    "archer": { "fallback": "runtime-skinned", "authoredUrl": null }
+  }
+}

@@ -2,6 +2,9 @@ import { THREE } from './ThreeScene.js';
 import { AssetRegistry } from './AssetRegistry.js';
 import { animateEliteMiniature } from '../miniatures/MiniatureAnimator.js';
 import { animateHeroMiniature } from './heroes/HeroAnimator.js';
+import { animateModernAdventurer } from './adventurers/AdventurerAnimator.js';
+import { disposeModernAdventurer } from './adventurers/AdventurerSkinnedFactory.js';
+import { adventurerVisualSignature } from '../adventurers/AdventurerProfile.js';
 import { animateHeroEffect } from './heroes/HeroTelegraphRenderer.js';
 import { HeroWorldActorRenderer } from './heroes/HeroWorldActorRenderer.js';
 import { buildDungeonTopology, sampleConnection, roomSurfaceY, connectionSurfaceY, DEFAULT_FLOOR_HEIGHT } from './DungeonTopology.js';
@@ -188,6 +191,7 @@ export class DungeonRenderer {
     for (const [id, mesh] of this.agentMeshes) {
       if (!live.has(id)) {
         this.group.remove(mesh);
+        disposeModernAdventurer(mesh);
         this.agentMeshes.delete(id);
       }
     }
@@ -202,11 +206,19 @@ export class DungeonRenderer {
     for (const agent of agents) {
       if (!agent.alive || agent.hidden || agent.departed) continue;
 
+      const visualSignature = adventurerVisualSignature(agent);
       let mesh = this.agentMeshes.get(agent.id);
+      if (mesh && visualSignature && mesh.userData.adventurerVisualSignature !== visualSignature) {
+        this.group.remove(mesh);
+        this.agentMeshes.delete(agent.id);
+        disposeModernAdventurer(mesh);
+        mesh = null;
+      }
       let created = false;
       if (!mesh) {
         mesh = this.assets.makeAgent(agent);
         mesh.userData.agentId = agent.id;
+        if (visualSignature) mesh.userData.adventurerVisualSignature = visualSignature;
         mesh.traverse(child => { child.userData.agentId = agent.id; });
         this.agentMeshes.set(agent.id, mesh);
         this.group.add(mesh);
@@ -237,7 +249,7 @@ export class DungeonRenderer {
       }
       mesh.userData.lastRenderTime = time;
       if (target.rotation !== undefined) mesh.rotation.y = target.rotation;
-      if (!animateHeroMiniature(mesh, agent, time)) animateEliteMiniature(mesh, agent, time);
+      if (!animateModernAdventurer(mesh, agent, time) && !animateHeroMiniature(mesh, agent, time)) animateEliteMiniature(mesh, agent, time);
       mesh.visible = true;
 
       const hp = mesh.getObjectByName('hp');
