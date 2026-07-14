@@ -81,6 +81,16 @@ for (const [a, b] of scenario.links) {
   graph.get(a).add(b);
   graph.get(b).add(a);
 }
+// scenario.links carries horizontal same-floor routes only per WP13's contract;
+// cross-floor edges live in scenario.verticalConnectors.
+for (const connector of scenario.verticalConnectors ?? []) {
+  const a = connector.from?.roomId;
+  const b = connector.to?.roomId;
+  assert.ok(graph.has(a), `vertical connector ${connector.id} references unknown room ${a}`);
+  assert.ok(graph.has(b), `vertical connector ${connector.id} references unknown room ${b}`);
+  graph.get(a).add(b);
+  graph.get(b).add(a);
+}
 const visited = new Set([manifest.entryRoomId]);
 const queue = [manifest.entryRoomId];
 while (queue.length) {

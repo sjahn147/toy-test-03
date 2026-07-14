@@ -92,7 +92,8 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
       id: source.id,
       name: source.name,
       kind: mapRoomKind(source.kind, source.id, entryRoomId),
-      floor: authoredPlacement?.floor ?? 0,
+      floorId: source.floorId ?? authoredPlacement?.floorId ?? null,
+      floor: source.floor ?? authoredPlacement?.floor ?? 0,
       rotation: authoredPlacement?.rotation ?? 0,
       layoutRole: authoredPlacement?.role ?? null,
       depthBand: authoredPlacement?.depthBand ?? null,
@@ -297,6 +298,8 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
     rooms,
     links,
     routes: routeDefinitions,
+    floors: (manifest.floors ?? authoredLayout?.floors ?? []).map(floor => ({ ...floor, roomIds: [...(floor.roomIds ?? [])] })),
+    verticalConnectors: (manifest.verticalConnectors ?? authoredLayout?.verticalConnectors ?? []).map(connector => structuredCloneSafe(connector)),
     secretLinks,
     agents,
     props,
@@ -325,6 +328,10 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
       depthBands: authoredLayout?.depthBands ?? {},
       cameraLandmarks: authoredLayout?.cameraLandmarks ?? {},
       zoneTransitions: authoredLayout?.zoneTransitions ?? [],
+      floors: (manifest.floors ?? authoredLayout?.floors ?? []).map(floor => ({ ...floor, roomIds: [...(floor.roomIds ?? [])] })),
+      verticalConnectors: (manifest.verticalConnectors ?? authoredLayout?.verticalConnectors ?? []).map(connector => structuredCloneSafe(connector)),
+      floorBounds: authoredLayout?.floorBounds ?? {},
+      junctions: authoredLayout?.junctions ?? [],
       spawnNetwork,
       propBundlesByRoom
     }
@@ -347,3 +354,5 @@ export function compileCampaign({ manifest, assetCatalog = null, options = {} } 
 
   return { scenario, report };
 }
+
+function structuredCloneSafe(value) { return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value)); }

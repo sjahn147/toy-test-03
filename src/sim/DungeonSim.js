@@ -2,6 +2,7 @@ import { buildGraph } from './Pathfinding.js';
 import { hydrateAgent, decideAction } from './AgentAI.js';
 import { buildDungeonTopology, findConnection } from '../engine/DungeonTopology.js';
 import { ActiveCampaignGraph } from '../domain/ActiveCampaignGraph.js';
+import { VerticalConnectorSystem } from './VerticalConnectorSystem.js';
 
 const PARTY_NAMES = ['Rana', 'Milo', 'Sister Pell', 'Orwin', 'Tamsin', 'Berric', 'Nell', 'Grubbs'];
 const PARTY_ROLES = ['fighter', 'rogue', 'cleric', 'wizard', 'archer'];
@@ -14,7 +15,8 @@ export class DungeonSim {
     this.props = cloneData(scenario.props);
     this.agents = scenario.agents.map(hydrateAgent);
     this.routeGraph = Array.isArray(scenario.routes) ? new ActiveCampaignGraph(scenario.routes) : null;
-    this.graph = buildGraph(this.routeGraph ? this.routeGraph.activeLinks() : scenario.links);
+    this.verticalConnectorSystem = new VerticalConnectorSystem(scenario.verticalConnectors ?? [], this.rooms);
+    this.graph = buildGraph(this.navigationLinks());
     this.topology = buildDungeonTopology(this.rooms, this.routeGraph ? this.routeGraph.activeRoutes() : scenario.links);
     this.routeGraphUnsubscribe = this.routeGraph?.subscribe(event => this.rebuildActiveRouteGraph(event)) ?? null;
     this.visited = new Set(['entry']);
@@ -68,14 +70,19 @@ export class DungeonSim {
     return agent.alive && !agent.departed;
   }
 
+  navigationLinks() {
+    const horizontal = this.routeGraph ? this.routeGraph.activeLinks() : (this.scenario.links ?? []);
+    return [...horizontal, ...this.verticalConnectorSystem.activeLinks()];
+  }
+
   rebuildActiveRouteGraph(event = null) {
     if (!this.routeGraph) return;
     const activeRoutes = this.routeGraph.activeRoutes();
-    this.graph = buildGraph(this.routeGraph.activeLinks());
+    this.graph = buildGraph(this.navigationLinks());
     this.topology = buildDungeonTopology(this.rooms, activeRoutes);
     const activeRouteIds = new Set(activeRoutes.map(route => route.id));
     for (const agent of this.agents) {
-      if (!agent.travel || activeRouteIds.has(agent.travel.connectionId)) continue;
+      if (!agent.travel || agent.travel.kind === 'vertical-connector' || activeRouteIds.has(agent.travel.connectionId)) continue;
       const origin = agent.travel.fromRoomId;
       agent.travel = null;
       if (origin) agent.roomId = origin;
@@ -87,12 +94,31 @@ export class DungeonSim {
   }
 
   setRouteState(routeId, state, metadata = {}) {
+    if (this.verticalConnectorSystem.get(routeId)) return this.setConnectorState(routeId, state, metadata);
     if (!this.routeGraph) return { ok: false, error: 'scenario has no active campaign route graph' };
     return this.routeGraph.setRouteState(routeId, state, metadata);
   }
 
   routeState(routeId) {
-    return this.routeGraph?.getRoute(routeId) ?? null;
+    return this.verticalConnectorSystem.get(routeId) ?? this.routeGraph?.getRoute(routeId) ?? null;
+  }
+
+  setConnectorState(connectorId, state, metadata = {}) {
+    const result = this.verticalConnectorSystem.setState(connectorId, state, metadata);
+    if (!result.ok || !result.changed) return result;
+    this.graph = buildGraph(this.navigationLinks());
+    if (!result.connector.active) {
+      for (const agent of this.agents) {
+        if (agent.travel?.kind !== 'vertical-connector' || agent.travel.connectorId !== result.connector.id) continue;
+        const origin = agent.travel.fromRoomId;
+        this.verticalConnectorSystem.release(agent.id, result.connector.id);
+        agent.travel = null;
+        if (origin) agent.roomId = origin;
+        agent.mood = 'route-blocked';
+      }
+    }
+    this.event(`Connector ${result.connector.id} changed from ${result.previousState} to ${result.state}.`, { type:'vertical-connector-state', connectorId:result.connector.id, previousState:result.previousState, state:result.state });
+    return result;
   }
 
   resolve(agent, action) {
@@ -165,9 +191,18 @@ export class DungeonSim {
 
   beginTravel(agent, toRoomId) {
     if (!toRoomId || toRoomId === agent.roomId) return;
-    const connection = findConnection(this.topology, agent.roomId, toRoomId);
+    let connection = findConnection(this.topology, agent.roomId, toRoomId);
+    if (!connection) connection = this.verticalConnectorSystem.findBetween(agent.roomId, toRoomId);
     if (!connection) {
-      this.event(`${agent.name} could not find a legal corridor to ${this.roomName(toRoomId)}.`);
+      this.event(`${agent.name} could not find a legal route to ${this.roomName(toRoomId)}.`);
+      return;
+    }
+    if (connection?.kind === 'vertical-connector') {
+      const result = this.verticalConnectorSystem.begin(agent, connection);
+      if (!result.ok) { this.event(`${agent.name} could not use ${connection.connectorId}: ${result.error}.`); return; }
+      agent.travel = result.travel;
+      agent.mood = result.travel.phase === 'queue' ? 'waiting' : 'moving';
+      this.event(`${agent.name} entered ${connection.connectorId} toward ${this.roomName(toRoomId)}.`, { type:'move-start', sourceId:agent.id, connectorId:connection.connectorId });
       return;
     }
 
@@ -189,7 +224,24 @@ export class DungeonSim {
     for (const agent of this.agents) {
       if (!agent.travel) continue;
       if (!this.isActive(agent)) {
+        if (agent.travel.kind === 'vertical-connector') this.verticalConnectorSystem.release(agent.id, agent.travel.connectorId);
         agent.travel = null;
+        continue;
+      }
+
+      const vertical = this.verticalConnectorSystem.advance(agent, dt);
+      if (vertical.handled) {
+        if (vertical.cancelled) { agent.travel = null; agent.mood = 'route-blocked'; continue; }
+        if (vertical.arrived) {
+          const fromRoomId = vertical.fromRoomId;
+          agent.roomId = vertical.toRoomId;
+          agent.travel = null;
+          agent.mood = 'curious';
+          this.visited.add(agent.roomId);
+          this.event(`${agent.name} arrived from ${this.roomName(fromRoomId)} at ${this.roomName(agent.roomId)}.`, { type:'move-end', sourceId:agent.id });
+          this.checkRoomEffect(agent);
+          this.checkTraps(agent);
+        }
         continue;
       }
 
@@ -478,6 +530,8 @@ export class DungeonSim {
       rooms: this.rooms,
       links: this.routeGraph ? this.routeGraph.activeLinks() : this.scenario.links,
       routes: this.routeGraph ? this.routeGraph.snapshot() : [],
+      verticalConnectors: this.verticalConnectorSystem.snapshot(),
+      floors: this.scenario.floors ?? [],
       routeGraphVersion: this.routeGraph?.version ?? 0,
       props: this.props,
       agents: this.agents,

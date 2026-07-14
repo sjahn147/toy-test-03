@@ -1,0 +1,16 @@
+name: WP13 Formal Floor Architecture
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  wp13-floor-map:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:wp13
+      - run: npm run test:height-stability
+      - run: npm run test:wp11
+      - run: npm run test:wp12

@@ -110,6 +110,7 @@ export function validateCampaign(registry, campaignId, options = {}) {
   const connections = manifest.connections ?? [];
   const conditionalConnections = manifest.conditionalConnections ?? [];
   const secretConnections = manifest.secretConnections ?? [];
+  const verticalConnectors = manifest.verticalConnectors ?? [];
   const factions = manifest.factions ?? [];
   const entryRoomId = manifest.entryRoomId;
 
@@ -158,6 +159,13 @@ export function validateCampaign(registry, campaignId, options = {}) {
       }
     }
   }
+  for (const connector of verticalConnectors) {
+    for (const endpoint of [connector.from?.roomId, connector.to?.roomId]) {
+      if (!roomIds.has(endpoint)) {
+        errors.push(issue('connection-endpoint', `vertical connector ${connector.id} references unknown room "${endpoint}"`, [endpoint]));
+      }
+    }
+  }
 
   // start 방 1개 이상(kind 매핑 후) + 입구 존재
   const startRooms = rooms.filter(room => mapRoomKind(room.kind, room.id, entryRoomId) === 'start');
@@ -181,6 +189,7 @@ export function validateCampaign(registry, campaignId, options = {}) {
     };
     for (const [a, b] of connections) addEdge(a, b);
     for (const connection of conditionalConnections) addEdge(connection.from, connection.to);
+    for (const connector of verticalConnectors) addEdge(connector.from?.roomId, connector.to?.roomId);
 
     const visited = new Set([entryRoomId]);
     const queue = [entryRoomId];

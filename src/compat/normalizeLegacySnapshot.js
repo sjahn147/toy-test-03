@@ -133,6 +133,28 @@ function connectionTable(routes, links) {
   return table;
 }
 
+function verticalConnectorTable(connectors) {
+  const table = {};
+  for (const connector of connectors ?? []) {
+    if (!connector?.id || !connector?.from?.roomId || !connector?.to?.roomId) continue;
+    table[connector.id] = {
+      ...toSerializable(connector),
+      id: String(connector.id),
+      from: connector.from.roomId,
+      to: connector.to.roomId,
+      kind: 'vertical-connector',
+      state: connector.state ?? 'locked',
+      active: connector.active === true || ['open','working'].includes(connector.state),
+      width: finiteNumber(connector.width, 2.2),
+      elevation: 0,
+      points: [],
+      ports: {},
+      floorIds: [connector.from.floorId, connector.to.floorId]
+    };
+  }
+  return table;
+}
+
 function normalizedFactionId(agent) {
   if (agent?.faction === 'party') return ADVENTURER_FACTION;
   return agent?.factionId ?? agent?.ecologyFaction ?? (agent?.faction !== 'dungeon' ? agent?.faction : null) ?? null;
@@ -173,7 +195,7 @@ export function normalizeLegacySnapshot(rawSnapshot, { events = [], metrics = nu
   const rooms = tableOf(raw.rooms, 'room');
   const props = tableOf(raw.props, 'prop');
   const effects = tableOf(raw.effects, 'effect');
-  const connections = connectionTable(raw.routes, raw.links);
+  const connections = { ...connectionTable(raw.routes, raw.links), ...verticalConnectorTable(raw.verticalConnectors) };
   const settlements = tableOf(raw.settlement?.settlements, 'settlement');
   const parties = enrichLegacyParties(tableOf(raw.expedition?.parties, 'party'), agents);
   const cargo = tableOf(raw.logistics?.cargo, 'cargo');

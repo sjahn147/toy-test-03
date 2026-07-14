@@ -46,7 +46,7 @@ export const RESIDENTIAL_QUARTER_LANDMARK_RECIPES = Object.freeze({
     sockets: ['wash-basin', 'hot-water-cistern', 'raised-dry-walkway', 'sluice-valve', 'laundry-lines', 'smuggler-drain'],
     systems: ['water-supply', 'condition-recovery', 'secret-route', 'fungal-contamination'], storyNode: 'smuggler-route-scratch',
     lanes: [{ axis: 'z', offset: 0, width: 2.6 }, { axis: 'x', offset: -2.8, width: 2.2 }],
-    portals: ['B07', 'B09', 'C11', 'H39-secret'], triangleBudget: 60000
+    portals: ['B07', 'B09', 'C11', 'H37-secret'], triangleBudget: 60000
   }),
   'residential.tenement.court': room({
     id: 'residential.tenement.court', roomId: 'B09', defaultState: 'empty',
@@ -62,7 +62,7 @@ export const RESIDENTIAL_QUARTER_LANDMARK_RECIPES = Object.freeze({
     sockets: ['household-altar', 'prayer-benches', 'holy-water-font', 'family-icon-wall', 'ossuary-threshold', 'hidden-prayer-scroll'],
     systems: ['sanctuary-recovery', 'undead-border', 'campaign-story'], storyNode: 'hidden-prayer-scroll',
     lanes: [{ axis: 'z', offset: 0, width: 2.2 }],
-    portals: ['B07', 'B09', 'E21'], triangleBudget: 52000
+    portals: ['B07', 'B09', 'E21', 'H38'], triangleBudget: 52000
   })
 });
 

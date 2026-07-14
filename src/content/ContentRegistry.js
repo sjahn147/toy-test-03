@@ -2,7 +2,10 @@
 // I/O 없음 — 파싱된 JSON을 받아 ID로 조회만 제공합니다.
 // 내부 ID 중복(방/존/세력)은 여기서 던지지 않고 ContentValidator가 보고합니다.
 
-const SUPPORTED_SCHEMA_VERSION = 1;
+// WP13 bumped the campaign manifest schema to 2 for the floors/verticalConnectors
+// contract; the asset catalog schema is unrelated and still at 1.
+const SUPPORTED_CAMPAIGN_SCHEMA_VERSION = 2;
+const SUPPORTED_ASSET_CATALOG_SCHEMA_VERSION = 1;
 
 export class ContentRegistry {
   constructor() {
@@ -18,8 +21,8 @@ export class ContentRegistry {
     if (!manifestJson || typeof manifestJson !== 'object') {
       throw new Error('registerCampaign: manifest must be a parsed JSON object');
     }
-    if (manifestJson.schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
-      throw new Error(`registerCampaign: unsupported schemaVersion ${manifestJson.schemaVersion} (expected ${SUPPORTED_SCHEMA_VERSION})`);
+    if (manifestJson.schemaVersion !== SUPPORTED_CAMPAIGN_SCHEMA_VERSION) {
+      throw new Error(`registerCampaign: unsupported schemaVersion ${manifestJson.schemaVersion} (expected ${SUPPORTED_CAMPAIGN_SCHEMA_VERSION})`);
     }
     const id = manifestJson.id;
     if (typeof id !== 'string' || id.length === 0) {
@@ -57,8 +60,8 @@ export class ContentRegistry {
     if (!catalogJson || typeof catalogJson !== 'object') {
       throw new Error('registerAssetCatalog: catalog must be a parsed JSON object');
     }
-    if (catalogJson.schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
-      throw new Error(`registerAssetCatalog: unsupported schemaVersion ${catalogJson.schemaVersion} (expected ${SUPPORTED_SCHEMA_VERSION})`);
+    if (catalogJson.schemaVersion !== SUPPORTED_ASSET_CATALOG_SCHEMA_VERSION) {
+      throw new Error(`registerAssetCatalog: unsupported schemaVersion ${catalogJson.schemaVersion} (expected ${SUPPORTED_ASSET_CATALOG_SCHEMA_VERSION})`);
     }
     if (!Array.isArray(catalogJson.entries)) {
       throw new Error('registerAssetCatalog: catalog.entries must be an array');

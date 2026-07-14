@@ -1,446 +1,573 @@
 {
   "id": "sleeping-citadel",
+  "entryRoomId": "A01",
   "rooms": [
     {
       "id": "A01",
       "size": [
         20,
         16
-      ]
+      ],
+      "floorId": "F0",
+      "floor": 0
     },
     {
       "id": "A02",
       "size": [
         13,
         10
-      ]
+      ],
+      "floorId": "F0",
+      "floor": 0
     },
     {
       "id": "A03",
       "size": [
         18,
         11
-      ]
+      ],
+      "floorId": "F0",
+      "floor": 0
     },
     {
       "id": "A04",
       "size": [
         14,
         11
-      ]
+      ],
+      "floorId": "F0",
+      "floor": 0
     },
     {
       "id": "A05",
       "size": [
         12,
         18
-      ]
+      ],
+      "floorId": "F0",
+      "floor": 0
     },
     {
       "id": "B06",
       "size": [
         17,
         13
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "B07",
       "size": [
         15,
         12
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "B08",
       "size": [
         16,
         12
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "B09",
       "size": [
         19,
         15
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "B10",
       "size": [
         13,
         11
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "C11",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "C12",
       "size": [
         16,
         13
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "C13",
       "size": [
         17,
         12
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "C14",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "C15",
       "size": [
         12,
         20
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "D16",
       "size": [
         17,
         13
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "D17",
       "size": [
         15,
         12
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "D18",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "D19",
       "size": [
         21,
         16
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "D20",
       "size": [
         14,
         12
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "E21",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "E22",
       "size": [
         17,
         13
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "E23",
       "size": [
         19,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "E24",
       "size": [
         15,
         13
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "E25",
       "size": [
         16,
         16
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "F26",
       "size": [
         20,
         16
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "F27",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "F28",
       "size": [
         22,
         17
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "F29",
       "size": [
         15,
         12
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "F30",
       "size": [
         18,
         16
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "G31",
       "size": [
         15,
         20
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "G32",
       "size": [
         17,
         13
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "G33",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "G34",
       "size": [
         16,
         18
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "G35",
       "size": [
         22,
         18
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "H36",
       "size": [
         22,
         17
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "H37",
       "size": [
         17,
         13
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "H38",
       "size": [
         14,
         22
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "H39",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "H40",
       "size": [
         11,
         10
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "I41",
       "size": [
         24,
         19
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "I42",
       "size": [
         16,
         13
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "I43",
       "size": [
         20,
         15
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "I44",
       "size": [
         16,
         14
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "I45",
       "size": [
         13,
         17
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "J46",
       "size": [
         22,
         17
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "J47",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "J48",
       "size": [
         16,
         13
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "J49",
       "size": [
         24,
         19
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "J50",
       "size": [
         20,
         16
-      ]
+      ],
+      "floorId": "B1",
+      "floor": -1
     },
     {
       "id": "K51",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "K52",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "K53",
       "size": [
         17,
         15
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "K54",
       "size": [
         20,
         17
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "K55",
       "size": [
         12,
         20
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "L56",
       "size": [
         20,
         16
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "L57",
       "size": [
         18,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "L58",
       "size": [
         24,
         18
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "L59",
       "size": [
         23,
         18
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "L60",
       "size": [
         17,
         14
-      ]
+      ],
+      "floorId": "B2",
+      "floor": -2
     },
     {
       "id": "M61",
       "size": [
         18,
         13
-      ]
+      ],
+      "floorId": "B3",
+      "floor": -3
     },
     {
       "id": "M62",
       "size": [
         24,
         20
-      ]
+      ],
+      "floorId": "B3",
+      "floor": -3
     },
     {
       "id": "M63",
       "size": [
         28,
         22
-      ]
+      ],
+      "floorId": "B3",
+      "floor": -3
     }
   ],
   "connections": [
@@ -463,10 +590,6 @@
     [
       "A04",
       "A05"
-    ],
-    [
-      "A05",
-      "B06"
     ],
     [
       "B06",
@@ -497,8 +620,8 @@
       "C11"
     ],
     [
-      "B10",
-      "E21"
+      "E25",
+      "L56"
     ],
     [
       "C11",
@@ -589,10 +712,6 @@
       "F30"
     ],
     [
-      "F30",
-      "I44"
-    ],
-    [
       "G31",
       "G32"
     ],
@@ -613,24 +732,12 @@
       "G35"
     ],
     [
-      "G31",
-      "I41"
-    ],
-    [
       "H36",
       "H37"
     ],
     [
       "H36",
       "H38"
-    ],
-    [
-      "H37",
-      "H39"
-    ],
-    [
-      "H38",
-      "H40"
     ],
     [
       "H39",
@@ -651,18 +758,6 @@
     [
       "I41",
       "I44"
-    ],
-    [
-      "I42",
-      "I45"
-    ],
-    [
-      "I43",
-      "I45"
-    ],
-    [
-      "I44",
-      "I45"
     ],
     [
       "I41",
@@ -695,10 +790,6 @@
     [
       "J49",
       "J50"
-    ],
-    [
-      "J50",
-      "L56"
     ],
     [
       "K51",
@@ -753,26 +844,55 @@
       "L60"
     ],
     [
-      "L59",
-      "M61"
-    ],
-    [
       "M61",
       "M62"
     ],
     [
       "M62",
       "M63"
+    ],
+    [
+      "E25",
+      "F27"
+    ],
+    [
+      "F30",
+      "I45"
+    ],
+    [
+      "G31",
+      "I45"
+    ],
+    [
+      "H39",
+      "I45"
+    ],
+    [
+      "B10",
+      "H38"
+    ],
+    [
+      "C13",
+      "D17"
+    ],
+    [
+      "D20",
+      "I43"
+    ],
+    [
+      "I42",
+      "J47"
+    ],
+    [
+      "F29",
+      "H39"
+    ],
+    [
+      "G35",
+      "L58"
     ]
   ],
   "conditionalConnections": [
-    {
-      "id": "conn-C15-F26",
-      "from": "C15",
-      "to": "F26",
-      "condition": "sluice-drained",
-      "defaultState": "locked"
-    },
     {
       "id": "conn-D20-J48",
       "from": "D20",
@@ -781,50 +901,1096 @@
       "defaultState": "locked"
     },
     {
-      "id": "conn-E25-L56",
-      "from": "E25",
-      "to": "L56",
-      "condition": "last-names-ritual-resolved",
+      "id": "conn-F28-I45",
+      "from": "F28",
+      "to": "I45",
+      "condition": "mycelial-route-open",
       "defaultState": "locked"
     },
     {
-      "id": "conn-K55-M61",
+      "id": "conn-K55-L60",
       "from": "K55",
-      "to": "M61",
-      "condition": "emergency-way-opened",
+      "to": "L60",
+      "condition": "observatory-bridge-open",
       "defaultState": "locked"
     }
   ],
   "secretConnections": [
     {
-      "id": "secret-B08-H39",
-      "from": "B08",
-      "to": "H39"
-    },
-    {
-      "id": "secret-C14-F27",
-      "from": "C14",
-      "to": "F27"
-    },
-    {
-      "id": "secret-D19-I45",
-      "from": "D19",
-      "to": "I45"
-    },
-    {
       "id": "secret-G34-L56",
       "from": "G34",
-      "to": "L56"
+      "to": "L56",
+      "discovery": [
+        "spider-path-observed",
+        "silk-bridge-cleared"
+      ]
     },
     {
       "id": "secret-H40-I45",
       "from": "H40",
-      "to": "I45"
+      "to": "I45",
+      "discovery": [
+        "innkeeper-ledger-found"
+      ]
     },
     {
-      "id": "secret-K55-M61",
-      "from": "K55",
-      "to": "M61"
+      "id": "secret-B08-H37",
+      "from": "B08",
+      "to": "H37",
+      "discovery": [
+        "laundry-ledger",
+        "service-wall-search"
+      ]
+    },
+    {
+      "id": "secret-C14-D18",
+      "from": "C14",
+      "to": "D18",
+      "discovery": [
+        "drainage-engine-reactivated",
+        "kobold-map"
+      ]
+    },
+    {
+      "id": "secret-D19-H38",
+      "from": "D19",
+      "to": "H38",
+      "discovery": [
+        "goblin-trade",
+        "inn-smuggler-rumor"
+      ]
+    },
+    {
+      "id": "secret-K54-L60",
+      "from": "K54",
+      "to": "L60",
+      "discovery": [
+        "laboratory-key",
+        "royal-bedchamber-rumor"
+      ]
+    },
+    {
+      "id": "secret-E24-K52",
+      "from": "E24",
+      "to": "K52",
+      "discovery": [
+        "nameless-tomb-inscription",
+        "laboratory-archive"
+      ]
     }
-  ]
+  ],
+  "floors": [
+    {
+      "id": "F0",
+      "index": 0,
+      "elevation": 0,
+      "name": {
+        "en": "Lantern Gate",
+        "ko": "지상 관문"
+      },
+      "cameraProfile": "entry",
+      "ambientProfile": "surface-gate",
+      "roomIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05"
+      ]
+    },
+    {
+      "id": "B1",
+      "index": -1,
+      "elevation": -5.4,
+      "name": {
+        "en": "Outer Citadel",
+        "ko": "외성 생활·산업층"
+      },
+      "cameraProfile": "outer-citadel",
+      "ambientProfile": "outer-citadel",
+      "roomIds": [
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "D16",
+        "D17",
+        "D18",
+        "D19",
+        "D20",
+        "H36",
+        "H37",
+        "H38",
+        "I41",
+        "I42",
+        "I43",
+        "I44",
+        "J46",
+        "J47",
+        "J48",
+        "J49",
+        "J50"
+      ]
+    },
+    {
+      "id": "B2",
+      "index": -2,
+      "elevation": -10.8,
+      "name": {
+        "en": "Deep Citadel",
+        "ko": "심층 생태·왕실층"
+      },
+      "cameraProfile": "deep-citadel",
+      "ambientProfile": "deep-citadel",
+      "roomIds": [
+        "E21",
+        "E22",
+        "E23",
+        "E24",
+        "E25",
+        "F26",
+        "F27",
+        "F28",
+        "F29",
+        "F30",
+        "G31",
+        "G32",
+        "G33",
+        "G34",
+        "G35",
+        "H39",
+        "H40",
+        "I45",
+        "K51",
+        "K52",
+        "K53",
+        "K54",
+        "K55",
+        "L56",
+        "L57",
+        "L58",
+        "L59",
+        "L60"
+      ]
+    },
+    {
+      "id": "B3",
+      "index": -3,
+      "elevation": -16.2,
+      "name": {
+        "en": "Heart Sanctum",
+        "ko": "심장 성소"
+      },
+      "cameraProfile": "heart-sanctum",
+      "ambientProfile": "heart-sanctum",
+      "roomIds": [
+        "M61",
+        "M62",
+        "M63"
+      ]
+    }
+  ],
+  "verticalConnectors": [
+    {
+      "id": "VC-01",
+      "type": "grand-stair",
+      "state": "open",
+      "initialState": "open",
+      "capacity": 6,
+      "queueCapacity": 8,
+      "transitTime": 2.4,
+      "allowsCargo": true,
+      "allowsLargeActors": true,
+      "accessCondition": "first-safe-descent",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "A05-B06"
+      ],
+      "from": {
+        "id": "VC-01:F0",
+        "connectorId": "VC-01",
+        "floorId": "F0",
+        "roomId": "A05",
+        "position": {
+          "x": 40,
+          "z": -36
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 40,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": 39.35,
+            "z": -34.3
+          },
+          {
+            "x": 40.65,
+            "z": -34.3
+          },
+          {
+            "x": 39.35,
+            "z": -32.95
+          },
+          {
+            "x": 40.65,
+            "z": -32.95
+          },
+          {
+            "x": 39.35,
+            "z": -31.6
+          },
+          {
+            "x": 40.65,
+            "z": -31.6
+          }
+        ],
+        "cameraAnchor": {
+          "x": 40,
+          "z": -36,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-01:B1",
+        "connectorId": "VC-01",
+        "floorId": "B1",
+        "roomId": "B06",
+        "position": {
+          "x": 40,
+          "z": -36
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 40,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": 39.35,
+            "z": -37.7
+          },
+          {
+            "x": 40.65,
+            "z": -37.7
+          },
+          {
+            "x": 39.35,
+            "z": -39.05
+          },
+          {
+            "x": 40.65,
+            "z": -39.05
+          },
+          {
+            "x": 39.35,
+            "z": -40.4
+          },
+          {
+            "x": 40.65,
+            "z": -40.4
+          }
+        ],
+        "cameraAnchor": {
+          "x": 40,
+          "z": -36,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-02",
+      "type": "maintenance-lift",
+      "state": "locked",
+      "initialState": "locked",
+      "capacity": 4,
+      "queueCapacity": 6,
+      "transitTime": 3.2,
+      "allowsCargo": true,
+      "allowsLargeActors": false,
+      "accessCondition": "sluice-drained",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "conn-C15-F26"
+      ],
+      "from": {
+        "id": "VC-02:B1",
+        "connectorId": "VC-02",
+        "floorId": "B1",
+        "roomId": "C15",
+        "position": {
+          "x": 0,
+          "z": -148
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 0,
+          "z": -148
+        },
+        "queueSockets": [
+          {
+            "x": -0.65,
+            "z": -146.3
+          },
+          {
+            "x": 0.65,
+            "z": -146.3
+          },
+          {
+            "x": -0.65,
+            "z": -144.95
+          },
+          {
+            "x": 0.65,
+            "z": -144.95
+          }
+        ],
+        "cameraAnchor": {
+          "x": 0,
+          "z": -148,
+          "distance": 23
+        }
+      },
+      "to": {
+        "id": "VC-02:B2",
+        "connectorId": "VC-02",
+        "floorId": "B2",
+        "roomId": "F26",
+        "position": {
+          "x": 0,
+          "z": -148
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 0,
+          "z": -148
+        },
+        "queueSockets": [
+          {
+            "x": -0.65,
+            "z": -149.7
+          },
+          {
+            "x": 0.65,
+            "z": -149.7
+          },
+          {
+            "x": -0.65,
+            "z": -151.05
+          },
+          {
+            "x": 0.65,
+            "z": -151.05
+          }
+        ],
+        "cameraAnchor": {
+          "x": 0,
+          "z": -148,
+          "distance": 23
+        }
+      }
+    },
+    {
+      "id": "VC-03",
+      "type": "secret-stair",
+      "state": "hidden",
+      "initialState": "hidden",
+      "capacity": 2,
+      "queueCapacity": 4,
+      "transitTime": 2.4,
+      "allowsCargo": false,
+      "allowsLargeActors": false,
+      "accessCondition": "chapel-search",
+      "visibility": "hidden",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "secret-B10-E21"
+      ],
+      "from": {
+        "id": "VC-03:B1",
+        "connectorId": "VC-03",
+        "floorId": "B1",
+        "roomId": "B10",
+        "position": {
+          "x": -20,
+          "z": -36
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": -20,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": -20.65,
+            "z": -34.3
+          },
+          {
+            "x": -19.35,
+            "z": -34.3
+          }
+        ],
+        "cameraAnchor": {
+          "x": -20,
+          "z": -36,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-03:B2",
+        "connectorId": "VC-03",
+        "floorId": "B2",
+        "roomId": "E21",
+        "position": {
+          "x": -20,
+          "z": -36
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": -20,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": -20.65,
+            "z": -37.7
+          },
+          {
+            "x": -19.35,
+            "z": -37.7
+          }
+        ],
+        "cameraAnchor": {
+          "x": -20,
+          "z": -36,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-04",
+      "type": "spiral-stair",
+      "state": "webbed",
+      "initialState": "webbed",
+      "capacity": 3,
+      "queueCapacity": 5,
+      "transitTime": 2.4,
+      "allowsCargo": false,
+      "allowsLargeActors": false,
+      "accessCondition": "red-silk-cleared",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 0,
+      "legacyRouteIds": [
+        "route-G31-I41"
+      ],
+      "from": {
+        "id": "VC-04:B1",
+        "connectorId": "VC-04",
+        "floorId": "B1",
+        "roomId": "I41",
+        "position": {
+          "x": 140,
+          "z": -48
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 140,
+          "z": -48
+        },
+        "queueSockets": [
+          {
+            "x": 139.35,
+            "z": -46.3
+          },
+          {
+            "x": 140.65,
+            "z": -46.3
+          },
+          {
+            "x": 139.35,
+            "z": -44.95
+          }
+        ],
+        "cameraAnchor": {
+          "x": 140,
+          "z": -48,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-04:B2",
+        "connectorId": "VC-04",
+        "floorId": "B2",
+        "roomId": "G31",
+        "position": {
+          "x": 140,
+          "z": -48
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 140,
+          "z": -48
+        },
+        "queueSockets": [
+          {
+            "x": 139.35,
+            "z": -49.7
+          },
+          {
+            "x": 140.65,
+            "z": -49.7
+          },
+          {
+            "x": 139.35,
+            "z": -51.05
+          }
+        ],
+        "cameraAnchor": {
+          "x": 140,
+          "z": -48,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-05",
+      "type": "well-hoist",
+      "state": "inactive",
+      "initialState": "inactive",
+      "capacity": 3,
+      "queueCapacity": 5,
+      "transitTime": 3.2,
+      "allowsCargo": "light",
+      "allowsLargeActors": false,
+      "accessCondition": "neutral-well-pact",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "route-F30-I44"
+      ],
+      "from": {
+        "id": "VC-05:B1",
+        "connectorId": "VC-05",
+        "floorId": "B1",
+        "roomId": "I44",
+        "position": {
+          "x": 92,
+          "z": -52
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 92,
+          "z": -52
+        },
+        "queueSockets": [
+          {
+            "x": 91.35,
+            "z": -50.3
+          },
+          {
+            "x": 92.65,
+            "z": -50.3
+          },
+          {
+            "x": 91.35,
+            "z": -48.95
+          }
+        ],
+        "cameraAnchor": {
+          "x": 92,
+          "z": -52,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-05:B2",
+        "connectorId": "VC-05",
+        "floorId": "B2",
+        "roomId": "F30",
+        "position": {
+          "x": 92,
+          "z": -52
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 92,
+          "z": -52
+        },
+        "queueSockets": [
+          {
+            "x": 91.35,
+            "z": -53.7
+          },
+          {
+            "x": 92.65,
+            "z": -53.7
+          },
+          {
+            "x": 91.35,
+            "z": -55.05
+          }
+        ],
+        "cameraAnchor": {
+          "x": 92,
+          "z": -52,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-06",
+      "type": "service-stair",
+      "state": "blocked",
+      "initialState": "blocked",
+      "capacity": 4,
+      "queueCapacity": 6,
+      "transitTime": 2.4,
+      "allowsCargo": true,
+      "allowsLargeActors": false,
+      "accessCondition": "old-lantern-restored",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 0,
+      "legacyRouteIds": [
+        "route-H37-H39",
+        "route-H38-H40",
+        "secret-B08-H39"
+      ],
+      "from": {
+        "id": "VC-06:B1",
+        "connectorId": "VC-06",
+        "floorId": "B1",
+        "roomId": "H36",
+        "position": {
+          "x": 108,
+          "z": -12
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 108,
+          "z": -12
+        },
+        "queueSockets": [
+          {
+            "x": 107.35,
+            "z": -10.3
+          },
+          {
+            "x": 108.65,
+            "z": -10.3
+          },
+          {
+            "x": 107.35,
+            "z": -8.95
+          },
+          {
+            "x": 108.65,
+            "z": -8.95
+          }
+        ],
+        "cameraAnchor": {
+          "x": 108,
+          "z": -12,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-06:B2",
+        "connectorId": "VC-06",
+        "floorId": "B2",
+        "roomId": "H39",
+        "position": {
+          "x": 108,
+          "z": -12
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 108,
+          "z": -12
+        },
+        "queueSockets": [
+          {
+            "x": 107.35,
+            "z": -13.7
+          },
+          {
+            "x": 108.65,
+            "z": -13.7
+          },
+          {
+            "x": 107.35,
+            "z": -15.05
+          },
+          {
+            "x": 108.65,
+            "z": -15.05
+          }
+        ],
+        "cameraAnchor": {
+          "x": 108,
+          "z": -12,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-07",
+      "type": "freight-lift",
+      "state": "sealed",
+      "initialState": "sealed",
+      "capacity": 8,
+      "queueCapacity": 10,
+      "transitTime": 3.2,
+      "allowsCargo": true,
+      "allowsLargeActors": true,
+      "accessCondition": "royal-quarter-open",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "route-J50-L56"
+      ],
+      "from": {
+        "id": "VC-07:B1",
+        "connectorId": "VC-07",
+        "floorId": "B1",
+        "roomId": "J50",
+        "position": {
+          "x": 232,
+          "z": -108
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 232,
+          "z": -108
+        },
+        "queueSockets": [
+          {
+            "x": 231.35,
+            "z": -106.3
+          },
+          {
+            "x": 232.65,
+            "z": -106.3
+          },
+          {
+            "x": 231.35,
+            "z": -104.95
+          },
+          {
+            "x": 232.65,
+            "z": -104.95
+          },
+          {
+            "x": 231.35,
+            "z": -103.6
+          },
+          {
+            "x": 232.65,
+            "z": -103.6
+          },
+          {
+            "x": 231.35,
+            "z": -102.25
+          },
+          {
+            "x": 232.65,
+            "z": -102.25
+          }
+        ],
+        "cameraAnchor": {
+          "x": 232,
+          "z": -108,
+          "distance": 23
+        }
+      },
+      "to": {
+        "id": "VC-07:B2",
+        "connectorId": "VC-07",
+        "floorId": "B2",
+        "roomId": "L56",
+        "position": {
+          "x": 232,
+          "z": -108
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 232,
+          "z": -108
+        },
+        "queueSockets": [
+          {
+            "x": 231.35,
+            "z": -109.7
+          },
+          {
+            "x": 232.65,
+            "z": -109.7
+          },
+          {
+            "x": 231.35,
+            "z": -111.05
+          },
+          {
+            "x": 232.65,
+            "z": -111.05
+          },
+          {
+            "x": 231.35,
+            "z": -112.4
+          },
+          {
+            "x": 232.65,
+            "z": -112.4
+          },
+          {
+            "x": 231.35,
+            "z": -113.75
+          },
+          {
+            "x": 232.65,
+            "z": -113.75
+          }
+        ],
+        "cameraAnchor": {
+          "x": 232,
+          "z": -108,
+          "distance": 23
+        }
+      }
+    },
+    {
+      "id": "VC-08",
+      "type": "processional-stair",
+      "state": "ritual-locked",
+      "initialState": "ritual-locked",
+      "capacity": 8,
+      "queueCapacity": 10,
+      "transitTime": 2.4,
+      "allowsCargo": false,
+      "allowsLargeActors": true,
+      "accessCondition": "heart-awakened",
+      "visibility": "known",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "route-L59-M61"
+      ],
+      "from": {
+        "id": "VC-08:B2",
+        "connectorId": "VC-08",
+        "floorId": "B2",
+        "roomId": "L59",
+        "position": {
+          "x": 280,
+          "z": -36
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 280,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": 279.35,
+            "z": -34.3
+          },
+          {
+            "x": 280.65,
+            "z": -34.3
+          },
+          {
+            "x": 279.35,
+            "z": -32.95
+          },
+          {
+            "x": 280.65,
+            "z": -32.95
+          },
+          {
+            "x": 279.35,
+            "z": -31.6
+          },
+          {
+            "x": 280.65,
+            "z": -31.6
+          },
+          {
+            "x": 279.35,
+            "z": -30.25
+          },
+          {
+            "x": 280.65,
+            "z": -30.25
+          }
+        ],
+        "cameraAnchor": {
+          "x": 280,
+          "z": -36,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-08:B3",
+        "connectorId": "VC-08",
+        "floorId": "B3",
+        "roomId": "M61",
+        "position": {
+          "x": 280,
+          "z": -36
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 280,
+          "z": -36
+        },
+        "queueSockets": [
+          {
+            "x": 279.35,
+            "z": -37.7
+          },
+          {
+            "x": 280.65,
+            "z": -37.7
+          },
+          {
+            "x": 279.35,
+            "z": -39.05
+          },
+          {
+            "x": 280.65,
+            "z": -39.05
+          },
+          {
+            "x": 279.35,
+            "z": -40.4
+          },
+          {
+            "x": 280.65,
+            "z": -40.4
+          },
+          {
+            "x": 279.35,
+            "z": -41.75
+          },
+          {
+            "x": 280.65,
+            "z": -41.75
+          }
+        ],
+        "cameraAnchor": {
+          "x": 280,
+          "z": -36,
+          "distance": 20
+        }
+      }
+    },
+    {
+      "id": "VC-09",
+      "type": "counterweight-shaft",
+      "state": "hidden",
+      "initialState": "hidden",
+      "capacity": 2,
+      "queueCapacity": 4,
+      "transitTime": 2.4,
+      "allowsCargo": false,
+      "allowsLargeActors": false,
+      "accessCondition": "emergency-way-opened",
+      "visibility": "hidden",
+      "damage": 0,
+      "repairProgress": 1,
+      "legacyRouteIds": [
+        "conn-K55-M61",
+        "secret-K55-M61"
+      ],
+      "from": {
+        "id": "VC-09:B2",
+        "connectorId": "VC-09",
+        "floorId": "B2",
+        "roomId": "K55",
+        "position": {
+          "x": 232,
+          "z": 0
+        },
+        "facing": 0,
+        "arrivalSocket": {
+          "x": 232,
+          "z": 0
+        },
+        "queueSockets": [
+          {
+            "x": 231.35,
+            "z": 1.7
+          },
+          {
+            "x": 232.65,
+            "z": 1.7
+          }
+        ],
+        "cameraAnchor": {
+          "x": 232,
+          "z": 0,
+          "distance": 20
+        }
+      },
+      "to": {
+        "id": "VC-09:B3",
+        "connectorId": "VC-09",
+        "floorId": "B3",
+        "roomId": "M61",
+        "position": {
+          "x": 232,
+          "z": 0
+        },
+        "facing": 3.141592653589793,
+        "arrivalSocket": {
+          "x": 232,
+          "z": 0
+        },
+        "queueSockets": [
+          {
+            "x": 231.35,
+            "z": -1.7
+          },
+          {
+            "x": 232.65,
+            "z": -1.7
+          }
+        ],
+        "cameraAnchor": {
+          "x": 232,
+          "z": 0,
+          "distance": 20
+        }
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "contentVersion": "0.2.0",
+  "validation": {
+    "expectedRoomCount": 63,
+    "minimumSecretConnections": 7,
+    "minimumSettlementCandidates": 8,
+    "minimumLargeCreatureDoorWidth": 1.8,
+    "requireLandmarkBundleForEveryRoom": true,
+    "requireStateVariantsForEveryRoom": true,
+    "allowRuntimeMissingAssetsDuringDesign": true,
+    "requireExplicitFloors": true,
+    "requireVerticalConnectors": true,
+    "requireHorizontalCorridors": true
+  }
 }
