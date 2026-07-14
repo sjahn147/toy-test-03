@@ -5,6 +5,7 @@ import {
   factionUiColor,
   roomStatusSeverity
 } from './RoomStatePolicy.js';
+import { DEFAULT_FLOOR_HEIGHT } from '../../engine/DungeonTopology.js';
 
 const ACTIVE_TASKS = new Set(['queued', 'moving', 'working', 'interrupted', 'blocked']);
 const ACTIVE_SETTLEMENTS = new Set(['active', 'threatened', 'damaged', 'collapsing']);
@@ -173,7 +174,7 @@ export function selectRoomState(state, roomId, { previous = null, observerFactio
     discovered,
     position: {
       x: numeric(room.x),
-      y: numeric((room.floor ?? 0) * 2.85),
+      y: numeric((room.floor ?? 0) * DEFAULT_FLOOR_HEIGHT),
       z: numeric(room.z),
       floor: numeric(room.floor)
     },
