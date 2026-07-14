@@ -24,7 +24,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
       root:this.viewport ?? root,
       floors:this.floors,
       activeFloorId:this.activeFloorId,
-      onSelect:floorId => this.setActiveFloor(floorId, { focus:true })
+      onSelect:floorId => this.setActiveFloor(floorId, { focus:true, restorePose:false })
     });
     globalThis.addEventListener?.('keydown', this.floorKeyHandler);
     this.rebindFloorPresentation();
@@ -38,7 +38,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
     this.renderActiveFloorBadges();
   }
 
-  setActiveFloor(floorId, { focus = false, announce = true } = {}) {
+  setActiveFloor(floorId, { focus = false, announce = true, restorePose = true } = {}) {
     if (!this.floors.some(floor => floor.id === floorId)) return false;
     const changed = floorId !== this.activeFloorId;
     if (changed) this.captureFloorCameraPose(this.activeFloorId);
@@ -48,7 +48,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
     this.floorRail?.setActiveFloor(floorId);
     this.renderActiveFloorBadges();
     this.refreshFloorSummary();
-    const restored = changed ? this.restoreFloorCameraPose(floorId) : false;
+    const restored = changed && restorePose ? this.restoreFloorCameraPose(floorId) : false;
     if (focus && !restored) this.focusFloor(floorId);
     if (changed) this.persistFloorState();
     if (changed && announce) this.shell?.announce?.(`Floor ${floorId}.`);
@@ -171,6 +171,15 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   focusFloor(floorId) {
+    const landmark = this.scenario?.meta?.cameraLandmarks?.[floorId] ?? null;
+    if (landmark && this.cameraController) {
+      this.cameraController.desiredPivot = { x: landmark.x, y: 0, z: landmark.z };
+      this.cameraController.pivot = { x: landmark.x, y: 0, z: landmark.z };
+      this.cameraController.pivotVelocity = { x:0, y:0, z:0 };
+      this.cameraController.desiredDistance = landmark.distance ?? this.cameraController.desiredDistance;
+      this.cameraController.distance = landmark.distance ?? this.cameraController.distance;
+      return;
+    }
     const floor = this.floors.find(candidate => candidate.id === floorId);
     const roomId = floor?.roomIds?.find(id => this.viewModel?.roomStates?.[id]?.discovered) ?? floor?.roomIds?.[0];
     if (roomId) this.focusRoom?.(roomId, false, floorId === 'B3' ? 24 : 42);

@@ -94,11 +94,8 @@ export class AuthoredRouteRenderer {
   }
 
   addCorridor(group, connection) {
-    const aRoom = this.topology.roomById.get(connection.aId);
-    const bRoom = this.topology.roomById.get(connection.bId);
-    const ay = this.roomY(aRoom);
-    const by = this.roomY(bRoom);
     const points = connection.points;
+    const trim = Math.min(0.72, Math.max(0.18, connection.width * 0.24));
     for (let i = 0; i < points.length - 1; i += 1) {
       const a = points[i];
       const b = points[i + 1];
@@ -106,16 +103,37 @@ export class AuthoredRouteRenderer {
       const dz = b.z - a.z;
       const length = Math.hypot(dx, dz);
       if (length <= 0.02) continue;
+      const ux = dx / length;
+      const uz = dz / length;
+      const trimStart = i > 0 ? Math.min(trim, length * 0.45) : 0;
+      const trimEnd = i < points.length - 2 ? Math.min(trim, length * 0.45) : 0;
+      const startX = a.x + ux * trimStart;
+      const startZ = a.z + uz * trimStart;
+      const endX = b.x - ux * trimEnd;
+      const endZ = b.z - uz * trimEnd;
+      const visibleLength = Math.hypot(endX - startX, endZ - startZ);
+      if (visibleLength <= 0.04) continue;
       const segment = this.assets.makeCorridorSegment(length, connection.width);
       const progress = (i + 0.5) / Math.max(1, points.length - 1);
       segment.position.set(
-        (a.x + b.x) / 2,
+        (startX + endX) / 2,
         this.routeY(connection, progress),
-        (a.z + b.z) / 2
+        (startZ + endZ) / 2
       );
       segment.rotation.y = -Math.atan2(dz, dx);
+      segment.scale.x = visibleLength / Math.max(0.001, length);
       segment.userData.routeSegmentIndex = i;
       group.add(segment);
+    }
+    for (let i = 1; i < points.length - 1; i += 1) {
+      const point = points[i];
+      const cap = new THREE.Mesh(
+        new THREE.BoxGeometry(Math.max(0.42, connection.width + 0.08), 0.24, Math.max(0.42, connection.width + 0.08)),
+        new THREE.MeshStandardMaterial({ color: 0x3a3342, roughness: 0.92 })
+      );
+      cap.position.set(point.x, this.routeY(connection, i / Math.max(1, points.length - 1)) - 0.12, point.z);
+      cap.name = `route-turn-cap:${connection.id}:${i}`;
+      group.add(cap);
     }
   }
 

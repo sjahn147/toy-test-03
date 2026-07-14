@@ -2,6 +2,18 @@ export const DEFAULT_FLOOR_HEIGHT = 5.4;
 
 const DOOR_WIDTH = 1.5;
 const PORT_CLEARANCE = 0.9;
+const ROUTE_POINT_OVERRIDES = Object.freeze({
+  'route-E21-E23': [{ x:-29, z:-41 }, { x:-32, z:-41 }, { x:-32, z:-67 }, { x:-46.5, z:-67 }],
+  'route-E22-E24': [{ x:-47.5, z:-40.5 }, { x:-44, z:-40.5 }, { x:-44, z:-67.5 }, { x:-27.5, z:-67.5 }],
+  'route-E23-E24': [{ x:-46.5, z:-72 }, { x:-27.5, z:-72 }],
+  'route-E23-E25': [{ x:-46.5, z:-77 }, { x:-44, z:-77 }, { x:-44, z:-102 }, { x:-28, z:-102 }],
+  'route-K51-L57': [{ x:187, z:29 }, { x:187, z:12 }, { x:204, z:12 }, { x:204, z:-46 }, { x:225, z:-46 }, { x:225, z:-65 }],
+  'route-L56-L58': [{ x:242, z:-102 }, { x:242, z:-84 }, { x:256, z:-84 }, { x:256, z:-79 }],
+  'route-L57-L59': [{ x:241, z:-67 }, { x:250, z:-67 }, { x:250, z:-43 }, { x:256.5, z:-43 }],
+  'route-L58-L60': [{ x:256, z:-65 }, { x:246, z:-65 }, { x:246, z:-41 }, { x:240.5, z:-41 }],
+  'conn-K55-L60': [{ x:220, z:-10 }, { x:220, z:-26 }, { x:225.5, z:-26 }, { x:225.5, z:-29 }],
+  'secret-K54-L60': [{ x:224, z:27.5 }, { x:224, z:16 }, { x:228, z:16 }, { x:228, z:-29 }, { x:225.5, z:-29 }]
+});
 
 export function buildDungeonTopology(rooms, linksOrRoutes, options = {}) {
   const roomById = new Map(rooms.map(room => [room.id, room]));
@@ -147,11 +159,7 @@ function buildAuthoredConnection(route, a, b, index) {
   const aPort = normalizeAuthoredPort(route.ports?.[a.id], a, route.id, 'a');
   const bPort = normalizeAuthoredPort(route.ports?.[b.id], b, route.id, 'b');
   const elevation = Number.isFinite(route.elevation) ? route.elevation : 0;
-  const points = route.points.map(point => ({
-    x: Number(point.x),
-    z: Number(point.z),
-    ...(Number.isFinite(point.yOffset) ? { yOffset: point.yOffset } : {})
-  }));
+  const points = sanitizeAuthoredPoints(route, aPort, bPort);
   return {
     id: route.id ?? `connection-${index}-${a.id}-${b.id}`,
     aId: a.id,
@@ -264,12 +272,40 @@ function buildOrthogonalPath(a, b) {
   return removeDuplicatePoints(points);
 }
 
+function sanitizeAuthoredPoints(route, aPort, bPort) {
+  const source = ROUTE_POINT_OVERRIDES[route.id] ?? route.points ?? [];
+  const points = source.map(point => ({
+    x: Number(point.x),
+    z: Number(point.z),
+    ...(Number.isFinite(point.yOffset) ? { yOffset: point.yOffset } : {})
+  }));
+  if (!points.length) return [{ x:aPort.x, z:aPort.z }, { x:bPort.x, z:bPort.z }];
+  points[0] = { ...points[0], x:aPort.x, z:aPort.z };
+  points[points.length - 1] = { ...points[points.length - 1], x:bPort.x, z:bPort.z };
+  return simplifyPolyline(removeDuplicatePoints(points));
+}
+
 function removeDuplicatePoints(points) {
   return points.filter((point, index) => {
     if (index === 0) return true;
     const previous = points[index - 1];
     return Math.hypot(point.x - previous.x, point.z - previous.z) > 0.01;
   });
+}
+
+function simplifyPolyline(points) {
+  if (points.length <= 2) return points;
+  const simplified = [points[0]];
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const previous = simplified[simplified.length - 1];
+    const current = points[index];
+    const next = points[index + 1];
+    const sameX = Math.abs(previous.x - current.x) < 0.01 && Math.abs(current.x - next.x) < 0.01;
+    const sameZ = Math.abs(previous.z - current.z) < 0.01 && Math.abs(current.z - next.z) < 0.01;
+    if (!sameX && !sameZ) simplified.push(current);
+  }
+  simplified.push(points[points.length - 1]);
+  return simplified;
 }
 
 function polylineLength(points, elevation) {
