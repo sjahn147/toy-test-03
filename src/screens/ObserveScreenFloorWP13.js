@@ -1,11 +1,12 @@
 import { ObserveScreen as RoomStateObserveScreen } from './ObserveScreenRoomStateWP11.js';
 import { FloorRail, summarizeFloors } from '../ui/FloorRail.js';
-import { normalizeFloorDefinitions, roomFloorId } from '../content/floors/SleepingCitadelFloorContract.js';
+import { normalizeFloorDefinitions, roomFloorId, usesFormalFloorArchitecture } from '../content/floors/SleepingCitadelFloorContract.js';
 import { computeMapBounds } from '../camera/CameraMath.js';
 
 export class ObserveScreen extends RoomStateObserveScreen {
   constructor(options) {
     super(options);
+    this.formalFloorEnabled = false;
     this.floors = [];
     this.activeFloorId = 'F0';
     this.floorRail = null;
@@ -16,6 +17,14 @@ export class ObserveScreen extends RoomStateObserveScreen {
 
   mount(root) {
     super.mount(root);
+    this.formalFloorEnabled = usesFormalFloorArchitecture(this.scenario);
+    if (!this.formalFloorEnabled) {
+      this.floors = [];
+      this.activeFloorId = null;
+      this.floorRail?.destroy();
+      this.floorRail = null;
+      return;
+    }
     this.floors = normalizeFloorDefinitions(this.scenario?.floors ?? this.scenario?.meta?.floors ?? []);
     this.restoreFloorState();
     if (!this.floors.some(floor => floor.id === this.activeFloorId)) this.activeFloorId = this.floors[0]?.id ?? 'F0';
@@ -31,6 +40,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   rebindFloorPresentation() {
+    if (!this.formalFloorEnabled) return;
     this.renderer?.setActiveFloor?.(this.activeFloorId);
     this.applyFloorCameraBounds(this.activeFloorId);
     this.floorRail?.setActiveFloor(this.activeFloorId);
@@ -39,6 +49,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   setActiveFloor(floorId, { focus = false, announce = true, restorePose = true, source = 'system' } = {}) {
+    if (!this.formalFloorEnabled) return false;
     if (!this.floors.some(floor => floor.id === floorId)) return false;
     const changed = floorId !== this.activeFloorId;
     if (changed) this.captureFloorCameraPose(this.activeFloorId);
@@ -59,12 +70,14 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   stepFloor(direction) {
+    if (!this.formalFloorEnabled) return;
     const index = this.floors.findIndex(floor => floor.id === this.activeFloorId);
     const next = Math.max(0, Math.min(this.floors.length - 1, index + direction));
     if (next !== index) this.setActiveFloor(this.floors[next].id, { focus:true, source:'user' });
   }
 
   handleFloorShortcut(event) {
+    if (!this.formalFloorEnabled) return;
     if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
     const target = event.target;
     if (target?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
@@ -73,12 +86,14 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   selectEntity(input) {
+    if (!this.formalFloorEnabled) return super.selectEntity(input);
     const floorId = this.floorForSelection(input);
     if (floorId && floorId !== this.activeFloorId) this.setActiveFloor(floorId, { focus:false, announce:false });
     return super.selectEntity(input);
   }
 
   selectWorldTarget(target) {
+    if (!this.formalFloorEnabled) return super.selectWorldTarget(target);
     const floorId = this.floorForWorldTarget(target);
     if (floorId && floorId !== this.activeFloorId) this.setActiveFloor(floorId, { focus:false, announce:false });
     return super.selectWorldTarget(target);
@@ -86,24 +101,28 @@ export class ObserveScreen extends RoomStateObserveScreen {
 
   refreshViewModel(force = false) {
     super.refreshViewModel(force);
+    if (!this.formalFloorEnabled) return;
     this.renderActiveFloorBadges();
     this.refreshFloorSummary();
     this.followFloorTransition();
   }
 
   renderActiveFloorBadges() {
+    if (!this.formalFloorEnabled) return;
     if (!this.roomStatusLayer || !this.viewModel?.roomStates) return;
     const filtered = Object.fromEntries(Object.entries(this.viewModel.roomStates).filter(([, state]) => (state.floorId ?? this.roomFloor(state.roomId)) === this.activeFloorId));
     this.roomStatusLayer.render(filtered, { overlayMode:this.roomOverlayMode, selectedRoomId:this.selection?.type === 'room' ? this.selection.id : null });
   }
 
   refreshFloorSummary() {
+    if (!this.formalFloorEnabled) return;
     if (!this.floorRail || !this.floors.length) return;
     const snapshot = this.sim?.snapshot?.() ?? {};
     this.floorRail.setSummary(summarizeFloors({ floors:this.floors, roomStates:this.viewModel?.roomStates ?? {}, agents:snapshot.agents ?? [], connectors:snapshot.verticalConnectors ?? this.scenario?.verticalConnectors ?? [], selection:this.selection }));
   }
 
   followFloorTransition() {
+    if (!this.formalFloorEnabled) return;
     if (this.cameraController?.mode !== 'focus') return;
     const followedId = this.followAgentId ?? this.selectedAgentId;
     if (!followedId) return;
@@ -147,12 +166,14 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   applyFloorCameraBounds(floorId) {
+    if (!this.formalFloorEnabled) return;
     if (!this.cameraController) return;
     const rooms = (this.scenario?.rooms ?? []).filter(room => roomFloorId(room) === floorId);
     if (rooms.length) this.cameraController.bounds = computeMapBounds(rooms);
   }
 
   restoreFloorState() {
+    if (!this.formalFloorEnabled) return;
     try {
       const raw = globalThis.localStorage?.getItem?.(this.floorStorageKey);
       if (!raw) return;
@@ -165,6 +186,7 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   persistFloorState() {
+    if (!this.formalFloorEnabled) return;
     try {
       this.captureFloorCameraPose(this.activeFloorId);
       globalThis.localStorage?.setItem?.(this.floorStorageKey, JSON.stringify({
@@ -190,8 +212,10 @@ export class ObserveScreen extends RoomStateObserveScreen {
   }
 
   destroy() {
-    this.persistFloorState();
-    globalThis.removeEventListener?.('keydown', this.floorKeyHandler);
+    if (this.formalFloorEnabled) {
+      this.persistFloorState();
+      globalThis.removeEventListener?.('keydown', this.floorKeyHandler);
+    }
     this.floorRail?.destroy();
     this.floorRail = null;
     super.destroy();

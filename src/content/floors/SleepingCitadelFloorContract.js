@@ -1,6 +1,15 @@
 export const FLOOR_IDS = Object.freeze(['F0', 'B1', 'B2', 'B3']);
 export const FLOOR_INDEX = Object.freeze({ F0: 0, B1: -1, B2: -2, B3: -3 });
 
+export function usesFormalFloorArchitecture(scenario) {
+  const floors = scenario?.floors ?? scenario?.meta?.floors ?? [];
+  return Boolean(
+    scenario?.meta?.authoredPhysicalLayout === true
+    && Array.isArray(floors)
+    && floors.length > 0
+  );
+}
+
 export function normalizeFloorDefinitions(floors = []) {
   const list = (floors ?? []).map((floor, order) => ({
     id: String(floor.id),
