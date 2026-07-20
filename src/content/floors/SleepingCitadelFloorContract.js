@@ -24,13 +24,6 @@ export function normalizeFloorDefinitions(floors = []) {
   return list;
 }
 
-export function usesFormalFloorArchitecture(scenario) {
-  const floors = scenario?.floors ?? scenario?.meta?.floors ?? [];
-  return scenario?.meta?.authoredPhysicalLayout === true
-    && Array.isArray(floors)
-    && floors.length > 0;
-}
-
 export function floorByRoom(scenario) {
   const map = new Map();
   for (const room of scenario?.rooms ?? []) map.set(room.id, room.floorId ?? floorIdFromIndex(room.floor));
